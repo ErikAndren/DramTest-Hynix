@@ -1,26 +1,48 @@
-
-
-FILES=source/Command.vhd \
+FILES=source/DramTestPack.vhd \
+	source/Command.vhd \
 	source/control_interface.vhd \
 	source/pll1.vhd \
 	source/sdr_data_path.vhd \
-	source/sdr_sdram.vhd
+	source/sdr_sdram.vhd \
+	PLL.vhd \
+	source/DramTestTop.vhd
 
 
 WORK_DIR="/tmp/work"
 MODELSIMINI_PATH=/home/erik/Development/FPGA/OV76X0/modelsim.ini
 
+QUARTUS_PATH=/opt/altera/13.0sp1/quartus
+
 CC=vcom
 FLAGS=-work $(WORK_DIR) -93 -modelsimini $(MODELSIMINI_PATH)
+VMAP=vmap
 VLIB=vlib
+VSIM=vsim
 
-all: lib work vhdlfiles
+
+all: lib work altera_mf altera vhdlfiles
 
 lib:
 	$(MAKE) -C ../Lib -f ../Lib/Makefile
 
 work:
 	$(VLIB) $(WORK_DIR)
+
+altera:
+	$(VLIB) /tmp/altera
+	$(VMAP) altera /tmp/altera
+	$(CC) -work altera -2002 \
+		-explicit $(QUARTUS_PATH)/eda/sim_lib/altera_primitives_components.vhd \
+		-explicit $(QUARTUS_PATH)/eda/sim_lib/altera_primitives.vhd
+
+.PHONY: altera_mf
+altera_mf:
+	$(VLIB) /tmp/altera_mf
+	$(VMAP) altera_mf /tmp/altera_mf
+	$(CC) -work altera_mf -2002 \
+		-explicit $(QUARTUS_PATH)/eda/sim_lib/altera_mf_components.vhd \
+		-explicit $(QUARTUS_PATH)/eda/sim_lib/altera_mf.vhd
+
 
 clean:
 	rm -rf *~ rtl_work *.wlf transcript *.bak
