@@ -147,21 +147,6 @@ architecture RTL of sdr_sdram is
       );
   end component;
 
-  attribute syn_black_box : boolean;
-
-  component pll1
-    port (
-      inclock : in  std_logic;
-      clock1  : out std_logic;
-      locked  : out std_logic
-      );
-  end component;
-  attribute syn_black_box of pll1 : component is true;
-
-
-
-
-
   -- signal declarations
   signal ISA      : std_logic_vector(11 downto 0);       --SDRAM address output
   signal IBA      : std_logic_vector(1 downto 0);        --SDRAM bank address
@@ -191,9 +176,6 @@ architecture RTL of sdr_sdram is
   signal ref_ack   : std_logic;
   signal cm_ack    : std_logic;
 
-  signal CLK133    : std_logic;
-  signal CLK133B   : std_logic;
-  signal clklocked : std_logic;
 
 begin
 
@@ -204,7 +186,7 @@ begin
       ASIZE => ASIZE
       )
     port map (
-      CLK       => CLK133,
+      CLK       => CLK,
       RESET_N   => RESET_N,
       CMD       => CMD,
       ADDR      => ADDR,
@@ -240,7 +222,7 @@ begin
       BANKSTART => BANKSTART
       )
     port map (
-      CLK       => CLK133,
+      CLK       => CLK,
       RESET_N   => RESET_N,
       SADDR     => saddr,
       NOP       => nop,
@@ -274,7 +256,7 @@ begin
       DSIZE => DSIZE
       )
     port map (
-      CLK     => CLK133,
+      CLK     => CLK,
       RESET_N => RESET_N,
       OE      => oe,
       DATAIN  => DATAIN,
@@ -285,19 +267,11 @@ begin
       DQOUT   => DQOUT
       );
 
-  pll : pll1
-    port map (
-      inclock => CLK,
-      locked  => clklocked,
-      clock1  => CLK133
-      );
-
-
   -- Add a level flops to the sdram i/o that can be place
   -- by the router into the I/O cells
-  process(CLK133)
+  process(CLK)
   begin
-    if rising_edge(CLK133) then
+    if rising_edge(CLK) then
       SA      <= ISA;
       BA      <= IBA;
       CS_N    <= ICS_N;
@@ -311,7 +285,6 @@ begin
   end process;
 
   -- tri-state the data bus using the OE signal from the main controller.
-
   DQ <= DQOUT when OE = '1' else (others => 'Z');
 
 
