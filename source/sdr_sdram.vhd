@@ -43,6 +43,7 @@ entity sdr_sdram is
     DATAIN  : in    std_logic_vector(DSIZE-1 downto 0);  --Data input
     DATAOUT : out   std_logic_vector(DSIZE-1 downto 0);  --Data output
     DM      : in    std_logic_vector(DSIZE/8-1 downto 0);  --Data mask input
+    --
     SA      : out   std_logic_vector(11 downto 0);       --SDRAM address output
     BA      : out   std_logic_vector(1 downto 0);        --SDRAM bank address
     CS_N    : out   std_logic_vector(1 downto 0);        --SDRAM Chip Selects
@@ -54,10 +55,6 @@ entity sdr_sdram is
     DQM     : out   std_logic_vector(DSIZE/8-1 downto 0)  --SDRAM data mask lines
     );
 end sdr_sdram;
-
-
-
-
 
 architecture RTL of sdr_sdram is
 
