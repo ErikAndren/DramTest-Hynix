@@ -1,7 +1,7 @@
 FILES=source/DramTestPack.vhd \
 	source/Command.vhd \
 	source/control_interface.vhd \
-	source/pll1.vhd \
+	source/RequestHandler.vhd \
 	source/sdr_data_path.vhd \
 	source/sdr_sdram.vhd \
 	PLL.vhd \
@@ -18,7 +18,6 @@ FLAGS=-work $(WORK_DIR) -93 -modelsimini $(MODELSIMINI_PATH)
 VMAP=vmap
 VLIB=vlib
 VSIM=vsim
-
 
 all: lib work altera_mf altera vhdlfiles
 
