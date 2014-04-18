@@ -1,10 +1,11 @@
 FILES=source/DramTestPack.vhd \
+	ReqFifo.vhd \
+	PLL.vhd \
 	source/Command.vhd \
 	source/control_interface.vhd \
 	source/RequestHandler.vhd \
 	source/sdr_data_path.vhd \
 	source/sdr_sdram.vhd \
-	PLL.vhd \
 	source/DramTestTop.vhd
 
 
