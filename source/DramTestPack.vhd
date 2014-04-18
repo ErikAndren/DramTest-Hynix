@@ -41,10 +41,33 @@ package DramTestPack is
      Addr => (others => 'X'));
   -- 1 + 128 + 3 + 23 = 155
   constant DramRequestW : positive := Z_DramRequest.Val'length + Z_DramRequest.Data'length + Z_DramRequest.Cmd'length + Z_DramRequest.Addr'length;
-    
+
+  function DramRequestToWord(Rec : DramRequest) return word;
+  function WordToDramRequest(W : word) return DramRequest;
 
 end package;
 
 package body DramTestPack is
+  function DramRequestToWord(Rec : DramRequest) return word is
+    variable res : word(DramRequestW-1 downto 0);
+  begin
+    res := Rec.Addr &
+           Rec.Cmd &
+           Rec.Data &
+           Rec.Val;
+    return res;
+  end function;
 
+  function WordToDramRequest(W : word) return DramRequest is
+    variable R    : DramRequest;
+    variable i, j : natural;
+  begin
+    i := W'length-1;
+    j := i - R.Addr'length; R.Addr := W(i downto j); i := j;
+    j := i - R.Cmd'length; R.Cmd := W(i downto j); i := j;
+    j := i - R.Data'length; R.Data := W(i downto j); i := j;
+    j := i - R.Val'length; R.Val := W(i downto j); i := j;
+    assert i = 0 report "Word to record mismatch" severity failure;
+    return R;
+  end function;
 end package body;
