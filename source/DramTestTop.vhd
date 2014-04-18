@@ -26,6 +26,9 @@ end entity;
 architecture rtl of DramTestTop is
   signal Clk100MHz  : bit1;
   signal RstN100MHz : bit1;
+  --
+  signal Clk50MHz    : bit1;
+  signal RstN50MHz   : bit1;
 
   signal SdramAddr     : word(ASIZE-1 downto 0);
   signal SdramCmd      : word(3-1 downto 0);
@@ -37,8 +40,33 @@ architecture rtl of DramTestTop is
   signal SdramDataMask : word(DSIZE/8-1 downto 0);  
 
   signal SdramCS_N_i : word(2-1 downto 0);
-  
+
+  signal ReqFromArb   : DramRequest;
+  signal ReqFromArbWe : bit1;
+  --
+  signal ReqToCont    : DramRequest;
+  signal ContCmdAck   : bit1;
 begin
+  -- Pll
+  Pll100MHz : entity work.PLL
+    port map (
+      AReset => AsyncRst,
+      inclk0 => Clk,
+      c0     => Clk100MHz
+      );
+
+  ClkDiv : entity work.ClkDiv
+    generic map (
+      SourceFreq => 100,
+      SinkFreq   => 50
+      )
+    port map (
+      Clk => Clk100MHz,
+      RstN => RstN100MHz,
+      --
+      Clk_out => Clk50MHz
+      );
+
   -- Reset synchronizer
   RstSync100Mhz : entity work.ResetSync
     port map (
@@ -48,15 +76,27 @@ begin
       Rst_N    => RstN100MHz
       );
 
-  -- Pll
-  Pll100MHz : entity work.PLL
+  RstSync50Mhz : entity work.ResetSync
     port map (
-      AReset => AsyncRst,
-      inclk0 => Clk,
-      c0     => Clk100MHz
+      AsyncRst => AsyncRst,
+      Clk      => Clk50MHz,
+      --
+      Rst_N    => RstN50MHz
       );
-
+  
   -- Dram data generator and consumer
+  ReqHdler : entity work.RequestHandler
+    port map (
+      Rst_N  => RstN100MHz,
+      --
+      WrClk  => Clk50MHz,
+      ReqIn  => ReqFromArb,
+      We     => ReqFromArbWe,
+      --
+      RdClk  => Clk100MHz,
+      ReqOut => ReqToCont,
+      Re     => ContCmdAck
+      );
 
   -- Dram controller
   SdramController : entity work.sdr_sdram
