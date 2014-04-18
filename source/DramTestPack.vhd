@@ -15,6 +15,34 @@ package DramTestPack is
   constant COLSTART  : integer := 0;
   constant BANKSTART : integer := 20;
 
+  constant BurstLen : natural := 8;
+
+  constant CmdW           : positive              := 3;
+  constant DRAM_NOP       : word(CmdW-1 downto 0) := "000";
+  constant DRAM_READA     : word(CmdW-1 downto 0) := "001";
+  constant DRAM_WRITEA    : word(CmdW-1 downto 0) := "010";
+  constant DRAM_REFRESH   : word(CmdW-1 downto 0) := "011";
+  constant DRAM_PRECHARGE : word(CmdW-1 downto 0) := "100";
+  constant DRAM_LOAD_MODE : word(CmdW-1 downto 0) := "101";
+  constant DRAM_LOAD_REG1 : word(CmdW-1 downto 0) := "110";
+  constant DRAM_LOAD_REG2 : word(CmdW-1 downto 0) := "111";
+  
+  type DramRequest is record
+    Val  : word1;
+    Data : word(DSIZE*BurstLen-1 downto 0);
+    Cmd  : word(CmdW-1 downto 0);
+    Addr : word(ASIZE-1 downto 0);
+  end record;
+
+  constant Z_DramRequest : DramRequest :=
+    (Val  => (others => '0'),
+     Data => (others => 'X'),
+     Cmd  => (others => 'X'),
+     Addr => (others => 'X'));
+  -- 1 + 128 + 3 + 23 = 155
+  constant DramRequestW : positive := Z_DramRequest.Val'length + Z_DramRequest.Data'length + Z_DramRequest.Cmd'length + Z_DramRequest.Addr'length;
+    
+
 end package;
 
 package body DramTestPack is
