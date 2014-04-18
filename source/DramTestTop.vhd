@@ -41,11 +41,18 @@ architecture rtl of DramTestTop is
 
   signal SdramCS_N_i : word(2-1 downto 0);
 
-  signal ReqFromArb   : DramRequest;
-  signal ReqFromArbWe : bit1;
+  signal ReqFromArb              : DramRequest;
+  signal ReqFromArbWe            : bit1;
   --
-  signal ReqToCont    : DramRequest;
-  signal ContCmdAck   : bit1;
+  signal ReqToCont               : DramRequest;
+  signal ContCmdAck              : bit1;
+  --
+  signal WriteReqFromPatGen      : DramRequest;
+  signal WriteReqFromPatGenAck   : bit1;
+  --
+  signal ReadReqFromRespHdler    : DramRequest;
+  signal ReadReqFromRespHdlerAck : bit1;
+  
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -83,11 +90,30 @@ begin
       --
       Rst_N    => RstN50MHz
       );
+
+  -- Write data generator, will later be camera
+
+  -- Response handler
   
+  SdramArb : entity work.SdramArbiter
+    port map (
+      Clk         => Clk50MHz,
+      Rst_N       => RstN50MHz,
+      --
+      WriteReq    => WriteReqFromPatGen,
+      WriteReqAck => WriteReqFromPatGenAck,
+      --
+      ReadReq     => ReadReqFromRespHdler,
+      ReadReqAck  => ReadReqFromRespHdlerAck,
+      --
+      ArbDecReq   => ReqFromArb,
+      ArbDecVal   => ReqFromArbWe
+      );
+
   -- Dram data generator and consumer
   ReqHdler : entity work.RequestHandler
     port map (
-      Rst_N  => RstN100MHz,
+      Rst_N  => RstN100MHz, -- FIXME: Hook this up properly
       --
       WrClk  => Clk50MHz,
       ReqIn  => ReqFromArb,
