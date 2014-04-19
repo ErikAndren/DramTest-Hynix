@@ -159,5 +159,7 @@ begin
       DQM              => SdramDQM
       );
   SdramCs_N <= SdramCs_N_i(0 downto 0);
+
+  
   
 end architecture rtl;
