@@ -32,6 +32,25 @@ entity RespHdler is
 end entity;
 
 architecture rtl of RespHdler is
+  signal DataToVga : word(DSIZE-1 downto 0);
+  signal FifoEmpty, ReadFifo, FifoFull : bit1;
+  signal FillLvl : word(5-1 downto 0);
 begin
   
+  RespFifo : entity work.RespFIFO
+    port map (
+      WrClk   => WrClk,
+      WrReq   => RespDataVal,
+      Data    => RespData,
+      --
+      RdClk   => RdClk,
+      RdReq   => ReadFifo,
+      Q       => DataToVga,
+      RdEmpty => FifoEmpty,
+      RdUsedW => FillLvl,
+      wrFull  => FifoFull
+      );
+
+  assert not (WrReq = '1' and FifoFull = '1') report "Overflowing response fifo" severity failure;
+
 end architecture rtl;
