@@ -30,14 +30,18 @@ architecture rtl of DramTestTop is
   signal Clk50MHz    : bit1;
   signal RstN50MHz   : bit1;
 
-  signal SdramAddr     : word(ASIZE-1 downto 0);
-  signal SdramCmd      : word(3-1 downto 0);
-  signal SdramCmdAck   : bit1;
+  signal SdramAddr      : word(ASIZE-1 downto 0);
+  signal SdramCmd       : word(3-1 downto 0);
+  signal SdramCmdAck    : bit1;
   --
-  signal SdramDataIn   : word(DSIZE-1 downto 0);
-  signal SdramDataOut  : word(DSIZE-1 downto 0);
+  signal SdramDataIn    : word(DSIZE-1 downto 0);
+  signal SdramDataOut   : word(DSIZE-1 downto 0);
   --
-  signal SdramDataMask : word(DSIZE/8-1 downto 0);  
+  signal SdramDataVal   : bit1;
+  signal VgaInView      : bit1;
+  signal VgaPixelToDisp : word(PixelW-1 downto 0);
+  --
+  signal SdramDataMask  : word(DSIZE/8-1 downto 0);
 
   signal SdramCS_N_i : word(2-1 downto 0);
 
@@ -160,6 +164,21 @@ begin
       );
   SdramCs_N <= SdramCs_N_i(0 downto 0);
 
-  
-  
+  RespHdler : entity work.RespHandler
+    port map (
+      WrRst_N     => RstN100MHz,
+      WrClk       => Clk100MHz,
+      --
+      RespData    => SdramDataOut,
+      RespDataVal => SdramDataVal,      -- FIXME: Create validation signal
+      --
+      RdRst_N     => RstN50MHz,
+      RdClk       => Clk50MHz,
+      --
+      ReadReq     => ReadReqFromRespHdler,
+      ReadReqAck  => ReadReqFromRespHdlerAck,
+      --
+      InView      => VgaInView,
+      PixelToDisp => VgaPixelToDisp
+      );
 end architecture rtl;
