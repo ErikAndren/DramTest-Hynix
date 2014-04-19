@@ -62,11 +62,11 @@ package body DramTestPack is
     variable R    : DramRequest;
     variable i, j : natural;
   begin
-    i := W'length-1;
-    j := i - R.Addr'length; R.Addr := W(i downto j); i := j;
-    j := i - R.Cmd'length; R.Cmd := W(i downto j); i := j;
-    j := i - R.Data'length; R.Data := W(i downto j); i := j;
-    j := i - R.Val'length; R.Val := W(i downto j); i := j;
+    i := W'length;
+    j := i - R.Addr'length; R.Addr := W(i-1 downto j); i := j;
+    j := i - R.Cmd'length; R.Cmd := W(i-1 downto j); i := j;
+    j := i - R.Data'length; R.Data := W(i-1 downto j); i := j;
+    j := i - R.Val'length; R.Val := W(i-1 downto j); i := j;
     assert i = 0 report "Word to record mismatch" severity failure;
     return R;
   end function;
