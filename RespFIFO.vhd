@@ -49,6 +49,7 @@ ENTITY RespFIFO IS
 		wrreq		: IN STD_LOGIC ;
 		q		: OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
 		rdempty		: OUT STD_LOGIC ;
+		rdusedw		: OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
 		wrfull		: OUT STD_LOGIC 
 	);
 END RespFIFO;
@@ -59,6 +60,7 @@ ARCHITECTURE SYN OF respfifo IS
 	SIGNAL sub_wire0	: STD_LOGIC ;
 	SIGNAL sub_wire1	: STD_LOGIC_VECTOR (15 DOWNTO 0);
 	SIGNAL sub_wire2	: STD_LOGIC ;
+	SIGNAL sub_wire3	: STD_LOGIC_VECTOR (4 DOWNTO 0);
 
 
 
@@ -77,14 +79,15 @@ ARCHITECTURE SYN OF respfifo IS
 		wrsync_delaypipe		: NATURAL
 	);
 	PORT (
-			data	: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
 			rdclk	: IN STD_LOGIC ;
-			rdreq	: IN STD_LOGIC ;
 			wrfull	: OUT STD_LOGIC ;
 			q	: OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
 			rdempty	: OUT STD_LOGIC ;
 			wrclk	: IN STD_LOGIC ;
-			wrreq	: IN STD_LOGIC 
+			wrreq	: IN STD_LOGIC ;
+			data	: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
+			rdreq	: IN STD_LOGIC ;
+			rdusedw	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
 	);
 	END COMPONENT;
 
@@ -92,6 +95,7 @@ BEGIN
 	wrfull    <= sub_wire0;
 	q    <= sub_wire1(15 DOWNTO 0);
 	rdempty    <= sub_wire2;
+	rdusedw    <= sub_wire3(4 DOWNTO 0);
 
 	dcfifo_component : dcfifo
 	GENERIC MAP (
@@ -108,14 +112,15 @@ BEGIN
 		wrsync_delaypipe => 4
 	)
 	PORT MAP (
-		data => data,
 		rdclk => rdclk,
-		rdreq => rdreq,
 		wrclk => wrclk,
 		wrreq => wrreq,
+		data => data,
+		rdreq => rdreq,
 		wrfull => sub_wire0,
 		q => sub_wire1,
-		rdempty => sub_wire2
+		rdempty => sub_wire2,
+		rdusedw => sub_wire3
 	);
 
 
@@ -151,7 +156,7 @@ END SYN;
 -- Retrieval info: PRIVATE: output_width NUMERIC "16"
 -- Retrieval info: PRIVATE: rsEmpty NUMERIC "1"
 -- Retrieval info: PRIVATE: rsFull NUMERIC "0"
--- Retrieval info: PRIVATE: rsUsedW NUMERIC "0"
+-- Retrieval info: PRIVATE: rsUsedW NUMERIC "1"
 -- Retrieval info: PRIVATE: sc_aclr NUMERIC "0"
 -- Retrieval info: PRIVATE: sc_sclr NUMERIC "0"
 -- Retrieval info: PRIVATE: wsEmpty NUMERIC "0"
@@ -174,6 +179,7 @@ END SYN;
 -- Retrieval info: USED_PORT: rdclk 0 0 0 0 INPUT NODEFVAL "rdclk"
 -- Retrieval info: USED_PORT: rdempty 0 0 0 0 OUTPUT NODEFVAL "rdempty"
 -- Retrieval info: USED_PORT: rdreq 0 0 0 0 INPUT NODEFVAL "rdreq"
+-- Retrieval info: USED_PORT: rdusedw 0 0 5 0 OUTPUT NODEFVAL "rdusedw[4..0]"
 -- Retrieval info: USED_PORT: wrclk 0 0 0 0 INPUT NODEFVAL "wrclk"
 -- Retrieval info: USED_PORT: wrfull 0 0 0 0 OUTPUT NODEFVAL "wrfull"
 -- Retrieval info: USED_PORT: wrreq 0 0 0 0 INPUT NODEFVAL "wrreq"
@@ -184,6 +190,7 @@ END SYN;
 -- Retrieval info: CONNECT: @wrreq 0 0 0 0 wrreq 0 0 0 0
 -- Retrieval info: CONNECT: q 0 0 16 0 @q 0 0 16 0
 -- Retrieval info: CONNECT: rdempty 0 0 0 0 @rdempty 0 0 0 0
+-- Retrieval info: CONNECT: rdusedw 0 0 5 0 @rdusedw 0 0 5 0
 -- Retrieval info: CONNECT: wrfull 0 0 0 0 @wrfull 0 0 0 0
 -- Retrieval info: GEN_FILE: TYPE_NORMAL RespFIFO.vhd TRUE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL RespFIFO.inc FALSE
