@@ -1,5 +1,6 @@
 FILES=source/DramTestPack.vhd \
 	ReqFifo.vhd \
+	RespFIFO.vhd \
 	PLL.vhd \
 	source/SdramArbiter.vhd \
 	source/RequestHandler.vhd \
