@@ -6,6 +6,8 @@ use ieee.std_logic_unsigned.all;
 use work.Types.all;
 
 package DramTestPack is
+  constant PixelW : positive := 8;
+  
   constant ASIZE     : integer := 23;
   constant DSIZE     : integer := 16;
   constant ROWSIZE   : integer := 12;
