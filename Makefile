@@ -4,6 +4,7 @@ FILES=source/DramTestPack.vhd \
 	PLL.vhd \
 	source/SdramArbiter.vhd \
 	source/RequestHandler.vhd \
+	source/RespHandler.vhd \
 	source/Command.vhd \
 	source/control_interface.vhd \
 	source/RequestHandler.vhd \
