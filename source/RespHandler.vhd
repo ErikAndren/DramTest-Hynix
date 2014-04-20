@@ -40,6 +40,9 @@ architecture rtl of RespHandler is
   constant PixelsPerWordW : positive := bits(PixelsPerWord);
   
   signal WordCnt_N, WordCnt_D : word(PixelsPerWordW-1 downto 0);
+
+  signal Frame_N, Frame_D : word(FramesW-1 downto 0);
+  signal Addr_N, Addr_D   : word(VgaPixelsPerDwordW-1 downto 0);
 begin
   
   RespFifo : entity work.RespFIFO
@@ -60,13 +63,17 @@ begin
   SyncProc : process (RdClk, RdRst_N)
   begin
     if RdRst_N = '0' then
+      Frame_D   <= (others => '0');
+      Addr_D    <= (others => '0');
       WordCnt_D <= (others => '0');
     elsif rising_edge(RdClk) then
+      Frame_D   <= Frame_N;
       WordCnt_D <= WordCnt_N;
+      Addr_D    <= Addr_N;
     end if;
   end process;
 
-  VgaFiller : process (WordCnt_D, DataToVga, FifoEmpty)
+  VgaFiller : process (WordCnt_D, DataToVga, FifoEmpty, InView)
   begin
     -- Display black as default
     PixelToDisp <= (others => '0');
@@ -90,4 +97,29 @@ begin
     end if;
   end process;
 
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck)
+  begin
+    ReadReq <= Z_DramRequest;
+    Addr_N  <= Addr_D;
+    Frame_N <= Frame_D;
+    --
+    -- Generate read request as long as fifo is less than half full
+    if FillLvl(FillLvl'high) = '0' then
+      ReadReq.Val  <= "1";
+      ReadReq.Cmd  <= DRAM_READA;
+      ReadReq.Addr <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
+    end if;
+
+    if ReadReqAck = '1' then
+      Addr_N <= Addr_D + BurstLen;
+      if (Addr_D + BurstLen > VgaPixelsPerDwordW) then
+        Addr_N  <= (others => '0');
+        Frame_N <= Frame_D + 1;
+        if Frame_D + 1 >= Frames then
+          Frame_N <= (others => '0');
+        end if;
+      end if;
+    end if;
+  end process;
+  
 end architecture rtl;
