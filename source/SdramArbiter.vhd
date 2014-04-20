@@ -27,8 +27,9 @@ begin
   ArbAsyn : process (ReadReq, WriteReq)
   begin
     WriteReqAck <= '0';
-    ReadReqAck <= '0';
-    ArbDecVal <= '0';
+    ReadReqAck  <= '0';
+    ArbDecVal   <= '0';
+    ArbDecReq   <= Z_DramRequest;
     
     if ReadReq.Val = "1" then
       ReadReqAck <= '0';
