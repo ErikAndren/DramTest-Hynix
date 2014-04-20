@@ -6,28 +6,42 @@ use ieee.std_logic_unsigned.all;
 use work.Types.all;
 
 package DramTestPack is
-  constant PixelW : positive := 8;
-  
-  constant ASIZE     : integer := 23;
-  constant DSIZE     : integer := 16;
-  constant ROWSIZE   : integer := 12;
-  constant COLSIZE   : integer := 9;
-  constant BANKSIZE  : integer := 2;
-  constant ROWSTART  : integer := 9;
-  constant COLSTART  : integer := 0;
-  constant BANKSTART : integer := 20;
-
-  constant BurstLen : natural := 8;
-
-  constant CmdW           : positive              := 3;
-  constant DRAM_NOP       : word(CmdW-1 downto 0) := "000";
-  constant DRAM_READA     : word(CmdW-1 downto 0) := "001";
-  constant DRAM_WRITEA    : word(CmdW-1 downto 0) := "010";
-  constant DRAM_REFRESH   : word(CmdW-1 downto 0) := "011";
-  constant DRAM_PRECHARGE : word(CmdW-1 downto 0) := "100";
-  constant DRAM_LOAD_MODE : word(CmdW-1 downto 0) := "101";
-  constant DRAM_LOAD_REG1 : word(CmdW-1 downto 0) := "110";
-  constant DRAM_LOAD_REG2 : word(CmdW-1 downto 0) := "111";
+  constant VgaHeight          : positive              := 480;
+  constant VgaHeightW         : positive              := bits(VgaHeight);
+  constant VgaWidth           : positive              := 640;
+  constant VgaWidthW          : positive              := bits(VgaWidth);
+  constant VgaRes             : positive              := VgaHeight * VgaWidth;
+  constant PixelW             : positive              := 8;
+  --
+  constant VgaPixels          : positive              := VgaRes * PixelW;
+  --
+  constant ASIZE              : integer               := 23;
+  constant DSIZE              : integer               := 16;
+  constant ROWSIZE            : integer               := 12;
+  constant COLSIZE            : integer               := 9;
+  constant BANKSIZE           : integer               := 2;
+  constant ROWSTART           : integer               := 9;
+  constant COLSTART           : integer               := 0;
+  constant BANKSTART          : integer               := 20;
+  --
+  constant VgaPixelsPerDword  : positive              := VgaPixels / DSIZE;
+  constant VgaPixelsPerDwordW : positive              := bits(VgaPixelsPerDword);
+  --
+  constant Frames             : positive              := 2;
+  constant FramesW            : positive              := bits(Frames);
+  --
+  constant BurstLen           : natural               := 8;
+  constant BurstSz            : natural               := BurstLen * DSIZE;
+  --
+  constant CmdW               : positive              := 3;
+  constant DRAM_NOP           : word(CmdW-1 downto 0) := "000";
+  constant DRAM_READA         : word(CmdW-1 downto 0) := "001";
+  constant DRAM_WRITEA        : word(CmdW-1 downto 0) := "010";
+  constant DRAM_REFRESH       : word(CmdW-1 downto 0) := "011";
+  constant DRAM_PRECHARGE     : word(CmdW-1 downto 0) := "100";
+  constant DRAM_LOAD_MODE     : word(CmdW-1 downto 0) := "101";
+  constant DRAM_LOAD_REG1     : word(CmdW-1 downto 0) := "110";
+  constant DRAM_LOAD_REG2     : word(CmdW-1 downto 0) := "111";
   
   type DramRequest is record
     Val  : word1;
