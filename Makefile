@@ -13,7 +13,8 @@ FILES=source/DramTestPack.vhd \
 	source/RequestHandler.vhd \
 	source/sdr_data_path.vhd \
 	source/sdr_sdram.vhd \
-	source/DramTestTop.vhd
+	source/DramTestTop.vhd \
+	source/tb.vhd
 
 
 WORK_DIR="/tmp/work"
@@ -26,6 +27,11 @@ FLAGS=-work $(WORK_DIR) -93 -modelsimini $(MODELSIMINI_PATH)
 VMAP=vmap
 VLIB=vlib
 VSIM=vsim
+TBTOP=tb
+
+TB_TASK_FILE=simulation/run_tb.tcl
+VSIM_ARGS=-novopt -t 1ps -lib $(WORK_DIR) -do $(TB_TASK_FILE)
+
 
 all: lib work altera_mf altera vhdlfiles
 
@@ -56,3 +62,6 @@ clean:
 
 vhdlfiles:
 	$(CC) $(FLAGS) $(FILES)
+
+isim: all
+	$(VSIM) $(TBTOP) $(VSIM_ARGS)
