@@ -68,15 +68,17 @@ begin
     WrData_N   <= WrData_D;
     PixCnt_N   <= PixCnt_D;
     Addr_N     <= Addr_D;
+    FifoWe <= '0';
 
     if Href = '1' then
       if PixCnt_D = 0 then
         WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);
         WordCnt_N <= WordCnt_D + 1;
 
-        if WordCnt_D = PixelsPerBurst then
+        if WordCnt_D = PixelsPerBurst-1 then
+          FifoWe    <= '1';
           WordCnt_N <= (others => '0');
-          Addr_N <= Addr_D + BurstLen;
+          Addr_N    <= Addr_D + BurstLen;
 
           if Addr_D + BurstLen > VgaPixels then
             Addr_N <= (others => '0');
@@ -101,8 +103,6 @@ begin
       Addr_N     <= (others => '0');
     end if;
   end process;
-
-  FifoWe <= '1' when WordCnt_D = PixelsPerBurst else '0';
   
   DramRequest_i.Val             <= Bit1ToWord1(FifoWe);
   DramRequest_i.Data            <= WrData_D;
