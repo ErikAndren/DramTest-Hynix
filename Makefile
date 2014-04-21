@@ -2,6 +2,7 @@ FILES=source/DramTestPack.vhd \
 	ReqFifo.vhd \
 	RespFIFO.vhd \
 	PLL.vhd \
+	source/VGAGenerator.vhd \
 	source/FakeVgaCam.vhd \
 	source/CamAligner.vhd \
 	source/SdramArbiter.vhd \
