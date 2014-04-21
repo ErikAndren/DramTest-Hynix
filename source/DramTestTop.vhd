@@ -174,6 +174,7 @@ begin
   ReqHdler : entity work.RequestHandler
     port map (
       WrClk      => Clk50MHz,
+      WrRstN     => RstN50MHz,
       ReqIn      => ReqFromArb,
       We         => ReqFromArbWe,
       --
