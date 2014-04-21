@@ -43,7 +43,7 @@ architecture rtl of RequestHandler is
   --
   signal ReadPenalty_N, ReadPenalty_D   : word(tReadWaitAndBurstW-1 downto 0);
 
-  type DramInitStates is (DO_PRECHARGE, DO_LOAD_MODE, DO_LOAD_REG2, DO_LOAD_REG1, DONE);
+  type DramInitStates is (INIT, DO_PRECHARGE, DO_LOAD_MODE, DO_LOAD_REG2, DO_LOAD_REG1, DONE);
   
   signal InitFSM_N, InitFSM_D : DramInitStates;
   signal InitReq : DramRequest;
@@ -67,6 +67,9 @@ begin
     InitFsm_N <= InitFsm_D;
 
     case InitFsm_D is
+      when INIT =>
+        InitFsm_N <= DO_PRECHARGE;
+        
       when DO_PRECHARGE =>
         InitReq.Val <= "1";
         InitReq.Addr <= (others => '0');
