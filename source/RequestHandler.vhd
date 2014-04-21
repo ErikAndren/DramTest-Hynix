@@ -69,6 +69,7 @@ begin
     case InitFsm_D is
       when DO_PRECHARGE =>
         InitReq.Val <= "1";
+        InitReq.Addr <= (others => '0');
         InitReq.Cmd <= DRAM_PRECHARGE;
         InitFsm_N   <= DO_LOAD_MODE;
         
@@ -98,6 +99,8 @@ begin
       when DO_LOAD_REG1 =>
         InitReq.Val <= "1";
         InitReq.Cmd <= DRAM_LOAD_REG1;
+
+        InitReq.Addr <= (others => '0');
 
         -- CAS 3
         InitReq.Addr(1 downto 0) <= "11";
@@ -161,8 +164,32 @@ begin
     end if;
   end process;
 
-  ReadFifo <= '1' when WordCnt_D = 0 and FifoEmpty = '0' else '0';
-  
+  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck)
+  begin
+    ReadFifo <= '0';
+
+    if FifoEmpty = '0' then
+      if ReqOut_i.Cmd = DRAM_WRITEA then
+        if WordCnt_D = 0 then
+          ReadFifo <= '1';
+        end if;
+      elsif ReqOut_i.Cmd = DRAM_READA then
+        if ReadPenalty_D = 0 then
+          ReadFifo <= '1';
+        end if;
+      else
+        if CmdAck = '1' then
+          ReadFifo <= '1';
+        end if;
+
+        -- Autoload new value if empty
+        if ReqOut_i.Val = "0" then
+          ReadFifo <= '1';
+        end if;
+      end if;
+    end if;
+  end process;
+
   ReadOutProc : process (WordCnt_D, WritePenalty_D, CmdAck, ReadFifo, CmdMask_D, ReqOut_i, ReadPenalty_D)
   begin
     WordCnt_N      <= WordCnt_D;
