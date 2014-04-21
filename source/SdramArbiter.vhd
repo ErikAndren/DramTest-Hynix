@@ -32,9 +32,9 @@ begin
     ArbDecReq   <= Z_DramRequest;
     
     if ReadReq.Val = "1" then
-      ReadReqAck <= '0';
-      ArbDecVal <= '1';
-      ArbDecReq <= ReadReq;
+      ReadReqAck <= '1';
+      ArbDecVal  <= '1';
+      ArbDecReq  <= ReadReq;
     end if;
 
     if WriteReq.Val = "1" then
