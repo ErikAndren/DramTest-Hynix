@@ -122,6 +122,8 @@ begin
       RdEmpty => FifoEmpty,
       WrFull  => FifoFull
       );
+
+  assert not (FifoFull = '1' and FifoWe = '1') report "CamAligner fifo overflow" severity failure;
 	
   WriteReq_i <= WordToDramRequest(WriteReqWord);
   WriteReq   <= WriteReq_i when ArbAck_D = '0' else Z_DramRequest;
