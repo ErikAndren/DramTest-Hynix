@@ -181,7 +181,9 @@ begin
       RdRst_N    => RstN100MHz,
       ReqOut     => ReqToCont,
       ReqDataOut => SdramDataIn,
-      CmdAck     => SdramCmdAck
+      CmdAck     => SdramCmdAck,
+      --
+      RespVal    => SdramDataVal
       );
 
   SdramAddr     <= ReqToCont.Addr;
@@ -230,7 +232,7 @@ begin
       WrClk       => Clk100MHz,
       --
       RespData    => SdramDataOut,
-      RespDataVal => SdramDataVal,      -- FIXME: Create validation signal
+      RespDataVal => SdramDataVal,
       --
       RdRst_N     => RstN25MHz,
       RdClk       => Clk25MHz,
