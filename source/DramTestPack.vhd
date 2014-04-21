@@ -31,7 +31,11 @@ package DramTestPack is
   constant FramesW            : positive              := bits(Frames);
   --
   constant BurstLen           : natural               := 8;
+  constant BurstLenW          : positive              := bits(BurstLen);
   constant BurstSz            : natural               := BurstLen * DSIZE;
+  --
+  constant PixelsPerBurst     : positive              := BurstSz / PixelW;
+  constant PixelsPerBurstW    : positive              := bits(PixelsPerBurst);
   --
   constant CmdW               : positive              := 3;
   constant DRAM_NOP           : word(CmdW-1 downto 0) := "000";
@@ -42,6 +46,8 @@ package DramTestPack is
   constant DRAM_LOAD_MODE     : word(CmdW-1 downto 0) := "101";
   constant DRAM_LOAD_REG1     : word(CmdW-1 downto 0) := "110";
   constant DRAM_LOAD_REG2     : word(CmdW-1 downto 0) := "111";
+
+  constant tRCD : positive := 3;
   
   type DramRequest is record
     Val  : word1;
@@ -53,7 +59,7 @@ package DramTestPack is
   constant Z_DramRequest : DramRequest :=
     (Val  => (others => '0'),
      Data => (others => 'X'),
-     Cmd  => (others => 'X'),
+     Cmd  => DRAM_NOP,
      Addr => (others => 'X'));
   -- 1 + 128 + 3 + 23 = 155
   constant DramRequestW : positive := Z_DramRequest.Val'length + Z_DramRequest.Data'length + Z_DramRequest.Cmd'length + Z_DramRequest.Addr'length;
