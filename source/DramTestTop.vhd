@@ -29,7 +29,10 @@ architecture rtl of DramTestTop is
   --
   signal Clk50MHz    : bit1;
   signal RstN50MHz   : bit1;
-
+  --
+  signal Clk25MHz    : bit1;
+  signal RstN25MHz   : bit1;
+  --
   signal SdramAddr      : word(ASIZE-1 downto 0);
   signal SdramCmd       : word(3-1 downto 0);
   signal SdramCmdAck    : bit1;
@@ -56,7 +59,11 @@ architecture rtl of DramTestTop is
   --
   signal ReadReqFromRespHdler    : DramRequest;
   signal ReadReqFromRespHdlerAck : bit1;
-  
+
+  signal CamVsync : bit1;
+  signal CamHref  : bit1;
+  signal CamD     : word(8-1 downto 0);
+
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -66,7 +73,7 @@ begin
       c0     => Clk100MHz
       );
 
-  ClkDiv : entity work.ClkDiv
+  ClkDivTo50Mhz : entity work.ClkDiv
     generic map (
       SourceFreq => 100,
       SinkFreq   => 50
@@ -78,6 +85,18 @@ begin
       Clk_out => Clk50MHz
       );
 
+  ClkDivTp25Mhz : entity work.ClkDiv
+    generic map (
+      SourceFreq => 50,
+      SinkFreq   => 25
+      )
+    port map (
+      Clk     => Clk50MHz,
+      RstN    => RstN50MHz,
+      --
+      Clk_out => Clk25MHz
+      );
+  
   -- Reset synchronizer
   RstSync100Mhz : entity work.ResetSync
     port map (
@@ -95,10 +114,41 @@ begin
       Rst_N    => RstN50MHz
       );
 
-  -- Write data generator, will later be camera
-
-  -- Response handler
+  RstSync25Mhz : entity work.ResetSync
+    port map (
+      AsyncRst => AsyncRst,
+      Clk      => Clk25MHz,
+      --
+      Rst_N    => RstN25MHz
+      );
   
+  -- Write data generator, will later be camera
+  VgaCam : entity work.FakeVgaCam
+    port map (
+      RstN  => RstN25MHz,
+      Clk   => Clk25MHz,
+      --
+      Vsync => CamVsync,
+      Href  => CamHref,
+      D     => CamD
+      );
+
+  CamAlign : entity work.CamAligner
+    port map (
+      WrRst_N     => RstN25MHz,
+      WrClk       => Clk25MHz,
+      --
+      Vsync       => CamVsync,
+      Href        => CamHref,
+      D           => CamD,
+      --
+      RdClk       => Clk50MHz,
+      RdRst_N     => RstN50MHz,
+      --
+      WriteReq    => WriteReqFromPatGen,
+      WriteReqAck => WriteReqFromPatGenAck
+      );      
+
   SdramArb : entity work.SdramArbiter
     port map (
       Clk         => Clk50MHz,
@@ -117,16 +167,20 @@ begin
   -- Dram data generator and consumer
   ReqHdler : entity work.RequestHandler
     port map (
-      Rst_N  => RstN100MHz, -- FIXME: Hook this up properly
+      WrClk      => Clk50MHz,
+      ReqIn      => ReqFromArb,
+      We         => ReqFromArbWe,
       --
-      WrClk  => Clk50MHz,
-      ReqIn  => ReqFromArb,
-      We     => ReqFromArbWe,
-      --
-      RdClk  => Clk100MHz,
-      ReqOut => ReqToCont,
-      Re     => ContCmdAck
+      RdClk      => Clk100MHz,
+      RdRst_N    => RstN100MHz,
+      ReqOut     => ReqToCont,
+      ReqDataOut => SdramDataIn,
+      CmdAck     => SdramCmdAck
       );
+
+  SdramAddr     <= ReqToCont.Addr;
+  SdramCmd      <= ReqToCont.Cmd;
+  SdramDataMask <= (others => '1');
 
   -- Dram controller
   SdramController : entity work.sdr_sdram
@@ -181,4 +235,7 @@ begin
       InView      => VgaInView,
       PixelToDisp => VgaPixelToDisp
       );
+
+  
+  
 end architecture rtl;
