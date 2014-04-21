@@ -74,7 +74,6 @@ begin
   -- Pll
   Pll100MHz : entity work.PLL
     port map (
-      AReset => AsyncRst,
       inclk0 => Clk,
       c0     => Clk100MHz
       );
@@ -91,7 +90,7 @@ begin
       Clk_out => Clk50MHz
       );
 
-  ClkDivTp25Mhz : entity work.ClkDiv
+  ClkDivTo25Mhz : entity work.ClkDiv
     generic map (
       SourceFreq => 50,
       SinkFreq   => 25
