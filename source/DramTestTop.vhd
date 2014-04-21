@@ -169,7 +169,6 @@ begin
       ArbDecVal   => ReqFromArbWe
       );
 
-  -- Dram data generator and consumer
   ReqHdler : entity work.RequestHandler
     port map (
       WrClk      => Clk50MHz,
