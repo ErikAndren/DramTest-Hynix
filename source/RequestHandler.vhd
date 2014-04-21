@@ -121,7 +121,7 @@ begin
     end case;
   end process;
 
-  We_i <= InitReq.Val(0) and We;
+  We_i <= InitReq.Val(0) or We;
 
   ReqMux : Req_i <= InitReq when InitReq.Val = "1" else ReqIn;
   ReqInWord <= DramRequestToWord(Req_i);
