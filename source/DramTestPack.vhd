@@ -13,6 +13,8 @@ package DramTestPack is
   constant VgaRes             : positive              := VgaHeight * VgaWidth;
   constant PixelW             : positive              := 8;
   --
+  constant ColResW            : positive              := 3;
+  --
   constant VgaPixels          : positive              := VgaRes * PixelW;
   --
   constant ASIZE              : integer               := 23;
