@@ -49,7 +49,9 @@ package DramTestPack is
   constant DRAM_LOAD_REG1     : word(CmdW-1 downto 0) := "110";
   constant DRAM_LOAD_REG2     : word(CmdW-1 downto 0) := "111";
 
-  constant tRCD : positive := 3;
+  constant tRCD       : positive := 3;
+  constant tCL        : positive := 2;
+  constant tRdDel     : positive := 2;
   
   type DramRequest is record
     Val  : word1;
