@@ -104,11 +104,12 @@ begin
     Frame_N <= Frame_D;
     --
     -- Generate read request as long as fifo is less than half full
-    if FillLvl(FillLvl'high) = '0' then
-      ReadReq.Val  <= "1";
-      ReadReq.Cmd  <= DRAM_READA;
-      ReadReq.Addr <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
-    end if;
+    -- FIXME: Disable read requests for now
+    --if FillLvl(FillLvl'high) = '0' then
+    --  ReadReq.Val  <= "1";
+    --  ReadReq.Cmd  <= DRAM_READA;
+    --  ReadReq.Addr <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
+    --end if;
 
     if ReadReqAck = '1' then
       Addr_N <= Addr_D + BurstLen;
