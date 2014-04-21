@@ -19,7 +19,13 @@ entity DramTestTop is
     SdramCAS_N : out   bit1;
     SdramWE_N  : out   bit1;
     SdramDQ    : inout word(DSIZE-1 downto 0);
-    SdramDQM   : out   word(DSIZE/8-1 downto 0)
+    SdramDQM   : out   word(DSIZE/8-1 downto 0);
+    -- VGA interface
+    VgaRed     : out   word(ColResW-1 downto 0);
+    VgaGreen   : out   word(ColResW-1 downto 0);
+    VgaBlue    : out   word(ColResW-1 downto 0);
+    VgaHsync   : out   bit1;
+    VgaVSync   : out   bit1
     );
 end entity;
 
@@ -226,8 +232,8 @@ begin
       RespData    => SdramDataOut,
       RespDataVal => SdramDataVal,      -- FIXME: Create validation signal
       --
-      RdRst_N     => RstN50MHz,
-      RdClk       => Clk50MHz,
+      RdRst_N     => RstN25MHz,
+      RdClk       => Clk25MHz,
       --
       ReadReq     => ReadReqFromRespHdler,
       ReadReqAck  => ReadReqFromRespHdlerAck,
@@ -236,6 +242,24 @@ begin
       PixelToDisp => VgaPixelToDisp
       );
 
-  
-  
+  VGAGen : entity work.VGAGenerator
+    generic map (
+      DataW     => PixelW,
+      DivideClk => false
+      )
+    port map (
+      Clk            => Clk25MHz,
+      RstN           => RstN25MHz,
+      --
+      PixelToDisplay => VgaPixelToDisp,
+      DrawRect       => '0',
+      InView         => VgaInView,
+      --
+      Red            => VgaRed,
+      Green          => VgaGreen,
+      Blue           => VgaBlue,
+      Hsync          => VgaHsync,
+      VSync          => VgaVsync
+      );
+      
 end architecture rtl;
