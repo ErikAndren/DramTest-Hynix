@@ -94,6 +94,8 @@ set_location_assignment PIN_199 -to SdramSA[2]
 set_location_assignment PIN_200 -to SdramSA[1]
 set_location_assignment PIN_201 -to SdramSA[0]
 set_location_assignment PIN_3 -to SdramWE_N
+set_global_assignment -name VHDL_FILE source/CamAligner.vhd
+set_global_assignment -name VHDL_FILE source/FakeVgaCam.vhd
 set_global_assignment -name VHDL_FILE ../Lib/ClkDiv.vhd
 set_global_assignment -name VHDL_FILE source/RespHandler.vhd
 set_global_assignment -name VHDL_FILE source/SdramArbiter.vhd
