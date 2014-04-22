@@ -229,7 +229,7 @@ begin
     end if;
     
     if CmdAck = '1' then
-      WordCnt_N <= conv_word(BurstLen, WordCnt_N'length);
+      WordCnt_N <= conv_word(BurstLen-1, WordCnt_N'length);
       if ReqOut_i.Cmd = DRAM_WRITEA then
         WritePenalty_N <= conv_word(WritePenalty, WritePenalty_N'length);
       elsif ReqOut_i.Cmd = DRAM_READA then
