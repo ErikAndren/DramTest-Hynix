@@ -167,7 +167,7 @@ begin
     end if;
   end process;
 
-  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck)
+  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, WordCnt_D)
   begin
     ReadFifo <= '0';
 
