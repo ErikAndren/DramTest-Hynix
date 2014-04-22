@@ -16,6 +16,7 @@ architecture rtl of tb is
   signal SdramSA    : word(12-1 downto 0);
   signal SdramBA    : word(2-1 downto 0);
   signal SdramCS_N  : word(1-1 downto 0);
+  signal SdramCs_NBit : bit1;
   signal SdramCKE   : bit1;
   signal SdramRAS_N : bit1;
   signal SdramCAS_N : bit1;
@@ -59,15 +60,19 @@ begin
       VgaHsync   => open,
       VgaVSync   => open
       );
+  SdramCs_NBit <= SdramCS_N(0);
 
-  sdram : entity work.mt48lc16m16a2
+  sdram : entity work.H57V2562GTR
+    generic map (
+      addr_bits => 12
+      )
     port map (
       Dq    => SdramDQ,
       Addr  => SdramSa,
       Ba    => SdramBA,
       Clk   => SdramClk,
       Cke   => SdramCKE,
-      Cs_n  => SdramCS_N,
+      Cs_n  => SdramCS_NBit,
       Ras_N => SdramRAS_N,
       Cas_N => SdramCAS_N,
       We_N  => SdramWE_N,
