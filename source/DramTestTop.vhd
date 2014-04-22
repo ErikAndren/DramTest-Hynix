@@ -20,6 +20,7 @@ entity DramTestTop is
     SdramWE_N  : out   bit1;
     SdramDQ    : inout word(DSIZE-1 downto 0);
     SdramDQM   : out   word(DSIZE/8-1 downto 0);
+    SdramClk   : out   bit1;
     -- VGA interface
     VgaRed     : out   word(ColResW-1 downto 0);
     VgaGreen   : out   word(ColResW-1 downto 0);
@@ -77,6 +78,7 @@ begin
       inclk0 => Clk,
       c0     => Clk100MHz
       );
+  SdramClkFeed : SdramClk <= Clk100MHz;
 
   ClkDivTo50Mhz : entity work.ClkDiv
     generic map (
