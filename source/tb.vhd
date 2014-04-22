@@ -28,6 +28,8 @@ architecture rtl of tb is
 begin
   RstN <= '0', '1' after 100 ns;
 
+  SdramDQ <= (others => 'Z');
+  
   ClkGen : process
   begin
     while true loop
