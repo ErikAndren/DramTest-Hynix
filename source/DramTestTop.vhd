@@ -189,7 +189,7 @@ begin
 
   SdramAddr     <= ReqToCont.Addr;
   SdramCmd      <= ReqToCont.Cmd;
-  SdramDataMask <= (others => '1');
+  SdramDataMask <= (others => '0');
 
   -- Dram controller
   SdramController : entity work.sdr_sdram
