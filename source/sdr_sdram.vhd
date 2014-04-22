@@ -286,7 +286,5 @@ begin
 
   -- tri-state the data bus using the OE signal from the main controller.
   DQ <= DQOUT when OE = '1' else (others => 'Z');
-
-
 end RTL;
 
