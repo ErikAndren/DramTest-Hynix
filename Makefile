@@ -16,7 +16,7 @@ FILES=source/DramTestPack.vhd \
 	source/DramTestTop.vhd \
 	source/tb.vhd
 
-IP_VLOG_FILES=../ip/MT48LC16M16A2.v
+IP_VLOG_FILES=../ip/H57V2562GTR.v
 
 WORK_DIR="/tmp/work"
 MODELSIMINI_PATH=/home/erik/Development/FPGA/OV76X0/modelsim.ini
@@ -26,6 +26,7 @@ QUARTUS_PATH=/opt/altera/13.0sp1/quartus
 VHDL=vcom
 VHDL_FLAGS=-93
 VLOG=vlog
+VLOG_FLAGS=+nospecify
 FLAGS=-work $(WORK_DIR) -modelsimini $(MODELSIMINI_PATH)
 VMAP=vmap
 VLIB=vlib
@@ -65,7 +66,7 @@ vhdlfiles:
 	$(VHDL) $(VHDL_FLAGS) $(FLAGS) $(FILES)
 
 vlogipfiles:
-	$(VLOG) $(FLAGS) $(IP_VLOG_FILES)
+	$(VLOG) $(FLAGS) $(VLOG_FLAGS) $(IP_VLOG_FILES)
 
 isim: all
 	$(VSIM) $(TBTOP) $(VSIM_ARGS)
