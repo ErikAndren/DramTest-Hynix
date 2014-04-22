@@ -150,6 +150,7 @@ begin
   ReqOut_i <= WordToDramRequest(ReqOutWord);
 
   -- Must mask dram request out after ack
+  -- Must mask request if last entry
   ReqOut <= ReqOut_i when CmdMask_D = '0' else Z_DramRequest;
 
   RdSyncProc : process (RdClk, RdRst_N)
@@ -181,7 +182,8 @@ begin
           ReadFifo <= '1';
         end if;
       else
-        if CmdAck = '1' then
+        -- Read fifo if previous command was acknowledged
+        if CmdMask_D = '1' then
           ReadFifo <= '1';
         end if;
 
@@ -202,7 +204,8 @@ begin
     ReadPenalty_N  <= ReadPenalty_D;
     RespVal        <= '0';
 
-    if ReadFifo = '1' then
+    -- FIXME
+    if FifoEmpty = '0' then
       CmdMask_N <= '0';
     end if;
 
