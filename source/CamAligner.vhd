@@ -77,7 +77,7 @@ begin
           WordCnt_N <= (others => '0');
           Addr_N    <= Addr_D + BurstLen;
 
-          if Addr_D + BurstLen > VgaPixels then
+          if conv_integer(Addr_D + BurstLen) > VgaPixels then
             Addr_N <= (others => '0');
             FrameCnt_N <= FrameCnt_D + 1;
             if FrameCnt_D + 1 = Frames then
