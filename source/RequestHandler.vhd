@@ -9,7 +9,7 @@ use work.DramTestPack.all;
 entity RequestHandler is
   port (
     WrClk      : in  bit1;
-    WrRstN     : in  bit1;
+    WrRstN      : in  bit1;
     ReqIn      : in  DramRequest;
     We         : in  bit1;
     --
@@ -35,7 +35,7 @@ architecture rtl of RequestHandler is
   signal WritePenalty_N, WritePenalty_D : word(WritePenaltyW-1 downto 0);
   signal ReadFifo, FifoEmpty            : bit1;
   signal CmdMask_N, CmdMask_D           : bit1;
-  signal ReqOut_i                       : DramRequest;
+  signal ReqIn_i, ReqOut_i              : DramRequest;
   --
   constant tReadWait                    : positive := tRCD + tCL + tRdDel;
   constant tReadWaitAndBurst            : positive := tReadWait + BurstLen;
@@ -48,9 +48,6 @@ architecture rtl of RequestHandler is
   signal InitFSM_N, InitFSM_D : DramInitStates;
   signal InitReq : DramRequest;
   signal We_i : bit1;
-
-  signal Req_i : DramRequest;
-  
 begin
   WrSyncProc : process (WrClk, WrRstN)
   begin
@@ -129,8 +126,8 @@ begin
 
   We_i <= InitReq.Val(0) or We;
 
-  ReqMux : Req_i <= InitReq when InitReq.Val = "1" else ReqIn;
-  ReqInWord <= DramRequestToWord(Req_i);
+  ReqMux : ReqIn_i <= InitReq when InitReq.Val = "1" else ReqIn;
+  ReqConv : ReqInWord        <= DramRequestToWord(ReqIn_i);
   
   RequestFifo : entity work.ReqFifo
     port map (
