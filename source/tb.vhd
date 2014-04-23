@@ -24,11 +24,15 @@ architecture rtl of tb is
   signal SdramDQ    : word(DSIZE-1 downto 0);
   signal SdramDQM   : word(DSIZE/8-1 downto 0);
   signal SdramClk   : bit1;
-  
+
+  signal SdramClk_Del : bit1;
 begin
   RstN <= '0', '1' after 100 ns;
 
   SdramDQ <= (others => 'Z');
+
+  SdramClk_Del <= transport SdramClk after 5 ns;
+  
   
   ClkGen : process
   begin
@@ -72,7 +76,7 @@ begin
       Dq    => SdramDQ,
       Addr  => SdramSa,
       Ba    => SdramBA,
-      Clk   => SdramClk,
+      Clk   => SdramClk_Del,
       Cke   => SdramCKE,
       Cs_n  => SdramCS_NBit,
       Ras_N => SdramRAS_N,
