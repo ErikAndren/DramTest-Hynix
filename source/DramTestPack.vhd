@@ -17,14 +17,17 @@ package DramTestPack is
   --
   constant VgaPixels          : positive              := VgaRes * PixelW;
   --
-  constant ASIZE              : integer               := 23;
+  constant ASIZE              : integer               := 24;
   constant DSIZE              : integer               := 16;
-  constant ROWSIZE            : integer               := 12;
+  --
   constant COLSIZE            : integer               := 9;
-  constant BANKSIZE           : integer               := 2;
-  constant ROWSTART           : integer               := 9;
   constant COLSTART           : integer               := 0;
-  constant BANKSTART          : integer               := 20;
+  --
+  constant ROWSIZE            : integer               := 12;
+  constant ROWSTART           : integer               := COLSIZE;
+  --
+  constant BANKSIZE           : integer               := 2;
+  constant BANKSTART          : integer               := COLSIZE + ROWSIZE;
   --
   constant VgaPixelsPerDword  : positive              := VgaPixels / DSIZE;
   constant VgaPixelsPerDwordW : positive              := bits(VgaPixelsPerDword);
@@ -65,7 +68,7 @@ package DramTestPack is
      Data => (others => 'X'),
      Cmd  => DRAM_NOP,
      Addr => (others => 'X'));
-  -- 1 + 128 + 3 + 23 = 155
+  -- 1 + 128 + 3 + 24 = 156
   constant DramRequestW : positive := Z_DramRequest.Val'length + Z_DramRequest.Data'length + Z_DramRequest.Cmd'length + Z_DramRequest.Addr'length;
 
   function DramRequestToWord(Rec : DramRequest) return word;
