@@ -159,7 +159,7 @@ begin
     end if;
   end process;
 
-  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, WordCnt_D)
+  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, WordCnt_D, CmdMask_D)
   begin
     ReadFifo <= '0';
 
@@ -186,7 +186,7 @@ begin
     end if;
   end process;
 
-  ReadOutProc : process (WordCnt_D, CmdAck, ReadFifo, CmdMask_D, ReqOut_i, ReadPenalty_D)
+  ReadOutProc : process (WordCnt_D, CmdAck, ReadFifo, CmdMask_D, ReqOut_i, ReadPenalty_D, FifoEmpty)
   begin
     WordCnt_N      <= WordCnt_D;
     CmdMask_N      <= CmdMask_D;
