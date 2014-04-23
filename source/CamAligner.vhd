@@ -33,7 +33,7 @@ architecture rtl of CamAligner is
   --
   signal DramRequest_i, WriteReq_i     : DramRequest;
   signal DramRequestWord, WriteReqWord : word(DramRequestW-1 downto 0);
-  signal FifoWe                        : bit1;
+  signal FifoWe_N, FifoWe_D            : bit1;
   signal WasEmpty_D                    : bit1;
   signal ArbAck_N, ArbAck_D            : bit1;
   signal ReadFifo                      : bit1;
@@ -46,11 +46,13 @@ begin
       Addr_D     <= (others => '0');
       WordCnt_D  <= (others => '0');
       PixCnt_D   <= (others => '0');
+      FifoWe_D   <= '0';
     elsif rising_edge(WrClk) then
       FrameCnt_D <= FrameCnt_N;
       WordCnt_D  <= WordCnt_N;
       PixCnt_D   <= PixCnt_N;
       Addr_D     <= Addr_N;
+      FifoWe_D   <= FifoWe_N;
     end if;
   end process;
 
@@ -68,7 +70,7 @@ begin
     WrData_N   <= WrData_D;
     PixCnt_N   <= PixCnt_D;
     Addr_N     <= Addr_D;
-    FifoWe <= '0';
+    FifoWe_N <= '0';
 
     if Href = '1' then
       if PixCnt_D = 0 then
@@ -76,7 +78,7 @@ begin
         WordCnt_N <= WordCnt_D + 1;
 
         if WordCnt_D = PixelsPerBurst-1 then
-          FifoWe    <= '1';
+          FifoWe_N  <= '1';
           WordCnt_N <= (others => '0');
           Addr_N    <= Addr_D + BurstLen;
 
@@ -89,7 +91,7 @@ begin
           end if;
         end if;
       end if;
-      
+       
       -- FIXME: Here goes conversion to 8 bits of pixel data
       -- Drop every other pixel
       PixCnt_N <= PixCnt_D + 1;
@@ -104,7 +106,7 @@ begin
     end if;
   end process;
   
-  DramRequest_i.Val             <= Bit1ToWord1(FifoWe);
+  DramRequest_i.Val             <= Bit1ToWord1(FifoWe_D);
   DramRequest_i.Data            <= WrData_D;
   DramRequest_i.Cmd             <= DRAM_WRITEA;
   DramRequest_i.Addr            <= xt0(FrameCnt_D & Addr_D, ASIZE);
@@ -113,7 +115,7 @@ begin
   RFifo : entity work.ReqFifo
     port map (
       WrClk   => WrClk,
-      WrReq   => FifoWe,
+      WrReq   => FifoWe_D,
       Data    => DramRequestWord,
       --
       RdClk   => RdClk,
@@ -123,7 +125,7 @@ begin
       WrFull  => FifoFull
       );
 
-  assert not (FifoFull = '1' and FifoWe = '1') report "CamAligner fifo overflow" severity failure;
+  assert not (FifoFull = '1' and FifoWe_D = '1') report "CamAligner fifo overflow" severity failure;
 	
   WriteReq_i <= WordToDramRequest(WriteReqWord);
   WriteReq   <= WriteReq_i when ArbAck_D = '0' else Z_DramRequest;
