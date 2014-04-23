@@ -194,7 +194,6 @@ begin
     ReadPenalty_N  <= ReadPenalty_D;
     RespVal        <= '0';
 
-    -- FIXME
     if FifoEmpty = '0' then
       CmdMask_N <= '0';
     end if;
@@ -215,11 +214,8 @@ begin
     end if;
     
     if CmdAck = '1' then
-      WordCnt_N <= conv_word(BurstLen, WordCnt_N'length);
       if ReqOut_i.Cmd = DRAM_WRITEA then
-        WordCnt_N <= conv_word(BurstLen-1, WordCnt_N'length);
-        -- Start to send out the data directly
-        ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, 7);
+        WordCnt_N <= conv_word(BurstLen, WordCnt_N'length);
       elsif ReqOut_i.Cmd = DRAM_READA then
         ReadPenalty_N <= conv_word(tReadWaitAndBurst, ReadPenalty_N'length);
       end if;
