@@ -27,12 +27,8 @@ architecture rtl of RequestHandler is
   signal ReqInWord, ReqOutWord : word(DramRequestW-1 downto 0);
   signal WrFull_i              : bit1;
   --
-  signal WordCnt_N, WordCnt_D  : word(BurstLenW-1 downto 0);
-
-  constant WritePenalty                 : positive := tRCD - 2;
-  constant WritePenaltyW                : positive := bits(WritePenalty);
+  signal WordCnt_N, WordCnt_D  : word(BurstLenW downto 0);
   --
-  signal WritePenalty_N, WritePenalty_D : word(WritePenaltyW-1 downto 0);
   signal ReadFifo, FifoEmpty            : bit1;
   signal CmdMask_N, CmdMask_D           : bit1;
   signal ReqIn_i, ReqOut_i              : DramRequest;
@@ -154,12 +150,10 @@ begin
   begin
     if RdRst_N = '0' then
       WordCnt_D      <= (others => '0');
-      WritePenalty_D <= (others => '0');
       CmdMask_D      <= '1';
       ReadPenalty_D  <= (others => '0');
     elsif rising_edge(RdClk) then
       WordCnt_D      <= WordCnt_N;
-      WritePenalty_D <= WritePenalty_N;
       CmdMask_D      <= CmdMask_N;
       ReadPenalty_D  <= ReadPenalty_N;
     end if;
@@ -192,10 +186,9 @@ begin
     end if;
   end process;
 
-  ReadOutProc : process (WordCnt_D, WritePenalty_D, CmdAck, ReadFifo, CmdMask_D, ReqOut_i, ReadPenalty_D)
+  ReadOutProc : process (WordCnt_D, CmdAck, ReadFifo, CmdMask_D, ReqOut_i, ReadPenalty_D)
   begin
     WordCnt_N      <= WordCnt_D;
-    WritePenalty_N <= WritePenalty_D;
     CmdMask_N      <= CmdMask_D;
     ReqDataOut     <= (others => 'X');
     ReadPenalty_N  <= ReadPenalty_D;
@@ -204,10 +197,6 @@ begin
     -- FIXME
     if FifoEmpty = '0' then
       CmdMask_N <= '0';
-    end if;
-
-    if WritePenalty_D > 0 then
-      WritePenalty_N <= WritePenalty_D - 1;
     end if;
 
     if ReadPenalty_D > 0 then
@@ -220,15 +209,17 @@ begin
     end if;
 
     -- Split write word into 16 bit chunks
-    if (WordCnt_D > 0) and (WritePenalty_D = 0) then
-      ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, WordCnt_D);
+    if (WordCnt_D > 0) then
+      ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, WordCnt_D-1);
       WordCnt_N  <= WordCnt_D - 1;
     end if;
     
     if CmdAck = '1' then
-      WordCnt_N <= conv_word(BurstLen-1, WordCnt_N'length);
+      WordCnt_N <= conv_word(BurstLen, WordCnt_N'length);
       if ReqOut_i.Cmd = DRAM_WRITEA then
-        WritePenalty_N <= conv_word(WritePenalty, WritePenalty_N'length);
+        WordCnt_N <= conv_word(BurstLen-1, WordCnt_N'length);
+        -- Start to send out the data directly
+        ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, 7);
       elsif ReqOut_i.Cmd = DRAM_READA then
         ReadPenalty_N <= conv_word(tReadWaitAndBurst, ReadPenalty_N'length);
       end if;
