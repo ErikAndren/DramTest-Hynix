@@ -39,7 +39,7 @@ architecture rtl of CamAligner is
   signal ReadFifo                      : bit1;
   signal FifoEmpty, FifoFull           : bit1;
 begin
-  SyncProc : process (WrClk, WrRst_N)
+  WrSyncProc : process (WrClk, WrRst_N)
   begin
     if WrRst_N = '0' then
       FrameCnt_D <= (others => '0');
@@ -58,7 +58,7 @@ begin
     end if;
   end process;
 
-  AsyncProc : process (WordCnt_D, FrameCnt_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D)
+  WrAsyncProc : process (WordCnt_D, FrameCnt_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D)
   begin
     WordCnt_N  <= WordCnt_D;
     FrameCnt_N <= FrameCnt_D;
