@@ -67,7 +67,6 @@ end command;
 architecture RTL of command is
 
   -- signal declarations
-  signal do_nop        : std_logic;
   signal do_reada      : std_logic;
   signal do_writea     : std_logic;
   signal do_writea1    : std_logic;
@@ -108,7 +107,6 @@ begin
   process(CLK, RESET_N)
   begin
     if (RESET_N = '0') then
-      do_nop        <= '0';
       do_reada      <= '0';
       do_writea     <= '0';
       do_refresh    <= '0';
