@@ -58,7 +58,7 @@ begin
     end if;
   end process;
 
-  AsyncProc : process (WordCnt_D, FrameCnt_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D)
+  AsyncProc : process (WordCnt_D, FrameCnt_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D)
   begin
     WordCnt_N  <= WordCnt_D;
     FrameCnt_N <= FrameCnt_D;
@@ -75,30 +75,33 @@ begin
         if WordCnt_D = PixelsPerBurst-1 then
           FifoWe_N  <= '1';
           WordCnt_N <= (others => '0');
-          Addr_N    <= Addr_D + BurstLen;
-
-          if conv_integer(Addr_D + BurstLen) > VgaPixels then
-            Addr_N <= (others => '0');
-            FrameCnt_N <= FrameCnt_D + 1;
-            if FrameCnt_D + 1 = Frames then
-              FrameCnt_N <= FrameCnt_D + 1;
-            end if;
-          end if;
         end if;
       end if;
-       
+
       -- FIXME: Here goes conversion to 8 bits of pixel data
       -- Drop every other pixel
       PixCnt_N <= PixCnt_D + 1;
       if PixCnt_D + 1 > 1 then
         PixCnt_N <= (others => '0');
+      end if;      
+    end if;
+
+    if FifoWe_D = '1' then
+      Addr_N    <= Addr_D + BurstLen;
+
+      if conv_integer(Addr_D + BurstLen) > VgaPixels then
+        Addr_N <= (others => '0');
+        FrameCnt_N <= FrameCnt_D + 1;
+        if FrameCnt_D + 1 = Frames then
+          FrameCnt_N <= FrameCnt_D + 1;
+        end if;
       end if;
     end if;
-    
-    if Vsync = '1' then
+
+  if Vsync = '1' then
       WordCnt_N  <= (others => '0');
       Addr_N     <= (others => '0');
-    end if;
+  end if;
   end process;
   
   DramRequest_i.Val             <= Bit1ToWord1(FifoWe_D);
