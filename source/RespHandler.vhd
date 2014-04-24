@@ -34,12 +34,18 @@ end entity;
 architecture rtl of RespHandler is
   signal DataToVga : word(DSIZE-1 downto 0);
   signal FifoEmpty, ReadFifo, FifoFull : bit1;
-  signal FillLvl : word(8-1 downto 0);
+
+  -- FIXME: This can probably be lowered to 16
+  constant FifoSize  : positive := 32;
+  constant FifoSizeW : positive := bits(FifoSize);
+  signal FillLvl     : word(FifoSizeW-1 downto 0);
 
   -- Must be less than 16
   constant ReadReqThrottle            : positive := 15;
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW-1 downto 0);
+
+  constant FillLevelThres : positive := 8;
   
   constant PixelsPerWord  : positive := DSIZE / PixelW;
   constant PixelsPerWordW : positive := bits(PixelsPerWord);
@@ -111,7 +117,7 @@ begin
 
     -- Generate read requests as long as fifo is less than half full
     -- FIXME: Adjust this to prevent buffer underrun
-    if conv_integer(FillLvl) < 16 and (ReqThrottle_D = 0) then
+    if conv_integer(FillLvl) < FillLevelThres and (ReqThrottle_D = 0) then
       ReadReq.Val   <= "1";
       ReadReq.Cmd   <= DRAM_READA;
       ReadReq.Addr  <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
