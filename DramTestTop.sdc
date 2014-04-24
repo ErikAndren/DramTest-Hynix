@@ -45,8 +45,11 @@ create_clock -name {Clk} -period 20.000 -waveform { 0.000 10.000 } [get_ports {C
 # Create Generated Clock
 #**************************************************************
 
-create_generated_clock -name {Pll100MHz|altpll_component|pll|clk[0]} -source [get_pins {Pll100MHz|altpll_component|pll|inclk[0]}] -duty_cycle 50.000 -multiply_by 2 -master_clock {Clk} [get_pins {Pll100MHz|altpll_component|pll|clk[0]}] 
+create_generated_clock -name Clk100MHz -source [get_pins {Pll100MHz|altpll_component|pll|inclk[0]}] -duty_cycle 50.000 -multiply_by 2 -master_clock {Clk} [get_pins {Pll100MHz|altpll_component|pll|clk[0]}] 
 
+# Divided clocks
+create_generated_clock -name Clk50Mhz -source [get_nets {Pll100MHz|altpll_component|_clk0}] -divide_by 2 [get_pins {ClkDivTo50Mhz|divisor|regout}]
+create_generated_clock -name Clk25MHz -source [get_pins {ClkDivTo50Mhz|divisor|regout}] -divide_by 2 [get_pins {ClkDivTo25Mhz|divisor|regout}]
 
 #**************************************************************
 # Set Clock Latency
