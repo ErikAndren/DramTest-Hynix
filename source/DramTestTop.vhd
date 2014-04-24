@@ -31,30 +31,32 @@ entity DramTestTop is
 end entity;
 
 architecture rtl of DramTestTop is
-  signal Clk100MHz  : bit1;
-  signal RstN100MHz : bit1;
+  signal Clk100MHz               : bit1;
+  signal RstN100MHz              : bit1;
   --
-  signal Clk50MHz    : bit1;
-  signal RstN50MHz   : bit1;
+  signal Clk50MHz                : bit1;
+  signal RstN50MHz               : bit1;
   --
-  signal Clk25MHz    : bit1;
-  signal RstN25MHz   : bit1;
+  signal Clk25MHz                : bit1;
+  signal RstN25MHz               : bit1;
   --
-  signal SdramAddr      : word(ASIZE-1 downto 0);
-  signal SdramCmd       : word(3-1 downto 0);
-  signal SdramCmdAck    : bit1;
+  signal SdramAddr               : word(ASIZE-1 downto 0);
+  signal SdramCmd                : word(3-1 downto 0);
+  signal SdramCmdAck             : bit1;
   --
-  signal SdramDataIn    : word(DSIZE-1 downto 0);
-  signal SdramDataOut   : word(DSIZE-1 downto 0);
+  signal SdramDataIn             : word(DSIZE-1 downto 0);
+  signal SdramDataOut            : word(DSIZE-1 downto 0);
   --
-  signal SdramDataVal   : bit1;
-  signal VgaInView      : bit1;
-  signal VgaPixelToDisp : word(PixelW-1 downto 0);
+  signal SdramDataVal            : bit1;
+  signal VgaInView               : bit1;
+  signal VgaPixelToDisp          : word(PixelW-1 downto 0);
   --
-  signal SdramDataMask  : word(DSIZE/8-1 downto 0);
-
-  signal SdramCS_N_i : word(2-1 downto 0);
-
+  signal SdramDataMask           : word(DSIZE/8-1 downto 0);
+  --
+  signal SdramCS_N_i             : word(2-1 downto 0);
+  --
+  signal ShaperBp                : bit1;
+  --
   signal ReqFromArb              : DramRequest;
   signal ReqFromArbWe            : bit1;
   --
@@ -167,6 +169,7 @@ begin
       ReadReq     => ReadReqFromRespHdler,
       ReadReqAck  => ReadReqFromRespHdlerAck,
       --
+      ShapBp      => ShaperBp,
       ArbDecReq   => ReqFromArb,
       ArbDecVal   => ReqFromArbWe
       );
@@ -177,6 +180,7 @@ begin
       WrRstN     => RstN50MHz,
       ReqIn      => ReqFromArb,
       We         => ReqFromArbWe,
+      ShapBp     => ShaperBp,
       --
       RdClk      => Clk100MHz,
       RdRst_N    => RstN100MHz,
