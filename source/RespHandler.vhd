@@ -34,8 +34,13 @@ end entity;
 architecture rtl of RespHandler is
   signal DataToVga : word(DSIZE-1 downto 0);
   signal FifoEmpty, ReadFifo, FifoFull : bit1;
-  signal FillLvl : word(5-1 downto 0);
+  signal FillLvl : word(8-1 downto 0);
 
+  -- Must be less than 16
+  constant ReadReqThrottle            : positive := 15;
+  constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
+  signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW-1 downto 0);
+  
   constant PixelsPerWord  : positive := DSIZE / PixelW;
   constant PixelsPerWordW : positive := bits(PixelsPerWord);
   
@@ -63,13 +68,15 @@ begin
   SyncProc : process (RdClk, RdRst_N)
   begin
     if RdRst_N = '0' then
-      Frame_D   <= (others => '0');
-      Addr_D    <= (others => '0');
-      WordCnt_D <= (others => '0');
+      Frame_D       <= (others => '0');
+      Addr_D        <= (others => '0');
+      WordCnt_D     <= (others => '0');
+      ReqThrottle_D <= (others => '0');
     elsif rising_edge(RdClk) then
-      Frame_D   <= Frame_N;
-      WordCnt_D <= WordCnt_N;
-      Addr_D    <= Addr_N;
+      Frame_D       <= Frame_N;
+      WordCnt_D     <= WordCnt_N;
+      Addr_D        <= Addr_N;
+      ReqThrottle_D <= ReqThrottle_N;
     end if;
   end process;
 
@@ -88,35 +95,35 @@ begin
 
     if InView = '1' then
       PixelToDisp <= ExtractSlice(DataToVga, PixelW, conv_integer(WordCnt_D));
-
       WordCnt_N <= WordCnt_D - 1;
-      if WordCnt_D = 0 then
-        WordCnt_N   <= (others => '0');
-        PixelToDisp <= (others => '0');
-      end if;
     end if;
   end process;
 
-  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck)
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D)
   begin
     ReadReq <= Z_DramRequest;
     Addr_N  <= Addr_D;
     Frame_N <= Frame_D;
-    --
-    -- Generate read request as long as fifo is less than half full
-    -- FIXME: Disable read requests for now
-    --if FillLvl(FillLvl'high) = '0' then
-    --  ReadReq.Val  <= "1";
-    --  ReadReq.Cmd  <= DRAM_READA;
-    --  ReadReq.Addr <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
-    --end if;
+    ReqThrottle_N <= ReqThrottle_D - 1;
+    if ReqThrottle_D = 0 then
+      ReqThrottle_N <= (others => '0');
+    end if;
+
+    -- Generate read requests as long as fifo is less than half full
+    -- FIXME: Adjust this to prevent buffer underrun
+    if conv_integer(FillLvl) < 16 and (ReqThrottle_D = 0) then
+      ReadReq.Val   <= "1";
+      ReadReq.Cmd   <= DRAM_READA;
+      ReadReq.Addr  <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
+      ReqThrottle_N <= conv_word(ReadReqThrottle, ReqThrottle_N'length);
+    end if;
 
     if ReadReqAck = '1' then
       Addr_N <= Addr_D + BurstLen;
-      if (Addr_D + BurstLen > VgaPixelsPerDwordW) then
+      if conv_integer(Addr_D + BurstLen) > VgaPixels then
         Addr_N  <= (others => '0');
         Frame_N <= Frame_D + 1;
-        if Frame_D + 1 >= Frames then
+        if conv_integer(Frame_D + 1) = Frames then
           Frame_N <= (others => '0');
         end if;
       end if;
