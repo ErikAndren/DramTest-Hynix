@@ -17,6 +17,7 @@ entity SdramArbiter is
     ReadReq     : in  DramRequest;
     ReadReqAck  : out bit1;
     --
+    ShapBp      : in  bit1;
     ArbDecReq   : out DramRequest;
     ArbDecVal   : out bit1
     );
@@ -24,24 +25,26 @@ end entity;
 
 architecture rtl of SdramArbiter is
 begin
-  ArbAsyn : process (ReadReq, WriteReq)
+  ArbAsyn : process (ReadReq, WriteReq, ShapBp)
   begin
     WriteReqAck <= '0';
     ReadReqAck  <= '0';
     ArbDecVal   <= '0';
     ArbDecReq   <= Z_DramRequest;
 
-    if ReadReq.Val = "1" then
-      ReadReqAck <= '1';
-      ArbDecVal  <= '1';
-      ArbDecReq  <= ReadReq;
-    end if;
+    if ShapBp = '0' then
+      if ReadReq.Val = "1" then
+        ReadReqAck <= '1';
+        ArbDecVal  <= '1';
+        ArbDecReq  <= ReadReq;
+      end if;
 
-    if WriteReq.Val = "1" then
-      WriteReqAck <= '1';
-      ReadReqAck  <= '0';
-      ArbDecVal   <= '1';
-      ArbDecReq   <= WriteReq;
+      if WriteReq.Val = "1" then
+        WriteReqAck <= '1';
+        ReadReqAck  <= '0';
+        ArbDecVal   <= '1';
+        ArbDecReq   <= WriteReq;
+      end if;
     end if;
   end process;
 end architecture rtl;
