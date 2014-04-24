@@ -28,7 +28,9 @@ architecture rtl of CamAligner is
   signal Addr_N, Addr_D                : word(VgaPixelsPerDwordW-1 downto 0);
   --
   signal WordCnt_N, WordCnt_D          : word(PixelsPerBurstW-1 downto 0);
+  -- FIXME: Replace with assymetric fifo?
   signal WrData_N, WrData_D            : word(BurstSz-1 downto 0);
+  
   signal PixCnt_N, PixCnt_D            : word(1-1 downto 0);
   --
   signal DramRequest_i, WriteReq_i     : DramRequest;
@@ -47,14 +49,19 @@ begin
       WordCnt_D  <= (others => '0');
       PixCnt_D   <= (others => '0');
       FifoWe_D   <= '0';
-      WrData_D   <= (others => '0');
     elsif rising_edge(WrClk) then
       FrameCnt_D <= FrameCnt_N;
       WordCnt_D  <= WordCnt_N;
       PixCnt_D   <= PixCnt_N;
       Addr_D     <= Addr_N;
       FifoWe_D   <= FifoWe_N;
-      WrData_D   <= WrData_N;
+    end if;
+  end process;
+
+  WrSyncNoRstProc : process (WrClk)
+  begin
+    if rising_edge(WrClk) then
+      WrData_D <= WrData_N;
     end if;
   end process;
 
