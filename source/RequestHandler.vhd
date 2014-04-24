@@ -9,9 +9,10 @@ use work.DramTestPack.all;
 entity RequestHandler is
   port (
     WrClk      : in  bit1;
-    WrRstN      : in  bit1;
+    WrRstN     : in  bit1;
     ReqIn      : in  DramRequest;
     We         : in  bit1;
+    ShapBp     : out bit1;
     --
     RdClk      : in  bit1;
     RdRst_N    : in  bit1;
@@ -124,6 +125,8 @@ begin
 
   ReqMux : ReqIn_i <= InitReq when InitReq.Val = "1" else ReqIn;
   ReqConv : ReqInWord        <= DramRequestToWord(ReqIn_i);
+
+  ShapBp <= InitReq.Val(0);
   
   RequestFifo : entity work.ReqFifo
     port map (
