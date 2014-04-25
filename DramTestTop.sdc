@@ -65,10 +65,12 @@ create_clock -name {Clk} -period 20.000 -waveform { 0.000 10.000 } [get_ports {C
 # Create Generated Clock
 #**************************************************************
 
-# Create pll clock
-create_generated_clock -name Clk100MHz -source [get_pins {Pll100MHz|altpll_component|pll|inclk[0]}] -duty_cycle 50.000 -multiply_by 2 -master_clock {Clk} [get_pins {Pll100MHz|altpll_component|pll|clk[0]}] 
+derive_pll_clocks
 
-create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] -multiply_by 2 -master_clock {Clk} [get_ports {SdramClk}]
+# Create pll clock
+create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] [get_ports {SdramClk}]
+
+# create_generated_clock -add -name Clk100MHz -source [get_pins {Pll100MHz|altpll_component|pll|inclk[0]}] [get_pins {Pll100MHz|altpll_component|pll|clk[0]}] 
 
 # Divided clocks
 create_generated_clock -name Clk50Mhz -source [get_nets {Pll100MHz|altpll_component|_clk0}] -divide_by 2 [get_pins {ClkDivTo50Mhz|divisor|regout}]
@@ -83,7 +85,7 @@ set_input_delay -clock SdramClk_pin -source -min $sdram_data_input_delay_min [ge
 set_output_delay -clock SdramClk_pin -source -max $sdram_output_delay_max [get_ports Sdram*]
 set_output_delay -clock SdramClk_pin -source -min -${sdram_output_delay_min} [get_ports Sdram*]
 
-set_multicycle_path -from [get_clocks SdramClk_pin] -to [get_clocks Clk100MHz] -setup -end 2
+set_multicycle_path -from [get_clocks SdramClk_pin] -to [get_clocks {Pll100MHz|altpll_component|pll|clk[0]}] -setup -end 2
 
 #**************************************************************
 # Set Input Transition
