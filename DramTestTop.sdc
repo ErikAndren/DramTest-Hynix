@@ -25,22 +25,29 @@
 ## DEVICE  "EP2C8Q208C8"
 ##
 
+set board_delay 1.000
+
 # Sdram timing constants
 set sdram_clk_period 10.000
-
-# sdram input setup tSU
-set sdram_tSU 1.500
 
 # sdram input hold tHO
 set sdram_tH 0.800
 
-# sdram output clk to data output tCO
-set sdram_tCO 1.000
+set sdram_tOH 2.000
 
+set sdram_tOLZ 1.000
 
+set sdram_tOHZ 5.400
 
+set sdram_tDH 0.800
 
+set sdram_tDS 1.500
 
+set sdram_data_input_delay_max [expr $board_delay + $sdram_tOHZ]
+set sdram_data_input_delay_min [expr $board_delay + $sdram_tOH]
+
+set sdram_output_delay_max [expr $board_delay + $sdram_tDS]
+set sdram_output_delay_min [expr $board_delay + $sdram_tDH]
 
 #**************************************************************
 # Time Information
@@ -54,12 +61,14 @@ set_time_format -unit ns -decimal_places 3
 
 create_clock -name {Clk} -period 20.000 -waveform { 0.000 10.000 } [get_ports {Clk}]
 
-
 #**************************************************************
 # Create Generated Clock
 #**************************************************************
 
+# Create pll clock
 create_generated_clock -name Clk100MHz -source [get_pins {Pll100MHz|altpll_component|pll|inclk[0]}] -duty_cycle 50.000 -multiply_by 2 -master_clock {Clk} [get_pins {Pll100MHz|altpll_component|pll|clk[0]}] 
+
+create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] -multiply_by 2 -master_clock {Clk} [get_ports {SdramClk}]
 
 # Divided clocks
 create_generated_clock -name Clk50Mhz -source [get_nets {Pll100MHz|altpll_component|_clk0}] -divide_by 2 [get_pins {ClkDivTo50Mhz|divisor|regout}]
@@ -67,59 +76,14 @@ create_generated_clock -name Clk25MHz -source [get_pins {ClkDivTo50Mhz|divisor|r
 
 derive_clock_uncertainty
 
-#**************************************************************
-# Set Clock Latency
-#**************************************************************
+# Constrain data in
+set_input_delay -clock SdramClk_pin -source -max $sdram_data_input_delay_max [get_ports SdramDQ\[*\]]
+set_input_delay -clock SdramClk_pin -source -min $sdram_data_input_delay_min [get_ports SdramDQ\[*\]]
 
+set_output_delay -clock SdramClk_pin -source -max $sdram_output_delay_max [get_ports Sdram*]
+set_output_delay -clock SdramClk_pin -source -min -${sdram_output_delay_min} [get_ports Sdram*]
 
-
-#**************************************************************
-# Set Clock Uncertainty
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Input Delay
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Output Delay
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Clock Groups
-#**************************************************************
-
-
-
-#**************************************************************
-# Set False Path
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Multicycle Path
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Maximum Delay
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Minimum Delay
-#**************************************************************
-
-
+set_multicycle_path -from [get_clocks SdramClk_pin] -to [get_clocks Clk100MHz] -setup -end 2
 
 #**************************************************************
 # Set Input Transition
