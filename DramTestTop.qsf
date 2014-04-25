@@ -94,6 +94,43 @@ set_location_assignment PIN_199 -to SdramSA[2]
 set_location_assignment PIN_200 -to SdramSA[1]
 set_location_assignment PIN_201 -to SdramSA[0]
 set_location_assignment PIN_3 -to SdramWE_N
+
+set_location_assignment PIN_169 -to SIO_C
+set_location_assignment PIN_165 -to SIO_D
+set_location_assignment PIN_163 -to CamVsync
+set_location_assignment PIN_151 -to CamClk
+set_location_assignment PIN_161 -to CamHref
+set_location_assignment PIN_142 -to CamD[7]
+set_location_assignment PIN_143 -to CamD[6]
+set_location_assignment PIN_139 -to CamD[5]
+set_location_assignment PIN_141 -to CamD[4]
+set_location_assignment PIN_137 -to CamD[3]
+set_location_assignment PIN_149 -to CamD[2]
+# Must be moved, conflicts with CAS_N
+# set_location_assignment PIN_168 -to CamD[1]
+set_location_assignment PIN_164 -to CamD[0]
+
+set_global_assignment -name USE_CONFIGURATION_DEVICE ON
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
+set_location_assignment PIN_117 -to VgaBlue[0]
+set_location_assignment PIN_115 -to VgaBlue[1]
+set_location_assignment PIN_113 -to VgaBlue[2]
+set_location_assignment PIN_106 -to VgaGreen[2]
+set_location_assignment PIN_4 -to VgaGreen[1]
+set_location_assignment PIN_112 -to VgaGreen[0]
+set_location_assignment PIN_110 -to VgaHsync
+set_location_assignment PIN_118 -to VgaRed[0]
+set_location_assignment PIN_116 -to VgaRed[1]
+set_location_assignment PIN_114 -to VgaRed[2]
+set_location_assignment PIN_105 -to VgaVSync
+set_location_assignment PIN_182 -to SdramClk
+set_global_assignment -name OUTPUT_PIN_LOAD 7 -section_id "3.3-V LVTTL"
+set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V PCI"
+set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V PCI-X"
+set_global_assignment -name VHDL_FILE source/OV7660Init.vhd
+set_global_assignment -name VHDL_FILE source/CamCapture.vhd
+set_global_assignment -name VHDL_FILE source/SccbCtrl.vhd
+set_global_assignment -name VHDL_FILE source/SccbMaster.vhd
 set_global_assignment -name VHDL_FILE source/VGAGenerator.vhd
 set_global_assignment -name VHDL_FILE source/CamAligner.vhd
 set_global_assignment -name VHDL_FILE source/FakeVgaCam.vhd
@@ -112,22 +149,9 @@ set_global_assignment -name VHDL_FILE source/Command.vhd
 set_global_assignment -name QIP_FILE PLL.qip
 set_global_assignment -name QIP_FILE ReqFifo.qip
 set_global_assignment -name QIP_FILE RespFIFO.qip
-set_global_assignment -name USE_CONFIGURATION_DEVICE ON
-set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
-set_location_assignment PIN_117 -to VgaBlue[0]
-set_location_assignment PIN_115 -to VgaBlue[1]
-set_location_assignment PIN_113 -to VgaBlue[2]
-set_location_assignment PIN_106 -to VgaGreen[2]
-set_location_assignment PIN_4 -to VgaGreen[1]
-set_location_assignment PIN_112 -to VgaGreen[0]
-set_location_assignment PIN_110 -to VgaHsync
-set_location_assignment PIN_118 -to VgaRed[0]
-set_location_assignment PIN_116 -to VgaRed[1]
-set_location_assignment PIN_114 -to VgaRed[2]
-set_location_assignment PIN_105 -to VgaVSync
-set_location_assignment PIN_182 -to SdramClk
-set_global_assignment -name OUTPUT_PIN_LOAD 7 -section_id "3.3-V LVTTL"
-set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V PCI"
-set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V PCI-X"
 set_global_assignment -name CDF_FILE output_files/Chain1.cdf
+set_global_assignment -name QIP_FILE AsyncFifo.qip
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
