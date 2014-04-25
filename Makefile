@@ -2,6 +2,11 @@ FILES=source/DramTestPack.vhd \
 	ReqFifo.vhd \
 	RespFIFO.vhd \
 	PLL.vhd \
+	AsyncFifo.vhd \
+	source/CamCapture.vhd \
+	source/SccbCtrl.vhd \
+	source/OV7660Init.vhd \
+	source/SccbMaster.vhd \
 	source/VGAGenerator.vhd \
 	source/FakeVgaCam.vhd \
 	source/CamAligner.vhd \
