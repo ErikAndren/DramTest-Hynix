@@ -26,7 +26,15 @@ entity DramTestTop is
     VgaGreen   : out   word(ColResW-1 downto 0);
     VgaBlue    : out   word(ColResW-1 downto 0);
     VgaHsync   : out   bit1;
-    VgaVSync   : out   bit1
+    VgaVSync   : out   bit1;
+    -- Sccb interface
+    SIO_C      : out   bit1;
+    SIO_D      : inout bit1;
+    -- Cam interface
+    CamClk     : out   bit1;
+    CamHRef    : in    bit1;
+    CamVSync   : in    bit1;
+    CamD       : in    word(8-1 downto 0)
     );
 end entity;
 
@@ -68,11 +76,11 @@ architecture rtl of DramTestTop is
   --
   signal ReadReqFromRespHdler    : DramRequest;
   signal ReadReqFromRespHdlerAck : bit1;
-
-  signal CamVsync : bit1;
-  signal CamHref  : bit1;
-  signal CamD     : word(8-1 downto 0);
-
+  --
+  signal PixelVal                : bit1;
+  signal PixelData               : word(8-1 downto 0);
+  signal VSync_i                 : bit1;
+  
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -105,6 +113,7 @@ begin
       --
       Clk_out => Clk25MHz
       );
+  CamClkFeed : CamClk <= Clk25MHz;
   
   -- Reset synchronizer
   RstSync100Mhz : entity work.ResetSync
@@ -131,25 +140,48 @@ begin
       Rst_N    => RstN25MHz
       );
   
-  -- Write data generator, will later be camera
-  VgaCam : entity work.FakeVgaCam
+  SccbM : entity work.SccbMaster
     port map (
-      RstN  => RstN25MHz,
-      Clk   => Clk25MHz,
+      Clk          => Clk25MHz,
+      Rst_N        => RstN25MHz,
       --
-      Vsync => CamVsync,
-      Href  => CamHref,
-      D     => CamD
+      DataFromSccb => open,
+      --
+      SIO_C        => SIO_C,
+      SIO_D        => SIO_D
       );
 
+  CaptPixel : entity work.CamCapture
+    generic map (
+      DataW => 8
+      )
+    port map (
+      RstN      => RstN25MHz,
+      Clk       => Clk25MHz,
+      --
+      PRstN     => RstN25MHz,
+      -- HACK: We use the internal raw 25 MHz clock for
+      -- now due to the bad quality of the incoming one.      
+      PClk      => Clk25MHz,
+      --                   
+      Vsync     => CamVSYNC,
+      HREF      => CamHREF,
+      PixelData => CamD,
+      --
+      PixelOut  => PixelData,
+      PixelVal  => PixelVal,      
+      --
+      Vsync_Clk => Vsync_i
+      );
+  
   CamAlign : entity work.CamAligner
     port map (
       WrRst_N     => RstN25MHz,
       WrClk       => Clk25MHz,
       --
-      Vsync       => CamVsync,
-      Href        => CamHref,
-      D           => CamD,
+      Vsync       => Vsync_i,
+      Href        => PixelVal,
+      D           => PixelData,
       --
       RdClk       => Clk50MHz,
       RdRst_N     => RstN50MHz,
