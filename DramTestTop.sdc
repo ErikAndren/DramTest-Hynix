@@ -25,14 +25,28 @@
 ## DEVICE  "EP2C8Q208C8"
 ##
 
+# Sdram timing constants
+set sdram_clk_period 10.000
+
+# sdram input setup tSU
+set sdram_tSU 1.500
+
+# sdram input hold tHO
+set sdram_tH 0.800
+
+# sdram output clk to data output tCO
+set sdram_tCO 1.000
+
+
+
+
+
 
 #**************************************************************
 # Time Information
 #**************************************************************
 
 set_time_format -unit ns -decimal_places 3
-
-
 
 #**************************************************************
 # Create Clock
@@ -50,6 +64,8 @@ create_generated_clock -name Clk100MHz -source [get_pins {Pll100MHz|altpll_compo
 # Divided clocks
 create_generated_clock -name Clk50Mhz -source [get_nets {Pll100MHz|altpll_component|_clk0}] -divide_by 2 [get_pins {ClkDivTo50Mhz|divisor|regout}]
 create_generated_clock -name Clk25MHz -source [get_pins {ClkDivTo50Mhz|divisor|regout}] -divide_by 2 [get_pins {ClkDivTo25Mhz|divisor|regout}]
+
+derive_clock_uncertainty
 
 #**************************************************************
 # Set Clock Latency
