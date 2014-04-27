@@ -111,6 +111,10 @@ begin
       Green <= PixelToDisplay(6-1 downto 3);
       Blue <= PixelToDisplay(8-1 downto 6) & '0';
 
+      Red <= PixelToDisplay(8-1 downto 5);
+      Green <= PixelToDisplay(8-1 downto 5);
+      Blue <= PixelToDisplay(8-1 downto 5);
+
       -- Draw green rectangle overlay
       if DrawRect = '1' then
         Green <= (others => '1');
