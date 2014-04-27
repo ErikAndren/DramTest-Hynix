@@ -86,9 +86,9 @@ begin
   Pll100MHz : entity work.PLL
     port map (
       inclk0 => Clk,
-      c0     => Clk100MHz
+      c0     => Clk100MHz,
+      c1     => SdramClk
       );
-  SdramClkFeed : SdramClk <= Clk100MHz;
 
   ClkDivTo50Mhz : entity work.ClkDiv
     generic map (
