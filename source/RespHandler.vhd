@@ -41,7 +41,7 @@ architecture rtl of RespHandler is
   signal FillLvl     : word(FifoSizeW-1 downto 0);
 
   -- Must be less than 16
-  constant ReadReqThrottle            : positive := 15;
+  constant ReadReqThrottle            : positive := 8;
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW-1 downto 0);
 
@@ -101,7 +101,7 @@ begin
 
     if InView = '1' then
       PixelToDisp <= ExtractSlice(DataToVga, PixelW, conv_integer(WordCnt_D));
-      WordCnt_N <= WordCnt_D - 1;
+      WordCnt_N   <= WordCnt_D - 1;
     end if;
   end process;
 
@@ -126,6 +126,7 @@ begin
 
     if ReadReqAck = '1' then
       Addr_N <= Addr_D + BurstLen;
+      
       if conv_integer(Addr_D + BurstLen) > VgaPixels then
         Addr_N  <= (others => '0');
         Frame_N <= Frame_D + 1;
