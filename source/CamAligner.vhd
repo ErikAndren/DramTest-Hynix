@@ -75,7 +75,11 @@ begin
     FifoWe_N <= '0';
 
     if Href = '1' then
-      if PixCnt_D = 0 then
+      -- FIXME: Here goes conversion to 8 bits of pixel data
+      -- Drop every other pixel
+      PixCnt_N <= PixCnt_D + 1;
+      
+      if PixCnt_D = 0 then        
         WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);
         WordCnt_N <= WordCnt_D + 1;
 
@@ -84,13 +88,6 @@ begin
           WordCnt_N <= (others => '0');
         end if;
       end if;
-
-      -- FIXME: Here goes conversion to 8 bits of pixel data
-      -- Drop every other pixel
-      PixCnt_N <= PixCnt_D + 1;
-      if PixCnt_D + 1 > 1 then
-        PixCnt_N <= (others => '0');
-      end if;      
     end if;
 
     if FifoWe_D = '1' then
