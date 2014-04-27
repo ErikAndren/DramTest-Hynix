@@ -105,7 +105,7 @@ begin
         -- RCD 3
         InitReq.Addr(3 downto 2) <= "11";
 
-        -- RRD 15 ???
+        -- RRD 2
         InitReq.Addr(7 downto 4) <= "0010";
 
         -- Page mode normal
@@ -213,6 +213,7 @@ begin
     -- Split write word into 16 bit chunks
     if (WordCnt_D > 0) then
       ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, WordCnt_D-1);
+
       WordCnt_N  <= WordCnt_D - 1;
     end if;
     
