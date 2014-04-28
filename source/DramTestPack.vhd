@@ -16,6 +16,7 @@ package DramTestPack is
   constant ColResW            : positive              := 3;
   --
   constant VgaPixels          : positive              := VgaRes * PixelW;
+  --  
   --
   constant ASIZE              : integer               := 24;
   constant DSIZE              : integer               := 16;
@@ -32,14 +33,16 @@ package DramTestPack is
   constant VgaPixelsPerDword  : positive              := VgaPixels / DSIZE;
   constant VgaPixelsPerDwordW : positive              := bits(VgaPixelsPerDword);
   --
-  constant Frames             : positive              := 2;
+  constant Frames             : positive              := 3;
   constant FramesW            : positive              := bits(Frames);
   --
   constant BurstLen           : natural               := 8;
   constant BurstLenW          : positive              := bits(BurstLen);
+  -- 8 * 16 = 128
   constant BurstSz            : natural               := BurstLen * DSIZE;
-  --
+  -- 128 / 8 = 16
   constant PixelsPerBurst     : positive              := BurstSz / PixelW;
+  -- 5
   constant PixelsPerBurstW    : positive              := bits(PixelsPerBurst);
   --
   constant CmdW               : positive              := 3;
