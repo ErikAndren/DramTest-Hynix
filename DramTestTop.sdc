@@ -65,7 +65,7 @@ create_clock -name {Clk} -period 20.000 -waveform { 0.000 10.000 } [get_ports {C
 # Create Generated Clock
 #**************************************************************
 
-derive_pll_clocks
+derive_pll_clocks -create_base_clocks
 
 # Create pll clock
 create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] [get_ports {SdramClk}]
