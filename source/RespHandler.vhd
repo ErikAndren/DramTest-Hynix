@@ -96,11 +96,12 @@ begin
     -- Try to read out data when there is something to send
     if FifoEmpty = '0' and WordCnt_D = 0 then
       ReadFifo  <= '1';
-      WordCnt_N <= conv_word(1, WordCnt_N'length);
+      WordCnt_N <= conv_word(PixelsPerWord-1, WordCnt_N'length);
     end if;
 
     if InView = '1' then
-      PixelToDisp <= ExtractSlice(DataToVga, PixelW, conv_integer(WordCnt_D));
+      -- PixelToDisp <= ExtractSlice(DataToVga, PixelW, conv_integer(WordCnt_D));
+      PixelToDisp <= ExtractSlice(DataToVga, PixelW, (PixelsPerWord-1) - conv_integer(WordCnt_D));
       WordCnt_N   <= WordCnt_D - 1;
     end if;
   end process;
@@ -127,10 +128,10 @@ begin
     if ReadReqAck = '1' then
       Addr_N <= Addr_D + BurstLen;
       
-      if conv_integer(Addr_D + BurstLen) > VgaPixels then
+      if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDwordW then
         Addr_N  <= (others => '0');
         Frame_N <= Frame_D + 1;
-        if conv_integer(Frame_D + 1) = Frames then
+        if Frame_D + 1 = Frames then
           Frame_N <= (others => '0');
         end if;
       end if;
