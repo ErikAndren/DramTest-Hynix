@@ -13,21 +13,23 @@ entity RespHandler is
     PixelW : positive := 8
     );
   port (
-    WrRst_N     : in  bit1;
-    WrClk       : in  bit1;
+    WrRst_N       : in  bit1;
+    WrClk         : in  bit1;
     --
-    RespData    : in  word(DSIZE-1 downto 0);
-    RespDataVal : in  bit1;
+    LastFrameComp : in  word(FramesW-1 downto 0);
+    --
+    RespData      : in  word(DSIZE-1 downto 0);
+    RespDataVal   : in  bit1;
     --
     -- interface to sram arbiter
-    RdRst_N     : in  bit1;
-    RdClk       : in  bit1;
+    RdRst_N       : in  bit1;
+    RdClk         : in  bit1;
     --
-    ReadReq     : out DramRequest;
-    ReadReqAck  : in  bit1;
+    ReadReq       : out DramRequest;
+    ReadReqAck    : in  bit1;
     -- Vga interface
-    InView      : in  bit1;
-    PixelToDisp : out word(PixelW-1 downto 0)
+    InView        : in  bit1;
+    PixelToDisp   : out word(PixelW-1 downto 0)
     );
 end entity;
 
@@ -106,7 +108,7 @@ begin
     end if;
   end process;
 
-  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D)
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp)
   begin
     ReadReq <= Z_DramRequest;
     Addr_N  <= Addr_D;
@@ -128,11 +130,11 @@ begin
     if ReadReqAck = '1' then
       Addr_N <= Addr_D + BurstLen;
       
-      if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDwordW then
+      if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDword then
         Addr_N  <= (others => '0');
-        Frame_N <= Frame_D + 1;
-        if Frame_D + 1 = Frames then
-          Frame_N <= (others => '0');
+
+        if ((LastFrameComp > Frame_D) or (LastFrameComp = 0)) then
+          Frame_N <= LastFrameComp;
         end if;
       end if;
     end if;

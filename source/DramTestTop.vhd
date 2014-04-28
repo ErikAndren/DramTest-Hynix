@@ -82,6 +82,8 @@ architecture rtl of DramTestTop is
   signal PixelVal                : bit1;
   signal PixelData               : word(8-1 downto 0);
   signal VSync_i                 : bit1;
+  --
+  signal LastFrameComp           : word(FramesW-1 downto 0);
 
 begin
   -- Pll
@@ -193,18 +195,20 @@ begin
   
   CamAlign : entity work.CamAligner
     port map (
-      WrRst_N     => RstN25MHz,
-      WrClk       => Clk25MHz,
+      WrRst_N       => RstN25MHz,
+      WrClk         => Clk25MHz,
       --
-      Vsync       => Vsync_i,
-      Href        => PixelVal,
-      D           => PixelData,
+      Vsync         => Vsync_i,
+      Href          => PixelVal,
+      D             => PixelData,
       --
-      RdClk       => Clk50MHz,
-      RdRst_N     => RstN50MHz,
+      RdClk         => Clk50MHz,
+      RdRst_N       => RstN50MHz,
       --
-      WriteReq    => WriteReqFromPatGen,
-      WriteReqAck => WriteReqFromPatGenAck
+      WriteReq      => WriteReqFromPatGen,
+      WriteReqAck   => WriteReqFromPatGenAck,
+      --
+      LastFrameComp => LastFrameComp
       );      
 
   SdramArb : entity work.SdramArbiter
@@ -282,20 +286,21 @@ begin
 
   RespHdler : entity work.RespHandler
     port map (
-      WrRst_N     => RstN100MHz,
-      WrClk       => Clk100MHz,
+      WrRst_N       => RstN100MHz,
+      WrClk         => Clk100MHz,
       --
-      RespData    => SdramDataOut,
-      RespDataVal => SdramDataVal,
+      RespData      => SdramDataOut,
+      RespDataVal   => SdramDataVal,
+      LastFrameComp => LastFrameComp,
       --
-      RdRst_N     => RstN25MHz,
-      RdClk       => Clk25MHz,
+      RdRst_N       => RstN25MHz,
+      RdClk         => Clk25MHz,
       --
-      ReadReq     => ReadReqFromRespHdler,
-      ReadReqAck  => ReadReqFromRespHdlerAck,
+      ReadReq       => ReadReqFromRespHdler,
+      ReadReqAck    => ReadReqFromRespHdlerAck,
       --
-      InView      => VgaInView,
-      PixelToDisp => VgaPixelToDisp
+      InView        => VgaInView,
+      PixelToDisp   => VgaPixelToDisp
       );
 
   VGAGen : entity work.VGAGenerator

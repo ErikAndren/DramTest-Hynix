@@ -8,18 +8,20 @@ use work.DramTestPack.all;
 
 entity CamAligner is
   port (
-    WrRst_N     : in  bit1;
-    WrClk       : in  bit1;
+    WrRst_N       : in  bit1;
+    WrClk         : in  bit1;
     --
-    Vsync       : in  bit1;
-    Href        : in  bit1;
-    D           : in  word(8-1 downto 0);
+    Vsync         : in  bit1;
+    Href          : in  bit1;
+    D             : in  word(8-1 downto 0);
     --
-    RdClk       : in  bit1;
-    RdRst_N     : in  bit1;
+    RdClk         : in  bit1;
+    RdRst_N       : in  bit1;
     --
-    WriteReq    : out DramRequest;
-    WriteReqAck : in  bit1
+    WriteReq      : out DramRequest;
+    WriteReqAck   : in  bit1;
+    --
+    LastFrameComp : out word(FramesW-1 downto 0)
     );
 end entity;
 
@@ -40,6 +42,16 @@ architecture rtl of CamAligner is
   signal ArbAck_N, ArbAck_D            : bit1;
   signal ReadFifo                      : bit1;
   signal FifoEmpty, FifoFull           : bit1;
+  
+  function CalcLastFrameComp(CurFrame : word) return word is
+  begin
+    if CurFrame = 0 then
+      return conv_word(Frames-1, CurFrame'length);
+    else
+      return CurFrame - 1;
+    end if;
+  end function;
+  
 begin
   WrSyncProc : process (WrClk, WrRst_N)
   begin
@@ -65,14 +77,16 @@ begin
     end if;
   end process;
 
+  LastFrameComp <= CalcLastFrameComp(Frame_D);
+  
   WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D)
   begin
-    WordCnt_N  <= WordCnt_D;
-    Frame_N <= Frame_D;
-    WrData_N   <= WrData_D;
-    PixCnt_N   <= PixCnt_D;
-    Addr_N     <= Addr_D;
-    FifoWe_N <= '0';
+    WordCnt_N <= WordCnt_D;
+    Frame_N   <= Frame_D;
+    WrData_N  <= WrData_D;
+    PixCnt_N  <= PixCnt_D;
+    Addr_N    <= Addr_D;
+    FifoWe_N  <= '0';
 
     if Href = '1' then
       -- FIXME: Here goes conversion to 8 bits of pixel data
