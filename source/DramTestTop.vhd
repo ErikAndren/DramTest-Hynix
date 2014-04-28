@@ -80,7 +80,7 @@ architecture rtl of DramTestTop is
   signal PixelVal                : bit1;
   signal PixelData               : word(8-1 downto 0);
   signal VSync_i                 : bit1;
-  
+
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -101,7 +101,7 @@ begin
       --
       Clk_out => Clk50MHz
       );
-
+  
   ClkDivTo25Mhz : entity work.ClkDiv
     generic map (
       SourceFreq => 50,
@@ -113,6 +113,8 @@ begin
       --
       Clk_out => Clk25MHz
       );
+
+  -- Use raw, divided clock
   CamClkFeed : CamClk <= Clk25MHz;
   
   -- Reset synchronizer
@@ -139,7 +141,7 @@ begin
       --
       Rst_N    => RstN25MHz
       );
-  
+
   SccbM : entity work.SccbMaster
     port map (
       Clk          => Clk25MHz,
@@ -151,6 +153,7 @@ begin
       SIO_D        => SIO_D
       );
 
+  -- This clock is probably invalid for this purpose. Use the raw clk divided
   CaptPixel : entity work.CamCapture
     generic map (
       DataW => 8
