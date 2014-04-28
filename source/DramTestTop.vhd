@@ -48,6 +48,8 @@ architecture rtl of DramTestTop is
   signal Clk25MHz                : bit1;
   signal RstN25MHz               : bit1;
   --
+  signal RawClk25MHz             : bit1;
+  --
   signal SdramAddr               : word(ASIZE-1 downto 0);
   signal SdramCmd                : word(3-1 downto 0);
   signal SdramCmdAck             : bit1;
@@ -114,8 +116,20 @@ begin
       Clk_out => Clk25MHz
       );
 
+  RawClkDivTo25Mhz : entity work.ClkDiv
+    generic map (
+      SourceFreq => 50,
+      SinkFreq   => 25
+      )
+    port map (
+      Clk     => Clk,
+      RstN    => RstN50MHz,
+      --
+      Clk_out => RawClk25MHz
+      );
+
   -- Use raw, divided clock
-  CamClkFeed : CamClk <= Clk25MHz;
+  CamClkFeed : CamClk <= RawClk25MHz;
   
   -- Reset synchronizer
   RstSync100Mhz : entity work.ResetSync
@@ -144,7 +158,7 @@ begin
 
   SccbM : entity work.SccbMaster
     port map (
-      Clk          => Clk25MHz,
+      Clk          => RawClk25MHz,
       Rst_N        => RstN25MHz,
       --
       DataFromSccb => open,
