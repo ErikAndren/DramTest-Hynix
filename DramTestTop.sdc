@@ -75,6 +75,7 @@ create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_co
 # Divided clocks
 create_generated_clock -name Clk50Mhz -source [get_nets {Pll100MHz|altpll_component|_clk0}] -divide_by 2 [get_pins {ClkDivTo50Mhz|divisor|regout}]
 create_generated_clock -name Clk25MHz -source [get_pins {ClkDivTo50Mhz|divisor|regout}] -divide_by 2 [get_pins {ClkDivTo25Mhz|divisor|regout}]
+create_generated_clock -name RawClk25MHz -source [get_ports {Clk}] -divide_by 2 [get_pins {RawClkDivTo25Mhz|divisor|regout}]
 
 derive_clock_uncertainty
 
