@@ -129,7 +129,7 @@ begin
 
     -- Generate read requests as long as fifo is less than half full
     -- FIXME: Adjust this to prevent buffer underrun
-    if (conv_integer(FillLvl) < FillLevelThres and (ReqThrottle_D = 0)) and FirstFrameVal = '1' then
+    if (conv_integer(FillLvl) < FillLevelThres and (ReqThrottle_D = 0)) and (FirstFrameVal = '1') and (VgaVSync = '0') then
       ReadReq.Val   <= "1";
       ReadReq.Cmd   <= DRAM_READA;
       ReadReq.Addr  <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
