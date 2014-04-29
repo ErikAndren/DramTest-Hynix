@@ -75,7 +75,6 @@ create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_co
 # Divided clocks
 create_generated_clock -name Clk50Mhz -source [get_nets {Pll100MHz|altpll_component|_clk0}] -divide_by 2 [get_pins {ClkDivTo50Mhz|divisor|regout}]
 create_generated_clock -name Clk25MHz -source [get_pins {ClkDivTo50Mhz|divisor|regout}] -divide_by 2 [get_pins {ClkDivTo25Mhz|divisor|regout}]
-create_generated_clock -name RawClk25MHz -source [get_ports {Clk}] -divide_by 2 [get_pins {RawClkDivTo25Mhz|divisor|regout}]
 
 derive_clock_uncertainty
 
@@ -87,6 +86,10 @@ set_output_delay -clock SdramClk_pin -source -max $sdram_output_delay_max [get_p
 set_output_delay -clock SdramClk_pin -source -min -${sdram_output_delay_min} [get_ports Sdram*]
 
 set_multicycle_path -from [get_clocks SdramClk_pin] -to [get_clocks {Pll100MHz|altpll_component|pll|clk[0]}] -setup -end 2
+
+set_multicycle_path -from {Pll100MHz|altpll_component|pll|clk[1]} -to {SdramClk} -setup -end 2
+# Validate this
+set_multicycle_path -from {Pll100MHz|altpll_component|pll|clk[1]} -to {SdramClk} -hold -end 2 
 
 #**************************************************************
 # Set Input Transition
