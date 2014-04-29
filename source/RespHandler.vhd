@@ -67,6 +67,8 @@ begin
       WrReq   => RespDataVal,
       Data    => RespData,
       --
+      -- Clear fifo between each frame
+      aclr    => VgaVsync,
       RdClk   => RdClk,
       RdReq   => ReadFifo,
       Q       => DataToVga,
