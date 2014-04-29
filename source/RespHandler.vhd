@@ -16,6 +16,7 @@ entity RespHandler is
     WrRst_N       : in  bit1;
     WrClk         : in  bit1;
     --
+    FirstFrameVal : in  bit1;
     LastFrameComp : in  word(FramesW-1 downto 0);
     --
     RespData      : in  word(DSIZE-1 downto 0);
@@ -43,7 +44,8 @@ architecture rtl of RespHandler is
   signal FillLvl     : word(FifoSizeW-1 downto 0);
 
   -- Must be less than 16
-  constant ReadReqThrottle            : positive := 8;
+--  constant ReadReqThrottle            : positive := 8;
+    constant ReadReqThrottle            : positive := 12;
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW-1 downto 0);
 
@@ -96,19 +98,19 @@ begin
     ReadFifo    <= '0';
 
     -- Try to read out data when there is something to send
-    if FifoEmpty = '0' and WordCnt_D = 0 then
+    if (FifoEmpty = '0' and WordCnt_D = 0) then
       ReadFifo  <= '1';
       WordCnt_N <= conv_word(PixelsPerWord-1, WordCnt_N'length);
     end if;
 
     if InView = '1' then
-      -- PixelToDisp <= ExtractSlice(DataToVga, PixelW, conv_integer(WordCnt_D));
+      -- Read out lowest pixel first
       PixelToDisp <= ExtractSlice(DataToVga, PixelW, (PixelsPerWord-1) - conv_integer(WordCnt_D));
       WordCnt_N   <= WordCnt_D - 1;
     end if;
   end process;
 
-  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp)
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal)
   begin
     ReadReq <= Z_DramRequest;
     Addr_N  <= Addr_D;
@@ -120,7 +122,7 @@ begin
 
     -- Generate read requests as long as fifo is less than half full
     -- FIXME: Adjust this to prevent buffer underrun
-    if conv_integer(FillLvl) < FillLevelThres and (ReqThrottle_D = 0) then
+    if (conv_integer(FillLvl) < FillLevelThres and (ReqThrottle_D = 0)) and FirstFrameVal = '1' then
       ReadReq.Val   <= "1";
       ReadReq.Cmd   <= DRAM_READA;
       ReadReq.Addr  <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);

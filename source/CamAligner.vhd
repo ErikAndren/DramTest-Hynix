@@ -21,6 +21,7 @@ entity CamAligner is
     WriteReq      : out DramRequest;
     WriteReqAck   : in  bit1;
     --
+    FirstFrameVal : out bit1;
     LastFrameComp : out word(FramesW-1 downto 0)
     );
 end entity;
@@ -33,15 +34,16 @@ architecture rtl of CamAligner is
   -- FIXME: Replace with assymetric fifo?
   signal WrData_N, WrData_D   : word(BurstSz-1 downto 0);
   
-  signal PixCnt_N, PixCnt_D            : word(1-1 downto 0);
+  signal PixCnt_N, PixCnt_D               : word(1-1 downto 0);
   --
-  signal DramRequest_i, WriteReq_i     : DramRequest;
-  signal DramRequestWord, WriteReqWord : word(DramRequestW-1 downto 0);
-  signal FifoWe_N, FifoWe_D            : bit1;
-  signal WasEmpty_D                    : bit1;
-  signal ArbAck_N, ArbAck_D            : bit1;
-  signal ReadFifo                      : bit1;
-  signal FifoEmpty, FifoFull           : bit1;
+  signal DramRequest_i, WriteReq_i        : DramRequest;
+  signal DramRequestWord, WriteReqWord    : word(DramRequestW-1 downto 0);
+  signal FifoWe_N, FifoWe_D               : bit1;
+  signal WasEmpty_D                       : bit1;
+  signal ArbAck_N, ArbAck_D               : bit1;
+  signal ReadFifo                         : bit1;
+  signal FifoEmpty, FifoFull              : bit1;
+  signal FirstFrameVal_N, FirstFrameVal_D : bit1;
   
   function CalcLastFrameComp(CurFrame : word) return word is
   begin
@@ -56,17 +58,19 @@ begin
   WrSyncProc : process (WrClk, WrRst_N)
   begin
     if WrRst_N = '0' then
-      Frame_D <= (others => '0');
-      Addr_D     <= (others => '0');
-      WordCnt_D  <= (others => '0');
-      PixCnt_D   <= (others => '0');
-      FifoWe_D   <= '0';
+      Frame_D         <= (others => '0');
+      Addr_D          <= (others => '0');
+      WordCnt_D       <= (others => '0');
+      PixCnt_D        <= (others => '0');
+      FifoWe_D        <= '0';
+      FirstFrameVal_D <= '0';
     elsif rising_edge(WrClk) then
-      Frame_D <= Frame_N;
-      WordCnt_D  <= WordCnt_N;
-      PixCnt_D   <= PixCnt_N;
-      Addr_D     <= Addr_N;
-      FifoWe_D   <= FifoWe_N;
+      Frame_D         <= Frame_N;
+      WordCnt_D       <= WordCnt_N;
+      PixCnt_D        <= PixCnt_N;
+      Addr_D          <= Addr_N;
+      FifoWe_D        <= FifoWe_N;
+      FirstFrameVal_D <= FirstFrameVal_N;
     end if;
   end process;
 
@@ -77,16 +81,18 @@ begin
     end if;
   end process;
 
-  LastFrameComp <= CalcLastFrameComp(Frame_D);
+  LastFrameAssign  : LastFrameComp <= CalcLastFrameComp(Frame_D);
+  FirstFrameAssign : FirstFrameVal <= FirstFrameVal_D;
   
-  WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D)
+  WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D, FirstFrameVal_D)
   begin
-    WordCnt_N <= WordCnt_D;
-    Frame_N   <= Frame_D;
-    WrData_N  <= WrData_D;
-    PixCnt_N  <= PixCnt_D;
-    Addr_N    <= Addr_D;
-    FifoWe_N  <= '0';
+    WordCnt_N       <= WordCnt_D;
+    Frame_N         <= Frame_D;
+    WrData_N        <= WrData_D;
+    PixCnt_N        <= PixCnt_D;
+    Addr_N          <= Addr_D;
+    FifoWe_N        <= '0';
+    FirstFrameVal_N <= FirstFrameVal_D;
 
     if Href = '1' then
       -- FIXME: Here goes conversion to 8 bits of pixel data
@@ -96,21 +102,24 @@ begin
       if PixCnt_D = 0 then        
         WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);
         --WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, Replicate(WordCnt_D(0), PixelW));
+        --WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, Addr_D(PixelW-1 downto 0));
+        
         WordCnt_N <= WordCnt_D + 1;
-      end if;
-    end if;
 
-    if WordCnt_D = PixelsPerBurst-1 then
-      FifoWe_N  <= '1';
-      WordCnt_N <= (others => '0');
+        if WordCnt_D = PixelsPerBurst-1 then
+          FifoWe_N  <= '1';
+          WordCnt_N <= (others => '0');
+        end if;
+      end if;
     end if;
 
     if FifoWe_D = '1' then
       Addr_N    <= Addr_D + BurstLen;
 
       if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDword then
-        Addr_N <= (others => '0');
-        Frame_N <= Frame_D + 1;
+        FirstFrameVal_N <= '1';
+        Addr_N          <= (others => '0');
+        Frame_N         <= Frame_D + 1;
         if Frame_D + 1 = Frames then
           Frame_N <= (others => '0');
         end if;

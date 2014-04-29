@@ -48,8 +48,6 @@ architecture rtl of DramTestTop is
   signal Clk25MHz                : bit1;
   signal RstN25MHz               : bit1;
   --
-  signal RawClk25MHz             : bit1;
-  --
   signal SdramAddr               : word(ASIZE-1 downto 0);
   signal SdramCmd                : word(3-1 downto 0);
   signal SdramCmdAck             : bit1;
@@ -84,6 +82,7 @@ architecture rtl of DramTestTop is
   signal VSync_i                 : bit1;
   --
   signal LastFrameComp           : word(FramesW-1 downto 0);
+  signal FirstFrameVal           : bit1;
 
 begin
   -- Pll
@@ -118,21 +117,9 @@ begin
       Clk_out => Clk25MHz
       );
 
-  RawClkDivTo25Mhz : entity work.ClkDiv
-    generic map (
-      SourceFreq => 50,
-      SinkFreq   => 25
-      )
-    port map (
-      Clk     => Clk,
-      RstN    => RstN50MHz,
-      --
-      Clk_out => RawClk25MHz
-      );
-
   -- Use raw, divided clock
-  CamClkFeed : CamClk <= RawClk25MHz;
-  
+  CamClkFeed : CamClk <= Clk25MHz;
+
   -- Reset synchronizer
   RstSync100Mhz : entity work.ResetSync
     port map (
@@ -160,7 +147,7 @@ begin
 
   SccbM : entity work.SccbMaster
     port map (
-      Clk          => RawClk25MHz,
+      Clk          => Clk25MHz,
       Rst_N        => RstN25MHz,
       --
       DataFromSccb => open,
@@ -208,6 +195,7 @@ begin
       WriteReq      => WriteReqFromPatGen,
       WriteReqAck   => WriteReqFromPatGenAck,
       --
+      FirstFrameVal => FirstFrameVal,
       LastFrameComp => LastFrameComp
       );      
 
@@ -291,6 +279,7 @@ begin
       --
       RespData      => SdramDataOut,
       RespDataVal   => SdramDataVal,
+      FirstFrameVal => FirstFrameVal,
       LastFrameComp => LastFrameComp,
       --
       RdRst_N       => RstN25MHz,
