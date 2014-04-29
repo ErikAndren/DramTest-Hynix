@@ -25,8 +25,8 @@ entity VGAGenerator is
     Red            : out word(ColResW-1 downto 0);
     Green          : out word(ColResW-1 downto 0);
     Blue           : out word(ColResW-1 downto 0);
-    HSync          : out bit1;
-    VSync          : out bit1
+    HSyncN         : out bit1;
+    VSyncN         : out bit1
     );
 end entity;
 
@@ -97,8 +97,8 @@ begin
   InView_i <= '1' when ((hcount >= HDatBegin - Offset) and (hcount < HDatEnd - Offset)) and ((vcount >= VDatBegin) and (vcount < VDatEnd)) else '0';
   InView   <= InView_i;
   
-  Hsync <= '1' when hcount > HSyncEnd else '0';
-  Vsync <= '1' when vcount > VSyncEnd else '0';
+  HsyncN <= '1' when hcount > HSyncEnd else '0';
+  VsyncN <= '1' when vcount > VSyncEnd else '0';
 
   DrawColorProc : process (PixelToDisplay, DrawRect, InView_i)
   begin

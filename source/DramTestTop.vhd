@@ -83,7 +83,9 @@ architecture rtl of DramTestTop is
   --
   signal LastFrameComp           : word(FramesW-1 downto 0);
   signal FirstFrameVal           : bit1;
-
+  --
+  signal VgaVsync_i               : bit1;
+  signal VgaVSyncN, VgaHSyncN    : bit1;
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -287,7 +289,8 @@ begin
       --
       ReadReq       => ReadReqFromRespHdler,
       ReadReqAck    => ReadReqFromRespHdlerAck,
-      --
+      -- Vga interface
+      VgaVsync      => VgaVsync_i,
       InView        => VgaInView,
       PixelToDisp   => VgaPixelToDisp
       );
@@ -308,8 +311,11 @@ begin
       Red            => VgaRed,
       Green          => VgaGreen,
       Blue           => VgaBlue,
-      Hsync          => VgaHsync,
-      VSync          => VgaVsync
+      HsyncN         => VgaHsyncN,
+      VSyncN         => VgaVsyncN
       );
+  VgaVsync_i <= not VgaVSyncN;
+  VgaVSync   <= VgaVSyncN;
+  VgaHSync   <= VgaHSyncN;
       
 end architecture rtl;

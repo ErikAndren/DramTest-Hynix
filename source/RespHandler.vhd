@@ -29,6 +29,7 @@ entity RespHandler is
     ReadReq       : out DramRequest;
     ReadReqAck    : in  bit1;
     -- Vga interface
+    VgaVSync      : in  bit1;
     InView        : in  bit1;
     PixelToDisp   : out word(PixelW-1 downto 0)
     );
@@ -110,7 +111,7 @@ begin
     end if;
   end process;
 
-  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal)
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync)
   begin
     ReadReq <= Z_DramRequest;
     Addr_N  <= Addr_D;
@@ -118,6 +119,10 @@ begin
     ReqThrottle_N <= ReqThrottle_D - 1;
     if ReqThrottle_D = 0 then
       ReqThrottle_N <= (others => '0');
+    end if;
+
+    if VgaVSync = '1' then
+      Addr_N <= (others => '0');
     end if;
 
     -- Generate read requests as long as fifo is less than half full
