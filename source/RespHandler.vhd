@@ -47,7 +47,7 @@ architecture rtl of RespHandler is
 --  constant ReadReqThrottle            : positive := 8;
     constant ReadReqThrottle            : positive := 12;
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
-  signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW-1 downto 0);
+  signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW downto 0);
 
   constant FillLevelThres : positive := 8;
   
