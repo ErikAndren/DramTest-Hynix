@@ -33,7 +33,7 @@ package DramTestPack is
   constant VgaPixelsPerDword  : positive              := VgaPixels / DSIZE;
   constant VgaPixelsPerDwordW : positive              := bits(VgaPixelsPerDword);
   --
-  constant Frames             : positive              := 1;
+  constant Frames             : positive              := 3;
   constant FramesW            : positive              := bits(Frames);
   --
   constant BurstLen           : natural               := 8;
@@ -57,7 +57,7 @@ package DramTestPack is
 
   constant tRCD     : positive := 3;
   constant tCL      : positive := 2;
-  constant tRdDel   : positive := 2;
+  constant tRdDel   : positive := 4;
   
   type DramRequest is record
     Val  : word1;

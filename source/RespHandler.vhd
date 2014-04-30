@@ -46,7 +46,7 @@ architecture rtl of RespHandler is
 
   -- Must be less than 16
 --  constant ReadReqThrottle            : positive := 8;
-    constant ReadReqThrottle            : positive := 12;
+  constant ReadReqThrottle            : positive := 12;
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW downto 0);
 
@@ -100,8 +100,10 @@ begin
     WordCnt_N   <= WordCnt_D;
     ReadFifo    <= '0';
 
-    if VgaVsync = '1' then
-      WordCnt_N <= (others => '0');
+    if InView = '1' then
+      -- Read out lowest pixel first
+      PixelToDisp <= ExtractSlice(DataToVga, PixelW, (PixelsPerWord-1) - conv_integer(WordCnt_D));
+      WordCnt_N   <= WordCnt_D - 1;
     end if;
 
     -- Try to read out data when there is something to send
@@ -110,10 +112,9 @@ begin
       WordCnt_N <= conv_word(PixelsPerWord-1, WordCnt_N'length);
     end if;
 
-    if InView = '1' then
-      -- Read out lowest pixel first
-      PixelToDisp <= ExtractSlice(DataToVga, PixelW, (PixelsPerWord-1) - conv_integer(WordCnt_D));
-      WordCnt_N   <= WordCnt_D - 1;
+    if VgaVsync = '1' then
+      ReadFifo  <= '0';
+      WordCnt_N <= (others => '0');
     end if;
   end process;
 
@@ -122,6 +123,7 @@ begin
     ReadReq <= Z_DramRequest;
     Addr_N  <= Addr_D;
     Frame_N <= Frame_D;
+    --
     ReqThrottle_N <= ReqThrottle_D - 1;
     if ReqThrottle_D = 0 then
       ReqThrottle_N <= (others => '0');

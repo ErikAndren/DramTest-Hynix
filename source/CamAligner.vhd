@@ -81,8 +81,8 @@ begin
     end if;
   end process;
 
-  -- LastFrameAssign  : LastFrameComp <= CalcLastFrameComp(Frame_D);
-  LastFrameAssign  : LastFrameComp <= (others => '0');
+  LastFrameAssign  : LastFrameComp <= CalcLastFrameComp(Frame_D);
+  --LastFrameAssign  : LastFrameComp <= (others => '0');
   FirstFrameAssign : FirstFrameVal <= FirstFrameVal_D;
   
   WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D, FirstFrameVal_D)
@@ -120,7 +120,7 @@ begin
         Frame_N         <= Frame_D + 1;
 
         -- Never write frame 1 again
-        Frame_N <= conv_word(1, Frame_N'length);
+        --Frame_N <= conv_word(1, Frame_N'length);
         
         if Frame_D + 1 = Frames then
           Frame_N <= (others => '0');

@@ -38,7 +38,7 @@ architecture rtl of RequestHandler is
   constant tReadWaitAndBurst            : positive := tReadWait + BurstLen;
   constant tReadWaitAndBurstW           : positive := bits(tReadWaitAndBurst);
   --
-  signal ReadPenalty_N, ReadPenalty_D   : word(tReadWaitAndBurstW-1 downto 0);
+  signal ReadPenalty_N, ReadPenalty_D   : word(tReadWaitAndBurstW downto 0);
 
   type DramInitStates is (INIT, DO_PRECHARGE, DO_LOAD_MODE, DO_LOAD_REG2, DO_LOAD_REG1, DONE);
   
