@@ -28,7 +28,7 @@ end entity;
 
 architecture rtl of CamAligner is
   signal Frame_N, Frame_D     : word(FramesW-1 downto 0);
-  signal Addr_N, Addr_D       : word(VgaPixelsPerDwordW-1 downto 0);
+  signal Addr_N, Addr_D, Addr_D2       : word(VgaPixelsPerDwordW-1 downto 0);
   --
   signal WordCnt_N, WordCnt_D : word(PixelsPerBurstW-1 downto 0);
   -- FIXME: Replace with assymetric fifo?
@@ -60,6 +60,8 @@ begin
     if WrRst_N = '0' then
       Frame_D         <= (others => '0');
       Addr_D          <= (others => '0');
+      Addr_D2          <= (others => '0');
+
       WordCnt_D       <= (others => '0');
       PixCnt_D        <= (others => '0');
       FifoWe_D        <= '0';
@@ -69,6 +71,8 @@ begin
       WordCnt_D       <= WordCnt_N;
       PixCnt_D        <= PixCnt_N;
       Addr_D          <= Addr_N;
+      Addr_D2          <= Addr_D;
+      
       FifoWe_D        <= FifoWe_N;
       FirstFrameVal_D <= FirstFrameVal_N;
     end if;
@@ -82,7 +86,6 @@ begin
   end process;
 
   LastFrameAssign  : LastFrameComp <= CalcLastFrameComp(Frame_D);
-  --LastFrameAssign  : LastFrameComp <= (others => '0');
   FirstFrameAssign : FirstFrameVal <= FirstFrameVal_D;
   
   WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D, FirstFrameVal_D)
@@ -118,9 +121,6 @@ begin
         FirstFrameVal_N <= '1';
         Addr_N          <= (others => '0');
         Frame_N         <= Frame_D + 1;
-
-        -- Never write frame 1 again
-        --Frame_N <= conv_word(1, Frame_N'length);
         
         if Frame_D + 1 = Frames then
           Frame_N <= (others => '0');
@@ -137,7 +137,7 @@ begin
   DramRequest_i.Val  <= Bit1ToWord1(FifoWe_D);
   DramRequest_i.Data <= WrData_D;
   DramRequest_i.Cmd  <= DRAM_WRITEA;
-  DramRequest_i.Addr <= xt0(Frame_D & Addr_D, ASIZE);
+  DramRequest_i.Addr <= xt0(Frame_D & Addr_D2, ASIZE);
   DramRequestWord    <= DramRequestToWord(DramRequest_i);
 
   RFifo : entity work.ReqFifo
