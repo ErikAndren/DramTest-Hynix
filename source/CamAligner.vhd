@@ -81,7 +81,8 @@ begin
     end if;
   end process;
 
-  LastFrameAssign  : LastFrameComp <= CalcLastFrameComp(Frame_D);
+  -- LastFrameAssign  : LastFrameComp <= CalcLastFrameComp(Frame_D);
+  LastFrameAssign  : LastFrameComp <= (others => '0');
   FirstFrameAssign : FirstFrameVal <= FirstFrameVal_D;
   
   WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D, FirstFrameVal_D)
@@ -100,10 +101,7 @@ begin
       PixCnt_N <= PixCnt_D + 1;
       
       if PixCnt_D = 0 then        
-        WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);
-        --WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, Replicate(WordCnt_D(0), PixelW));
-        --WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, Addr_D(PixelW-1 downto 0));
-        
+        WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);        
         WordCnt_N <= WordCnt_D + 1;
 
         if WordCnt_D = PixelsPerBurst-1 then
@@ -120,6 +118,10 @@ begin
         FirstFrameVal_N <= '1';
         Addr_N          <= (others => '0');
         Frame_N         <= Frame_D + 1;
+
+        -- Never write frame 1 again
+        Frame_N <= conv_word(1, Frame_N'length);
+        
         if Frame_D + 1 = Frames then
           Frame_N <= (others => '0');
         end if;

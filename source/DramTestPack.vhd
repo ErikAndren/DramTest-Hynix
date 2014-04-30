@@ -33,7 +33,7 @@ package DramTestPack is
   constant VgaPixelsPerDword  : positive              := VgaPixels / DSIZE;
   constant VgaPixelsPerDwordW : positive              := bits(VgaPixelsPerDword);
   --
-  constant Frames             : positive              := 3;
+  constant Frames             : positive              := 1;
   constant FramesW            : positive              := bits(Frames);
   --
   constant BurstLen           : natural               := 8;
