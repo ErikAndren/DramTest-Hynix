@@ -106,8 +106,7 @@ set_location_assignment PIN_139 -to CamD[5]
 set_location_assignment PIN_141 -to CamD[4]
 set_location_assignment PIN_137 -to CamD[3]
 set_location_assignment PIN_149 -to CamD[2]
-# Must be moved, conflicts with CAS_N
-# set_location_assignment PIN_168 -to CamD[1]
+set_location_assignment PIN_162 -to CamD[1]
 set_location_assignment PIN_164 -to CamD[0]
 
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
