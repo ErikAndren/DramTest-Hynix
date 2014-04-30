@@ -50,7 +50,7 @@ architecture rtl of RespHandler is
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW downto 0);
 
-  constant FillLevelThres : positive := 8;
+  constant FillLevelThres : positive := 9;
   
   constant PixelsPerWord  : positive := DSIZE / PixelW;
   constant PixelsPerWordW : positive := bits(PixelsPerWord);
@@ -93,12 +93,16 @@ begin
     end if;
   end process;
 
-  VgaFiller : process (WordCnt_D, DataToVga, FifoEmpty, InView)
+  VgaFiller : process (WordCnt_D, DataToVga, FifoEmpty, InView, VgaVsync)
   begin
     -- Display black as default
     PixelToDisp <= (others => '0');
     WordCnt_N   <= WordCnt_D;
     ReadFifo    <= '0';
+
+    if VgaVsync = '1' then
+      WordCnt_N <= (others => '0');
+    end if;
 
     -- Try to read out data when there is something to send
     if (FifoEmpty = '0' and WordCnt_D = 0) then
