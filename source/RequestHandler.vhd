@@ -212,7 +212,6 @@ begin
 
     -- Split write word into 16 bit chunks
     if (WordCnt_D > 0) then
-      -- ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, WordCnt_D-1);
       -- Send lowest pixel first
       ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, BurstLen - conv_integer(WordCnt_D));
 
