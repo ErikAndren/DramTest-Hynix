@@ -129,10 +129,6 @@ begin
       ReqThrottle_N <= (others => '0');
     end if;
 
-    if VgaVSync = '1' then
-      Addr_N <= (others => '0');
-    end if;
-
     -- Generate read requests as long as fifo is less than half full
     -- FIXME: Adjust this to prevent buffer underrun
     if (conv_integer(FillLvl) < FillLevelThres and (ReqThrottle_D = 0)) and (FirstFrameVal = '1') and (VgaVSync = '0') then
@@ -153,6 +149,9 @@ begin
         end if;
       end if;
     end if;
+
+    if VgaVSync = '1' then
+      Addr_N <= (others => '0');
+    end if;
   end process;
-  
 end architecture rtl;
