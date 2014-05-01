@@ -70,12 +70,6 @@ derive_pll_clocks -create_base_clocks
 # Create pll clock
 create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] [get_ports {SdramClk}]
 
-# create_generated_clock -add -name Clk100MHz -source [get_pins {Pll100MHz|altpll_component|pll|inclk[0]}] [get_pins {Pll100MHz|altpll_component|pll|clk[0]}] 
-
-# Divided clocks
-create_generated_clock -name Clk50Mhz -source [get_nets {Pll100MHz|altpll_component|_clk0}] -divide_by 2 [get_pins {ClkDivTo50Mhz|divisor|regout}]
-create_generated_clock -name Clk25MHz -source [get_pins {ClkDivTo50Mhz|divisor|regout}] -divide_by 2 [get_pins {ClkDivTo25Mhz|divisor|regout}]
-
 derive_clock_uncertainty
 
 # Constrain data in
