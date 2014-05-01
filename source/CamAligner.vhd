@@ -27,13 +27,13 @@ entity CamAligner is
 end entity;
 
 architecture rtl of CamAligner is
-  signal Frame_N, Frame_D     : word(FramesW-1 downto 0);
-  signal Addr_N, Addr_D, Addr_D2       : word(VgaPixelsPerDwordW-1 downto 0);
+  signal Frame_N, Frame_D                 : word(FramesW-1 downto 0);
+  signal Addr_N, Addr_D                   : word(VgaPixelsPerDwordW-1 downto 0);
   --
-  signal WordCnt_N, WordCnt_D : word(PixelsPerBurstW-1 downto 0);
+  signal WordCnt_N, WordCnt_D             : word(PixelsPerBurstW-1 downto 0);
   -- FIXME: Replace with assymetric fifo?
-  signal WrData_N, WrData_D   : word(BurstSz-1 downto 0);
-  
+  signal WrData_N, WrData_D               : word(BurstSz-1 downto 0);
+  --
   signal PixCnt_N, PixCnt_D               : word(1-1 downto 0);
   --
   signal DramRequest_i, WriteReq_i        : DramRequest;
@@ -46,12 +46,14 @@ architecture rtl of CamAligner is
   signal FirstFrameVal_N, FirstFrameVal_D : bit1;
   
   function CalcLastFrameComp(CurFrame : word) return word is
+    variable res : word(CurFrame'length-1 downto 0);
   begin
     if CurFrame = 0 then
-      return conv_word(Frames-1, CurFrame'length);
+      res := conv_word(Frames-1, CurFrame'length);
     else
-      return CurFrame - 1;
+      res := CurFrame - 1;
     end if;
+    return res;
   end function;
   
 begin
@@ -60,8 +62,6 @@ begin
     if WrRst_N = '0' then
       Frame_D         <= (others => '0');
       Addr_D          <= (others => '0');
-      Addr_D2          <= (others => '0');
-
       WordCnt_D       <= (others => '0');
       PixCnt_D        <= (others => '0');
       FifoWe_D        <= '0';
@@ -71,8 +71,6 @@ begin
       WordCnt_D       <= WordCnt_N;
       PixCnt_D        <= PixCnt_N;
       Addr_D          <= Addr_N;
-      Addr_D2          <= Addr_D;
-      
       FifoWe_D        <= FifoWe_N;
       FirstFrameVal_D <= FirstFrameVal_N;
     end if;
@@ -133,11 +131,11 @@ begin
       Addr_N     <= (others => '0');
     end if;
   end process;
-  
+
   DramRequest_i.Val  <= Bit1ToWord1(FifoWe_D);
   DramRequest_i.Data <= WrData_D;
   DramRequest_i.Cmd  <= DRAM_WRITEA;
-  DramRequest_i.Addr <= xt0(Frame_D & Addr_D2, ASIZE);
+  DramRequest_i.Addr <= xt0(Frame_D & Addr_D, ASIZE);
   DramRequestWord    <= DramRequestToWord(DramRequest_i);
 
   RFifo : entity work.ReqFifo
