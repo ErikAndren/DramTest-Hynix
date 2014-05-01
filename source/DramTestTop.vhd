@@ -42,9 +42,6 @@ architecture rtl of DramTestTop is
   signal Clk100MHz               : bit1;
   signal RstN100MHz              : bit1;
   --
-  signal Clk50MHz                : bit1;
-  signal RstN50MHz               : bit1;
-  --
   signal Clk25MHz                : bit1;
   signal RstN25MHz               : bit1;
   --
@@ -92,34 +89,10 @@ begin
     port map (
       inclk0 => Clk,
       c0     => Clk100MHz,
-      c1     => SdramClk
-      );
-
-  ClkDivTo50Mhz : entity work.ClkDiv
-    generic map (
-      SourceFreq => 100,
-      SinkFreq   => 50
-      )
-    port map (
-      Clk => Clk100MHz,
-      RstN => RstN100MHz,
-      --
-      Clk_out => Clk50MHz
+      c1     => SdramClk,
+      c2     => Clk25MHz
       );
   
-  ClkDivTo25Mhz : entity work.ClkDiv
-    generic map (
-      SourceFreq => 50,
-      SinkFreq   => 25
-      )
-    port map (
-      Clk     => Clk50MHz,
-      RstN    => RstN50MHz,
-      --
-      Clk_out => Clk25MHz
-      );
-
-  -- Use raw, divided clock
   CamClkFeed : CamClk <= Clk25MHz;
 
   -- Reset synchronizer
@@ -129,14 +102,6 @@ begin
       Clk      => Clk100MHz,
       --
       Rst_N    => RstN100MHz
-      );
-
-  RstSync50Mhz : entity work.ResetSync
-    port map (
-      AsyncRst => AsyncRst,
-      Clk      => Clk50MHz,
-      --
-      Rst_N    => RstN50MHz
       );
 
   RstSync25Mhz : entity work.ResetSync
@@ -191,8 +156,8 @@ begin
       Href          => PixelVal,
       D             => PixelData,
       --
-      RdClk         => Clk50MHz,
-      RdRst_N       => RstN50MHz,
+      RdClk         => Clk25MHz,
+      RdRst_N       => RstN25MHz,
       --
       WriteReq      => WriteReqFromPatGen,
       WriteReqAck   => WriteReqFromPatGenAck,
@@ -203,8 +168,8 @@ begin
 
   SdramArb : entity work.SdramArbiter
     port map (
-      Clk         => Clk50MHz,
-      Rst_N       => RstN50MHz,
+      Clk         => Clk25MHz,
+      Rst_N       => RstN25MHz,
       --
       WriteReq    => WriteReqFromPatGen,
       WriteReqAck => WriteReqFromPatGenAck,
@@ -219,8 +184,8 @@ begin
 
   ReqHdler : entity work.RequestHandler
     port map (
-      WrClk      => Clk50MHz,
-      WrRstN     => RstN50MHz,
+      WrClk      => Clk25MHz,
+      WrRstN     => RstN25MHz,
       ReqIn      => ReqFromArb,
       We         => ReqFromArbWe,
       ShapBp     => ShaperBp,
