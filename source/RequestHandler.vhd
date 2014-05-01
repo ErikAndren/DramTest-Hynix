@@ -29,8 +29,6 @@ architecture rtl of RequestHandler is
   signal ReqInWord, ReqOutWord : word(DramRequestW-1 downto 0);
   signal WrFull_i              : bit1;
   --
-  signal WordCnt_N, WordCnt_D  : word(BurstLenW downto 0);
-  --
   signal ReadFifo, FifoEmpty            : bit1;
   signal CmdMask_N, CmdMask_D           : bit1;
   signal ReqIn_i, ReqOut_i              : DramRequest;
@@ -39,6 +37,8 @@ architecture rtl of RequestHandler is
   constant tReadWaitAndBurst            : positive := tReadWait + BurstLen;
   constant tReadWaitAndBurstW           : positive := bits(tReadWaitAndBurst);
   --
+  -- Plus one in penalty was needed, else the reads get corrupted
+  constant WritePenalty : positive := BurstLen + 1;
   signal WritePenalty_N, WritePenalty_D : word(BurstLenW downto 0);
   signal ReadPenalty_N, ReadPenalty_D   : word(tReadWaitAndBurstW downto 0);
 
@@ -154,19 +154,17 @@ begin
   RdSyncProc : process (RdClk, RdRst_N)
   begin
     if RdRst_N = '0' then
-      WordCnt_D      <= (others => '0');
       CmdMask_D      <= '1';
       ReadPenalty_D  <= (others => '0');
       WritePenalty_D <= (others => '0');
     elsif rising_edge(RdClk) then
-      WordCnt_D      <= WordCnt_N;
       CmdMask_D      <= CmdMask_N;
       ReadPenalty_D  <= ReadPenalty_N;
       WritePenalty_D <= WritePenalty_N;
     end if;
   end process;
 
-  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, WordCnt_D, CmdMask_D, WritePenalty_D)
+  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, CmdMask_D, WritePenalty_D)
   begin
     ReadFifo <= '0';
 
@@ -193,9 +191,8 @@ begin
     end if;
   end process;
 
-  ReadOutProc : process (WordCnt_D, CmdAck, CmdMask_D, ReqOut_i, ReadPenalty_D, FifoEmpty, ReadFifo, WritePenalty_D)
+  ReadOutProc : process (CmdAck, CmdMask_D, ReqOut_i, ReadPenalty_D, FifoEmpty, ReadFifo, WritePenalty_D)
   begin
-    WordCnt_N      <= WordCnt_D;
     CmdMask_N      <= CmdMask_D;
     ReqDataOut     <= (others => 'X');
     ReadPenalty_N  <= ReadPenalty_D;
@@ -221,16 +218,14 @@ begin
     end if;
 
     -- Split write word into 16 bit chunks
-    if (WordCnt_D > 0) then
+    if (conv_integer(WritePenalty_D) > (WritePenalty - BurstLen)) then
       -- Send lowest pixel first
-      ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, BurstLen - conv_integer(WordCnt_D));
-      WordCnt_N  <= WordCnt_D - 1;
+      ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, BurstLen - (conv_integer(WritePenalty_D) - (WritePenalty - BurstLen)));
     end if;
     
     if CmdAck = '1' then
       if ReqOut_i.Cmd = DRAM_WRITEA then
-        WordCnt_N <= conv_word(BurstLen, WordCnt_N'length);
-        WritePenalty_N <= conv_word(BurstLen + 1, WritePenalty_N'length);
+        WritePenalty_N <= conv_word(WritePenalty, WritePenalty_N'length);
       elsif ReqOut_i.Cmd = DRAM_READA then
         ReadPenalty_N <= conv_word(tReadWaitAndBurst, ReadPenalty_N'length);
       end if;
