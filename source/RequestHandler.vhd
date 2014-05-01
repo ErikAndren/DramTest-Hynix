@@ -10,6 +10,7 @@ entity RequestHandler is
   port (
     WrClk      : in  bit1;
     WrRstN     : in  bit1;
+    --
     ReqIn      : in  DramRequest;
     We         : in  bit1;
     ShapBp     : out bit1;
@@ -38,6 +39,7 @@ architecture rtl of RequestHandler is
   constant tReadWaitAndBurst            : positive := tReadWait + BurstLen;
   constant tReadWaitAndBurstW           : positive := bits(tReadWaitAndBurst);
   --
+  signal WritePenalty_N, WritePenalty_D : word(BurstLenW downto 0);
   signal ReadPenalty_N, ReadPenalty_D   : word(tReadWaitAndBurstW downto 0);
 
   type DramInitStates is (INIT, DO_PRECHARGE, DO_LOAD_MODE, DO_LOAD_REG2, DO_LOAD_REG1, DONE);
@@ -123,11 +125,11 @@ begin
 
   We_i <= InitReq.Val(0) or We;
 
-  ReqMux : ReqIn_i <= InitReq when InitReq.Val = "1" else ReqIn;
-  ReqConv : ReqInWord        <= DramRequestToWord(ReqIn_i);
+  ReqMux  : ReqIn_i   <= InitReq when InitReq.Val = "1" else ReqIn;
+  ReqConv : ReqInWord <= DramRequestToWord(ReqIn_i);
 
   ShapBp <= InitReq.Val(0);
-  
+
   RequestFifo : entity work.ReqFifo
     port map (
       Data    => ReqInWord,
@@ -155,20 +157,22 @@ begin
       WordCnt_D      <= (others => '0');
       CmdMask_D      <= '1';
       ReadPenalty_D  <= (others => '0');
+      WritePenalty_D <= (others => '0');
     elsif rising_edge(RdClk) then
       WordCnt_D      <= WordCnt_N;
       CmdMask_D      <= CmdMask_N;
       ReadPenalty_D  <= ReadPenalty_N;
+      WritePenalty_D <= WritePenalty_N;
     end if;
   end process;
 
-  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, WordCnt_D, CmdMask_D)
+  ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, WordCnt_D, CmdMask_D, WritePenalty_D)
   begin
     ReadFifo <= '0';
 
     if FifoEmpty = '0' then
       if ReqOut_i.Cmd = DRAM_WRITEA then
-        if WordCnt_D = 0 then
+        if WritePenalty_D = 0 then
           ReadFifo <= '1';
         end if;
       elsif ReqOut_i.Cmd = DRAM_READA then
@@ -189,16 +193,22 @@ begin
     end if;
   end process;
 
-  ReadOutProc : process (WordCnt_D, CmdAck, ReadFifo, CmdMask_D, ReqOut_i, ReadPenalty_D, FifoEmpty)
+  ReadOutProc : process (WordCnt_D, CmdAck, CmdMask_D, ReqOut_i, ReadPenalty_D, FifoEmpty, ReadFifo, WritePenalty_D)
   begin
     WordCnt_N      <= WordCnt_D;
     CmdMask_N      <= CmdMask_D;
     ReqDataOut     <= (others => 'X');
     ReadPenalty_N  <= ReadPenalty_D;
+    WritePenalty_N <= WritePenalty_D;
     RespVal        <= '0';
 
-    if FifoEmpty = '0' then
+    -- Clear mask upon reading new entry
+    if ReadFifo = '1' then
       CmdMask_N <= '0';
+    end if;
+
+    if (WritePenalty_D > 0) then
+      WritePenalty_N <= WritePenalty_D - 1;
     end if;
 
     if ReadPenalty_D > 0 then
@@ -214,13 +224,13 @@ begin
     if (WordCnt_D > 0) then
       -- Send lowest pixel first
       ReqDataOut <= ExtractSlice(ReqOut_i.Data, DSIZE, BurstLen - conv_integer(WordCnt_D));
-
       WordCnt_N  <= WordCnt_D - 1;
     end if;
     
     if CmdAck = '1' then
       if ReqOut_i.Cmd = DRAM_WRITEA then
         WordCnt_N <= conv_word(BurstLen, WordCnt_N'length);
+        WritePenalty_N <= conv_word(BurstLen + 1, WritePenalty_N'length);
       elsif ReqOut_i.Cmd = DRAM_READA then
         ReadPenalty_N <= conv_word(tReadWaitAndBurst, ReadPenalty_N'length);
       end if;
