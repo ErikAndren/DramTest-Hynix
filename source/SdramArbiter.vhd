@@ -33,17 +33,14 @@ begin
     ArbDecReq   <= Z_DramRequest;
 
     if ShapBp = '0' then
-      if ReadReq.Val = "1" then
+      if WriteReq.Val = "1" then
+        WriteReqAck <= '1';
+        ArbDecVal   <= '1';
+        ArbDecReq   <= WriteReq;
+      elsif ReadReq.Val = "1" then
         ReadReqAck <= '1';
         ArbDecVal  <= '1';
         ArbDecReq  <= ReadReq;
-      end if;
-
-      if WriteReq.Val = "1" then
-        WriteReqAck <= '1';
-        ReadReqAck  <= '0';
-        ArbDecVal   <= '1';
-        ArbDecReq   <= WriteReq;
       end if;
     end if;
   end process;
