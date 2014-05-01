@@ -26,8 +26,8 @@ entity RequestHandler is
 end entity;
 
 architecture rtl of RequestHandler is
-  signal ReqInWord, ReqOutWord : word(DramRequestW-1 downto 0);
-  signal WrFull_i              : bit1;
+  signal ReqInWord, ReqOutWord          : word(DramRequestW-1 downto 0);
+  signal WrFull_i                       : bit1;
   --
   signal ReadFifo, FifoEmpty            : bit1;
   signal CmdMask_N, CmdMask_D           : bit1;
@@ -37,9 +37,9 @@ architecture rtl of RequestHandler is
   constant tReadWaitAndBurst            : positive := tReadWait + BurstLen;
   constant tReadWaitAndBurstW           : positive := bits(tReadWaitAndBurst);
   --
-  -- Plus one in penalty was needed, else the reads get corrupted
-  constant WritePenalty : positive := BurstLen + 1;
-  signal WritePenalty_N, WritePenalty_D : word(BurstLenW downto 0);
+  constant WritePenalty                 : positive := BurstLen + 4;
+  constant WritePenaltyW                : positive := bits(WritePenalty);
+  signal WritePenalty_N, WritePenalty_D : word(WritePenaltyW-1 downto 0);
   signal ReadPenalty_N, ReadPenalty_D   : word(tReadWaitAndBurstW downto 0);
 
   type DramInitStates is (INIT, DO_PRECHARGE, DO_LOAD_MODE, DO_LOAD_REG2, DO_LOAD_REG1, DONE);
