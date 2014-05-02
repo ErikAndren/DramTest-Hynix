@@ -46,6 +46,7 @@ architecture rtl of TemporalAverager is
   signal SramWd_N, SramWd_D                     : word(DataW-1 downto 0);
   signal SramWe_N, SramWe_D, SramRe_N, SramRe_D : bit1;
   signal PopRead_D                              : bit1;
+  signal WordPtr                                : bit1;
 
   function CalcReadAddr(LineCnt : word; PixCnt : word) return word is
     variable NewLineCnt : word(LineCnt'length-1 downto 0);
@@ -60,7 +61,8 @@ architecture rtl of TemporalAverager is
         NewLineCnt := conv_word(VgaHeight-1, NewPixCnt'length);
       end if;
     end if;
-    return xt0(NewLineCnt & NewPixCnt, SramAddrW);
+    -- Every address entry is shared by two pixels
+    return xt0(NewLineCnt & NewPixCnt(NewPixCnt'length-1 downto 1), SramAddrW);
   end function;
   
 begin
@@ -96,16 +98,19 @@ begin
       end if;
     end if;
   end process;
+
+  WordPtr <= PixelCnt_D(0);
   
-  ASyncProc : process (LineCnt_D, PixelCnt_D, PixelInVal, SramRe_D, SramWe_D, PixelIn, SramRd, PopRead_D, SramRd_D, SramRdVal_D)
-    variable Avg : word(DataW downto 0);
+  ASyncProc : process (LineCnt_D, PixelCnt_D, PixelInVal, SramRe_D, SramWe_D, PixelIn, SramRd, PopRead_D, SramRd_D, SramRdVal_D, WordPtr)
+    variable Avg    : word(DataW downto 0);
+    variable SramRd : word(DataW-1 downto 0);
   begin
-    LineCnt_N       <= LineCnt_D;
-    PixelCnt_N      <= PixelCnt_D;
-    SramRe_N        <= SramRe_D;
-    SramWe_N        <= SramWe_D;
+    LineCnt_N  <= LineCnt_D;
+    PixelCnt_N <= PixelCnt_D;
+    SramRe_N   <= SramRe_D;
+    SramWe_N   <= SramWe_D;
     SramWd_N   <= SramWd_D;
-    SramRd_N <= SramRd_D;
+    SramRd_N   <= SramRd_D;
 
     if SramRdVal_D = '0' then
       SramRe_N <= '1';
@@ -121,7 +126,7 @@ begin
     end if;
 
     if PopRead_D = '1' then
-      SramRe_N           <= '0';
+      SramRe_N    <= '0';
       SramRd_N    <= SramRd;
       SramRdVal_N <= '1';
     end if;
@@ -133,15 +138,19 @@ begin
     if PixelInVal = '1' then
       -- Perform delta calculation
       --  newAvg = oldAvg - oldAvg>>2 + newColor>>2.
-      Avg         := (SramRd_D - SramRd_D(SramRd'high downto 2)) + PixelIn(PixelIn'high downto 2);
-      SramWd_N    <= Avg(SramWd'high downto 0);
-      SramWe_N    <= '1';
-      SramRdVal_N <= '0';
+      SramRd := ExtractSlice(SramRd_D, DataW, conv_integer(WordPtr));
+      
+      Avg         := (SramRd - SramRd(SramRd'high downto 2)) + PixelIn(PixelIn'high downto 2);
+      SramWd_N    <= ModifySlice(SramWd_D, DataW, conv_integer(WordPtr), Avg(SramWd'high downto 0));
+      SramWe_N    <= WordPtr;
+      -- FIXME: Check this
+      SramRdVal_N <= not WordPtr;
     end if;
   end process;
 
   SramWd        <= SramWd_D;
-  SramWriteAddr <= xt0(LineCnt_D & PixelCnt_D, SramAddrW);
+  -- Each word is 16 bit and is shared by two pixels
+  SramWriteAddr <= xt0(LineCnt_D & PixelCnt_D(PixelCnt_D'length-1 downto 1), SramAddrW);
   SramWe        <= SramWe_D;
   --
   SramRe        <= SramRe_D;
