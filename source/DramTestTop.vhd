@@ -76,12 +76,15 @@ architecture rtl of DramTestTop is
   --
   signal PixelVal                : bit1;
   signal PixelData               : word(8-1 downto 0);
+  signal AlignedPixDataVal           : bit1;
+  signal AlignedPixData          : word(8-1 downto 0);
+  --
   signal VSync_i                 : bit1;
   --
   signal LastFrameComp           : word(FramesW-1 downto 0);
   signal FirstFrameVal           : bit1;
   --
-  signal VgaVsync_i               : bit1;
+  signal VgaVsync_i              : bit1;
   signal VgaVSyncN, VgaHSyncN    : bit1;
 begin
   -- Pll
@@ -146,6 +149,19 @@ begin
       --
       Vsync_Clk => Vsync_i
       );
+
+  PixAlign : entity work.PixelAligner
+    port map (
+      RstN        => RstN25MHz,
+      Clk         => Clk25MHz,
+      --
+      Vsync       => Vsync_i,
+      PixelInVal  => PixelVal,
+      PixelIn     => PixelData,
+      --
+      PixelOut    => AlignedPixData,
+      PixelOutVal => AlignedPixDataVal
+      );
   
   CamAlign : entity work.CamAligner
     port map (
@@ -153,8 +169,8 @@ begin
       WrClk         => Clk25MHz,
       --
       Vsync         => Vsync_i,
-      Href          => PixelVal,
-      D             => PixelData,
+      Href          => AlignedPixDataVal,
+      D             => AlignedPixData,
       --
       RdClk         => Clk25MHz,
       RdRst_N       => RstN25MHz,
@@ -164,7 +180,8 @@ begin
       --
       FirstFrameVal => FirstFrameVal,
       LastFrameComp => LastFrameComp
-      );      
+      );
+  
 
   SdramArb : entity work.SdramArbiter
     port map (
