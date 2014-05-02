@@ -34,8 +34,6 @@ architecture rtl of CamAligner is
   -- FIXME: Replace with assymetric fifo?
   signal WrData_N, WrData_D               : word(BurstSz-1 downto 0);
   --
-  signal PixCnt_N, PixCnt_D               : word(1-1 downto 0);
-  --
   signal DramRequest_i, WriteReq_i        : DramRequest;
   signal DramRequestWord, WriteReqWord    : word(DramRequestW-1 downto 0);
   signal FifoWe_N, FifoWe_D               : bit1;
@@ -63,13 +61,11 @@ begin
       Frame_D         <= (others => '0');
       Addr_D          <= (others => '0');
       WordCnt_D       <= (others => '0');
-      PixCnt_D        <= (others => '0');
       FifoWe_D        <= '0';
       FirstFrameVal_D <= '0';
     elsif rising_edge(WrClk) then
       Frame_D         <= Frame_N;
       WordCnt_D       <= WordCnt_N;
-      PixCnt_D        <= PixCnt_N;
       Addr_D          <= Addr_N;
       FifoWe_D        <= FifoWe_N;
       FirstFrameVal_D <= FirstFrameVal_N;
@@ -86,29 +82,23 @@ begin
   LastFrameAssign  : LastFrameComp <= CalcLastFrameComp(Frame_D);
   FirstFrameAssign : FirstFrameVal <= FirstFrameVal_D;
   
-  WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, PixCnt_D, Addr_D, FifoWe_D, FirstFrameVal_D)
+  WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, Addr_D, FifoWe_D, FirstFrameVal_D)
   begin
     WordCnt_N       <= WordCnt_D;
     Frame_N         <= Frame_D;
     WrData_N        <= WrData_D;
-    PixCnt_N        <= PixCnt_D;
     Addr_N          <= Addr_D;
     FifoWe_N        <= '0';
     FirstFrameVal_N <= FirstFrameVal_D;
 
     if Href = '1' then
-      -- FIXME: Here goes conversion to 8 bits of pixel data
-      -- Drop every other pixel
-      PixCnt_N <= PixCnt_D + 1;
       
-      if PixCnt_D = 0 then        
-        WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);        
-        WordCnt_N <= WordCnt_D + 1;
+      WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);        
+      WordCnt_N <= WordCnt_D + 1;
 
-        if WordCnt_D = PixelsPerBurst-1 then
-          FifoWe_N  <= '1';
-          WordCnt_N <= (others => '0');
-        end if;
+      if WordCnt_D = PixelsPerBurst-1 then
+        FifoWe_N  <= '1';
+        WordCnt_N <= (others => '0');
       end if;
     end if;
 
