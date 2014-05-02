@@ -202,6 +202,7 @@ begin
   SdramAddr     <= ReqToCont.Addr;
   SdramCmd      <= ReqToCont.Cmd;
   SdramDataMask <= (others => '0');
+  SdramCs_N <= SdramCs_N_i(0 downto 0);
 
   -- Dram controller
   SdramController : entity work.sdr_sdram
@@ -237,7 +238,6 @@ begin
       DQ               => SdramDQ,
       DQM              => SdramDQM
       );
-  SdramCs_N <= SdramCs_N_i(0 downto 0);
 
   RespHdler : entity work.RespHandler
     port map (
