@@ -109,6 +109,47 @@ set_location_assignment PIN_149 -to CamD[2]
 set_location_assignment PIN_162 -to CamD[1]
 set_location_assignment PIN_164 -to CamD[0]
 
+set_location_assignment PIN_41 -to SramAddr[17]
+set_location_assignment PIN_92 -to SramAddr[16]
+set_location_assignment PIN_56 -to SramAddr[15]
+set_location_assignment PIN_57 -to SramAddr[14]
+set_location_assignment PIN_58 -to SramAddr[13]
+set_location_assignment PIN_59 -to SramAddr[12]
+set_location_assignment PIN_60 -to SramAddr[11]
+set_location_assignment PIN_61 -to SramAddr[10]
+set_location_assignment PIN_48 -to SramAddr[9]
+set_location_assignment PIN_47 -to SramAddr[8]
+set_location_assignment PIN_40 -to SramAddr[7]
+set_location_assignment PIN_39 -to SramAddr[6]
+set_location_assignment PIN_37 -to SramAddr[5]
+set_location_assignment PIN_35 -to SramAddr[4]
+set_location_assignment PIN_34 -to SramAddr[3]
+set_location_assignment PIN_33 -to SramAddr[2]
+set_location_assignment PIN_31 -to SramAddr[1]
+set_location_assignment PIN_64 -to SramAddr[0]
+
+set_location_assignment PIN_99 -to SramCeN
+set_location_assignment PIN_90 -to SramD[15]
+set_location_assignment PIN_88 -to SramD[14]
+set_location_assignment PIN_86 -to SramD[13]
+set_location_assignment PIN_82 -to SramD[12]
+set_location_assignment PIN_80 -to SramD[11]
+set_location_assignment PIN_76 -to SramD[10]
+set_location_assignment PIN_74 -to SramD[9]
+set_location_assignment PIN_70 -to SramD[8]
+set_location_assignment PIN_89 -to SramD[7]
+set_location_assignment PIN_87 -to SramD[6]
+set_location_assignment PIN_84 -to SramD[5]
+set_location_assignment PIN_81 -to SramD[4]
+set_location_assignment PIN_77 -to SramD[3]
+set_location_assignment PIN_75 -to SramD[2]
+set_location_assignment PIN_72 -to SramD[1]
+set_location_assignment PIN_69 -to SramD[0]
+set_location_assignment PIN_94 -to SramLbN
+set_location_assignment PIN_96 -to SramOeN
+set_location_assignment PIN_95 -to SramUbN
+set_location_assignment PIN_97 -to SramWeN
+
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 set_location_assignment PIN_117 -to VgaBlue[0]
@@ -126,6 +167,15 @@ set_location_assignment PIN_182 -to SdramClk
 set_global_assignment -name OUTPUT_PIN_LOAD 7 -section_id "3.3-V LVTTL"
 set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V PCI"
 set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V PCI-X"
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
+set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
+set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name VHDL_FILE "../SramTest-IS61LV25616AL/SramController.vhd"
+set_global_assignment -name VHDL_FILE source/PixelAligner.vhd
+set_global_assignment -name VHDL_FILE source/TemporalAverager.vhd
+set_global_assignment -name VHDL_FILE "../SramTest-IS61LV25616AL/SramPack.vhd"
 set_global_assignment -name VHDL_FILE source/OV7660Init.vhd
 set_global_assignment -name VHDL_FILE source/CamCapture.vhd
 set_global_assignment -name VHDL_FILE source/SccbCtrl.vhd
@@ -150,8 +200,5 @@ set_global_assignment -name QIP_FILE ReqFifo.qip
 set_global_assignment -name QIP_FILE RespFIFO.qip
 set_global_assignment -name CDF_FILE output_files/Chain1.cdf
 set_global_assignment -name QIP_FILE AsyncFifo.qip
-set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
-set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
-set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name CDF_FILE output_files/Chain2.cdf
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
