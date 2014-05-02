@@ -43,7 +43,7 @@ TBTOP=tb
 TB_TASK_FILE=simulation/run_tb.tcl
 VSIM_ARGS=-novopt -t 1ps -lib $(WORK_DIR) -do $(TB_TASK_FILE)
 
-all: lib work altera_mf altera vlogipfiles vhdlfiles
+all: lib work altera_mf altera sramcontroller vlogipfiles vhdlfiles
 
 lib:
 	$(MAKE) -C ../Lib -f ../Lib/Makefile
@@ -77,3 +77,6 @@ vlogipfiles:
 
 isim: all
 	$(VSIM) $(TBTOP) $(VSIM_ARGS)
+
+sramcontroller:
+	@$(MAKE) -C ../SramTest-IS61LV25616AL -f ../SramTest-IS61LV25616AL/Makefile
