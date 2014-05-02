@@ -50,7 +50,7 @@ architecture rtl of RespHandler is
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW downto 0);
 
-  constant FillLevelThres : positive := 9;
+  constant FillLevelThres : positive := 16;
   
   constant PixelsPerWord  : positive := DSIZE / PixelW;
   constant PixelsPerWordW : positive := bits(PixelsPerWord);
@@ -130,16 +130,15 @@ begin
     end if;
 
     -- Generate read requests as long as fifo is less than half full
-    -- FIXME: Adjust this to prevent buffer underrun
-    if (conv_integer(FillLvl) < FillLevelThres and (ReqThrottle_D = 0)) and (FirstFrameVal = '1') and (VgaVSync = '0') then
+    if (conv_integer(FillLvl) < FillLevelThres) and (ReqThrottle_D = 0) and (FirstFrameVal = '1') and (VgaVSync = '0') then
       ReadReq.Val   <= "1";
       ReadReq.Cmd   <= DRAM_READA;
       ReadReq.Addr  <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
-      ReqThrottle_N <= conv_word(ReadReqThrottle, ReqThrottle_N'length);
     end if;
 
     if ReadReqAck = '1' then
-      Addr_N <= Addr_D + BurstLen;
+      Addr_N        <= Addr_D + BurstLen;
+      ReqThrottle_N <= conv_word(ReadReqThrottle, ReqThrottle_N'length);
       
       if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDword then
         Addr_N  <= (others => '0');
