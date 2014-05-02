@@ -5,12 +5,13 @@ use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
 use work.DramTestPack.all;
+use work.SramPack.all;
 
 entity DramTestTop is
   port (
     AsyncRst   : in    bit1;
     Clk        : in    bit1;
-   -- Here goes dram interface
+    -- Sdram interface
     SdramSA    : out   word(12-1 downto 0);
     SdramBA    : out   word(2-1 downto 0);
     SdramCS_N  : out   word(1-1 downto 0);
@@ -34,7 +35,15 @@ entity DramTestTop is
     CamClk     : out   bit1;
     CamHRef    : in    bit1;
     CamVSync   : in    bit1;
-    CamD       : in    word(8-1 downto 0)
+    CamD       : in    word(8-1 downto 0);
+    -- Sram interface
+    SramD      : inout word(SramDataW-1 downto 0);
+    SramAddr   : out   word(SramAddrW-1 downto 0);
+    SramCeN    : out   bit1;
+    SramOeN    : out   bit1;
+    SramWeN    : out   bit1;
+    SramUbN    : out   bit1;
+    SramLbN    : out   bit1
     );
 end entity;
 
@@ -76,7 +85,7 @@ architecture rtl of DramTestTop is
   --
   signal PixelVal                : bit1;
   signal PixelData               : word(8-1 downto 0);
-  signal AlignedPixDataVal           : bit1;
+  signal AlignedPixDataVal       : bit1;
   signal AlignedPixData          : word(8-1 downto 0);
   --
   signal VSync_i                 : bit1;
@@ -86,6 +95,12 @@ architecture rtl of DramTestTop is
   --
   signal VgaVsync_i              : bit1;
   signal VgaVSyncN, VgaHSyncN    : bit1;
+  --
+  signal SramContAddr            : word(SramAddrW-1 downto 0);
+  signal SramContWd              : word(SramDataW-1 downto 0);
+  signal SramContRd              : word(SramDataW-1 downto 0);
+  signal SramContWe              : bit1;
+  signal SramContRe              : bit1;
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -95,7 +110,7 @@ begin
       c1     => SdramClk,
       c2     => Clk25MHz
       );
-  
+
   CamClkFeed : CamClk <= Clk25MHz;
 
   -- Reset synchronizer
@@ -145,7 +160,7 @@ begin
       PixelData => CamD,
       --
       PixelOut  => PixelData,
-      PixelVal  => PixelVal,      
+      PixelVal  => PixelVal,
       --
       Vsync_Clk => Vsync_i
       );
@@ -162,7 +177,28 @@ begin
       PixelOut    => AlignedPixData,
       PixelOutVal => AlignedPixDataVal
       );
-  
+
+  -- Filter chain or temporal?
+  SramCon : entity work.SramController
+    port map (
+      Clk     => Clk25MHz,
+      RstN    => RstN25MHz,
+      --
+      AddrIn  => SramContAddr,
+      WrData  => SramContWd,
+      RdData  => SramContRd,
+      We      => SramContWe,
+      Re      => SramContRe,
+      --
+      D       => SramD,
+      AddrOut => SramAddr,
+      CeN     => SramCeN,
+      OeN     => SramOeN,
+      WeN     => SramWeN,
+      UbN     => SramUbN,
+      LbN     => SramLbN
+      );
+
   CamAlign : entity work.CamAligner
     port map (
       WrRst_N       => RstN25MHz,
@@ -181,7 +217,7 @@ begin
       FirstFrameVal => FirstFrameVal,
       LastFrameComp => LastFrameComp
       );
-  
+
 
   SdramArb : entity work.SdramArbiter
     port map (
@@ -219,7 +255,7 @@ begin
   SdramAddr     <= ReqToCont.Addr;
   SdramCmd      <= ReqToCont.Cmd;
   SdramDataMask <= (others => '0');
-  SdramCs_N <= SdramCs_N_i(0 downto 0);
+  SdramCs_N     <= SdramCs_N_i(0 downto 0);
 
   -- Dram controller
   SdramController : entity work.sdr_sdram
@@ -234,26 +270,26 @@ begin
       BANKSTART => BANKSTART
       )
     port map (
-      Clk              => Clk100MHz,
-      Reset_N          => RstN100MHz,
+      Clk     => Clk100MHz,
+      Reset_N => RstN100MHz,
       --
-      ADDR             => SdramAddr,
-      CMD              => SdramCmd,
-      CMDACK           => SdramCmdAck,
+      ADDR    => SdramAddr,
+      CMD     => SdramCmd,
+      CMDACK  => SdramCmdAck,
       --
-      DATAIN           => SdramDataIn,
-      DATAOUT          => SdramDataOut,
-      DM               => SdramDataMask,
+      DATAIN  => SdramDataIn,
+      DATAOUT => SdramDataOut,
+      DM      => SdramDataMask,
       --
-      SA               => SdramSA,
-      BA               => SdramBA,
-      CS_N             => SdramCS_N_i,
-      CKE              => SdramCKE,
-      RAS_N            => SdramRAS_N,
-      CAS_N            => SdramCAS_N,
-      WE_N             => SdramWE_N,
-      DQ               => SdramDQ,
-      DQM              => SdramDQM
+      SA      => SdramSA,
+      BA      => SdramBA,
+      CS_N    => SdramCS_N_i,
+      CKE     => SdramCKE,
+      RAS_N   => SdramRAS_N,
+      CAS_N   => SdramCAS_N,
+      WE_N    => SdramWE_N,
+      DQ      => SdramDQ,
+      DQM     => SdramDQM
       );
 
   RespHdler : entity work.RespHandler
@@ -299,5 +335,5 @@ begin
   VgaVsync_i <= not VgaVSyncN;
   VgaVSync   <= VgaVSyncN;
   VgaHSync   <= VgaHSyncN;
-      
+  
 end architecture rtl;
