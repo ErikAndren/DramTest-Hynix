@@ -126,7 +126,7 @@ begin
   VideoCompFloydSteinberg : entity work.DitherFloydSteinberg
     generic map (
       DataW     => DataW,
-      CompDataW => DataW
+      CompDataW => 3
       )
     port map (
       Clk         => Clk,
@@ -137,7 +137,7 @@ begin
       PixelIn     => PixelIn,
       PixelInVal  => PixelInVal,
       --
-      PixelOut    => PixelFromDither,
+      PixelOut    => PixelFromDither(DataW-1 downto DataW-3),
       PixelOutVal => PixelFromDitherVal
       );
 
