@@ -3,6 +3,7 @@ FILES=source/DramTestPack.vhd \
 	RespFIFO.vhd \
 	PLL.vhd \
 	AsyncFifo.vhd \
+	source/SramArbiter.vhd \
 	source/PixelAligner.vhd \
 	source/TemporalAverager.vhd \
 	source/CamCapture.vhd \
