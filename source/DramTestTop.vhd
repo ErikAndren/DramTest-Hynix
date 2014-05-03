@@ -104,10 +104,8 @@ architecture rtl of DramTestTop is
   --
   signal SramReadAddr            : word(SramAddrW-1 downto 0);
   signal SramRe                  : bit1;
-  signal SramReadData            : word(SramDataW-1 downto 0);
   signal SramPopRead             : bit1;
   signal SramWriteAddr           : word(SramAddrW-1 downto 0);
-  signal SramWriteData           : word(SramDataW-1 downto 0);
   signal SramWe                  : bit1;
   signal SramPopWrite            : bit1;
 
@@ -205,11 +203,11 @@ begin
       --
       SramReadAddr  => SramReadAddr,
       SramRe        => SramRe,
-      SramRd        => SramReadData,
+      SramRd        => SramContRd,
       PopRead       => SramPopRead,
       --
       SramWriteAddr => SramWriteAddr,
-      SramWd        => SramWriteData,
+      SramWd        => SramContWd,
       SramWe        => SramWe,
       PopWrite      => SramPopWrite
       );
