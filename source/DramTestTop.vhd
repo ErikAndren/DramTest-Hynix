@@ -101,6 +101,16 @@ architecture rtl of DramTestTop is
   signal SramContRd              : word(SramDataW-1 downto 0);
   signal SramContWe              : bit1;
   signal SramContRe              : bit1;
+  --
+  signal SramReadAddr            : word(SramAddrW-1 downto 0);
+  signal SramRe                  : bit1;
+  signal SramReadData            : word(SramDataW-1 downto 0);
+  signal SramPopRead             : bit1;
+  signal SramWriteAddr           : word(SramAddrW-1 downto 0);
+  signal SramWriteData           : word(SramDataW-1 downto 0);
+  signal SramWe                  : bit1;
+  signal SramPopWrite            : bit1;
+
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -176,6 +186,32 @@ begin
       --
       PixelOut    => AlignedPixData,
       PixelOutVal => AlignedPixDataVal
+      );
+
+  -- 262144 16 bit words available
+  -- Need 640x480 / 2 words = 153600 words
+  TempAvg : entity work.TemporalAverager
+    generic map (
+      DataW => PixelW
+      )
+    port map (
+      RstN          => RstN25MHz,
+      Clk           => Clk25MHz,
+      --
+      Vsync         => Vsync_i,
+      --
+      PixelInVal    => PixelVal,
+      PixelIn       => PixelData,
+      --
+      SramReadAddr  => SramReadAddr,
+      SramRe        => SramRe,
+      SramRd        => SramReadData,
+      PopRead       => SramPopRead,
+      --
+      SramWriteAddr => SramWriteAddr,
+      SramWd        => SramWriteData,
+      SramWe        => SramWe,
+      PopWrite      => SramPopWrite
       );
 
   -- Filter chain or temporal?
