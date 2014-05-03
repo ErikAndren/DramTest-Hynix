@@ -83,7 +83,7 @@ begin
       LineCnt_D   <= LineCnt_N;
       PixelCnt_D  <= PixelCnt_N;
       SramRd_D    <= SramRd_N;
-      SramRdVal_D <= SramRdVal_D;
+      SramRdVal_D <= SramRdVal_N;
       SramWd_D    <= SramWd_N;
       SramWe_D    <= SramWe_N;
       SramRe_D    <= SramRe_N;
