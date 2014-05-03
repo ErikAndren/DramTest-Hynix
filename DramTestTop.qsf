@@ -172,6 +172,7 @@ set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name VHDL_FILE source/TemporalDiff.vhd
 set_global_assignment -name VHDL_FILE source/SramArbiter.vhd
 set_global_assignment -name VHDL_FILE "../SramTest-IS61LV25616AL/SramController.vhd"
 set_global_assignment -name VHDL_FILE source/PixelAligner.vhd
@@ -196,6 +197,12 @@ set_global_assignment -name VHDL_FILE source/sdr_sdram.vhd
 set_global_assignment -name VHDL_FILE source/sdr_data_path.vhd
 set_global_assignment -name VHDL_FILE source/control_interface.vhd
 set_global_assignment -name VHDL_FILE source/Command.vhd
+set_global_assignment -name VHDL_FILE FilterChain.vhd
+set_global_assignment -name VHDL_FILE ConvFilter.vhd
+set_global_assignment -name VHDL_FILE LineSampler.vhd
+set_global_assignment -name VHDL_FILE FloydSteinberg2PRAM.vhd
+set_global_assignment -name VHDL_FILE DitherFloydSteinberg.vhd
+
 set_global_assignment -name QIP_FILE PLL.qip
 set_global_assignment -name QIP_FILE ReqFifo.qip
 set_global_assignment -name QIP_FILE RespFIFO.qip

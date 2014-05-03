@@ -3,8 +3,17 @@ FILES=source/DramTestPack.vhd \
 	RespFIFO.vhd \
 	PLL.vhd \
 	AsyncFifo.vhd \
+	source/GaussianFilter.vhd \
+	source/FloydSteinberg2PRAM.vhd \
+	source/DitherFloydSteinberg.vhd \
+	source/LineSampler1PRAM.vhd \
+	source/LineSampler.vhd \
+	source/ConvFilter.vhd \
+	source/MedianFilter.vhd \
+	source/FilterChain.vhd \
 	source/SramArbiter.vhd \
 	source/PixelAligner.vhd \
+	source/TemporalDiff.vhd \
 	source/TemporalAverager.vhd \
 	source/CamCapture.vhd \
 	source/SccbCtrl.vhd \

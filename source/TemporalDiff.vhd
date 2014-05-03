@@ -12,7 +12,7 @@ use work.Types.all;
 use work.SramPack.all;
 use work.DramTestPack.all;
 
-entity TemporalAverager is
+entity TemporalDiff is
   generic (
     DataW : positive
     );
@@ -40,7 +40,7 @@ entity TemporalAverager is
     );
 end entity;
 
-architecture rtl of TemporalAverager is
+architecture rtl of TemporalDiff is
   signal LineCnt_N, LineCnt_D                   : word(VgaHeightW-1 downto 0);
   signal PixelCnt_N, PixelCnt_D                 : word(VgaWidthW-1 downto 0);
   signal SramRdVal_N, SramRdVal_D               : bit1;
@@ -108,9 +108,9 @@ begin
   end process;
   
   ASyncProc : process (SramWd_D, PopWrite, LineCnt_D, PixelCnt_D, PixelInVal, SramRe_D, SramWe_D, PixelIn, SramRd, PopRead_D, SramRd_D, SramRdVal_D, PopRead, WordCnt_D)
-    variable Avg         : word(DataW-1 downto 0);
-    variable Diff        : word(DataW-1 downto 0);
+    variable Avg         : word(DataW downto 0);
     variable SramRdSlice : word(DataW-1 downto 0);
+    variable Diff        : word(DataW-1 downto 0);
   begin
     WordCnt_N   <= WordCnt_D;
     LineCnt_N   <= LineCnt_D;
@@ -119,6 +119,7 @@ begin
     SramWe_N    <= SramWe_D;
     SramWd_N    <= SramWd_D;
     SramRd_N    <= SramRd_D;
+    -- Blacken out video by default
     PixelOut    <= (others => '0');
     SramRdVal_N <= SramRdVal_D;
 
@@ -156,24 +157,20 @@ begin
       end if;
       
       -- Perform delta calculation
-      --  newAvg = oldAvg - oldAvg>>2 + newColor>>2.
       SramRdSlice := ExtractSlice(SramRd_D, DataW, conv_integer(WordCnt_D));
-      
-      Avg         := (SramRdSlice - SramRdSlice(SramRdSlice'high downto 2)) + PixelIn(PixelIn'high downto 2);
 
-      if Avg > PixelIn then
-        Diff := (Avg - PixelIn);
+      if SramRdSlice > PixelIn then
+        Diff := SramRdSlice - PixelIn;
       else
-        Diff := (PixelIn - Avg);
+        Diff := PixelIn - SramRdSlice;
       end if;
 
-      if Diff > Threshold then
+      if Diff >= Threshold then
         PixelOut <= PixelIn;
       end if;
-      
-      SramWd_N    <= ModifySlice(SramWd_D, DataW, conv_integer(WordCnt_D), Avg(SramRdSlice'length-1 downto 0));
-      SramWe_N    <= WordCnt_D(0);
 
+      SramWd_N    <= ModifySlice(SramWd_D, DataW, conv_integer(WordCnt_D), PixelIn);
+      SramWe_N    <= WordCnt_D(0);
       SramRdVal_N <= WordCnt_D(0);
     end if;
   end process;
