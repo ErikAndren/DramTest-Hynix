@@ -27,14 +27,16 @@ entity TemporalAverager is
     --
     SramReadAddr  : out word(SramAddrW-1 downto 0);
     SramRe        : out bit1;
-    SramRd        : in  word(DataW-1 downto 0);
+    SramRd        : in  word(SramDataW-1 downto 0);
+    PopRead       : in  bit1;
     --
     SramWriteAddr : out word(SramAddrW-1 downto 0);
-    SramWd        : out word(DataW-1 downto 0);
+    SramWd        : out word(SramDataW-1 downto 0);
     SramWe        : out bit1;
-    --
     PopWrite      : in  bit1;
-    PopRead       : in  bit1
+    --
+    PixelOut      : out word(DataW-1 downto 0);
+    PixelOutVal   : out bit1
     );
 end entity;
 
@@ -42,8 +44,8 @@ architecture rtl of TemporalAverager is
   signal LineCnt_N, LineCnt_D                   : word(VgaHeightW-1 downto 0);
   signal PixelCnt_N, PixelCnt_D                 : word(VgaWidthW-1 downto 0);
   signal SramRdVal_N, SramRdVal_D               : bit1;
-  signal SramRd_N, SramRd_D                     : word(DataW-1 downto 0);
-  signal SramWd_N, SramWd_D                     : word(DataW-1 downto 0);
+  signal SramRd_N, SramRd_D                     : word(SramDataW-1 downto 0);
+  signal SramWd_N, SramWd_D                     : word(SramDataW-1 downto 0);
   signal SramWe_N, SramWe_D, SramRe_N, SramRe_D : bit1;
   signal PopRead_D                              : bit1;
   signal WordPtr                                : bit1;
@@ -58,7 +60,7 @@ architecture rtl of TemporalAverager is
     if PixCnt = 0 then
       NewPixCnt := conv_word(VgaWidth-1, NewPixCnt'length);
       if LineCnt = 0 then
-        NewLineCnt := conv_word(VgaHeight-1, NewPixCnt'length);
+        NewLineCnt := conv_word(VgaHeight-1, NewLineCnt'length);
       end if;
     end if;
     -- Every address entry is shared by two pixels
@@ -101,9 +103,9 @@ begin
 
   WordPtr <= PixelCnt_D(0);
   
-  ASyncProc : process (LineCnt_D, PixelCnt_D, PixelInVal, SramRe_D, SramWe_D, PixelIn, SramRd, PopRead_D, SramRd_D, SramRdVal_D, WordPtr)
-    variable Avg    : word(DataW downto 0);
-    variable SramRd : word(DataW-1 downto 0);
+  ASyncProc : process (SramWd_D, PopWrite, LineCnt_D, PixelCnt_D, PixelInVal, SramRe_D, SramWe_D, PixelIn, SramRd, PopRead_D, SramRd_D, SramRdVal_D, WordPtr)
+    variable Avg         : word(DataW downto 0);
+    variable SramRdSlice : word(DataW-1 downto 0);
   begin
     LineCnt_N  <= LineCnt_D;
     PixelCnt_N <= PixelCnt_D;
@@ -111,6 +113,7 @@ begin
     SramWe_N   <= SramWe_D;
     SramWd_N   <= SramWd_D;
     SramRd_N   <= SramRd_D;
+    PixelOut   <= (others => 'X');
 
     if SramRdVal_D = '0' then
       SramRe_N <= '1';
@@ -138,13 +141,15 @@ begin
     if PixelInVal = '1' then
       -- Perform delta calculation
       --  newAvg = oldAvg - oldAvg>>2 + newColor>>2.
-      SramRd := ExtractSlice(SramRd_D, DataW, conv_integer(WordPtr));
+      SramRdSlice := ExtractSlice(SramRd_D, DataW, conv_integer(WordPtr));
       
-      Avg         := (SramRd - SramRd(SramRd'high downto 2)) + PixelIn(PixelIn'high downto 2);
-      SramWd_N    <= ModifySlice(SramWd_D, DataW, conv_integer(WordPtr), Avg(SramWd'high downto 0));
+      Avg         := '0' & (SramRdSlice - SramRdSlice(SramRdSlice'high downto 2)) + PixelIn(PixelIn'high downto 2);
+      SramWd_N    <= ModifySlice(SramWd_D, DataW, conv_integer(WordPtr), Avg(SramRdSlice'length-1 downto 0));
       SramWe_N    <= WordPtr;
       -- FIXME: Check this
       SramRdVal_N <= not WordPtr;
+
+      PixelOut <= Avg(PixelOut'length-1 downto 0);      
     end if;
   end process;
 
@@ -155,5 +160,8 @@ begin
   --
   SramRe        <= SramRe_D;
   SramReadAddr  <= CalcReadAddr(LineCnt_D, PixelCnt_D);
+
+  -- FIXME
+  PixelOutVal <= PixelInVal;
 
 end architecture rtl;
