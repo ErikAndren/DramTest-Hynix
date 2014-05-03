@@ -124,17 +124,21 @@ begin
       );
 
   VideoCompFloydSteinberg : entity work.DitherFloydSteinberg
+    generic map (
+      DataW     => DataW,
+      CompDataW => DataW
+      )
     port map (
-      Clk          => Clk,
-      RstN         => RstN,
+      Clk         => Clk,
+      RstN        => RstN,
       --
-      Vsync        => Vsync,
+      Vsync       => Vsync,
       --
-      PixelIn      => PixelIn,
-      PixelInVal   => PixelInVal,
+      PixelIn     => PixelIn,
+      PixelInVal  => PixelInVal,
       --
-      PixelOut     => PixelFromDither,
-      PixelOutVal  => PixelFromDitherVal
+      PixelOut    => PixelFromDither,
+      PixelOutVal => PixelFromDitherVal
       );
 
   FilterSync : process (Clk, RstN)
