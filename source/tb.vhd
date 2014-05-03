@@ -5,6 +5,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
 use work.DramTestPack.all;
+use work.SramPack.all;
 
 entity tb is 
 end entity;
@@ -33,6 +34,8 @@ architecture rtl of tb is
   signal SdramClk     : bit1;
 
   signal SdramClk_Del : bit1;
+  signal SramD : word(SramDataW-1 downto 0);
+
 begin
   RstN <= '0', '1' after 100 ns;
 
@@ -78,8 +81,19 @@ begin
       CamClk     => CamClk,
       CamHref    => CamHref,
       CamVSync   => CamVSync,
-      CamD       => CamD
+      CamD       => CamD,
+      --
+      SramD      => SramD,
+      SramAddr   => open,
+      SramCeN    => open,
+      SramOeN    => open,
+      SramWeN    => open,
+      SramUbN    => open,
+      SramLbN    => open
       );
+
+  SramD <= (others => 'Z');
+  SramD <= "1111000011110000";
 
   FakeCam : entity work.FakeVgaCam
     port map (
