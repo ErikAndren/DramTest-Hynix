@@ -108,6 +108,9 @@ architecture rtl of DramTestTop is
   signal SramWriteAddr           : word(SramAddrW-1 downto 0);
   signal SramWe                  : bit1;
   signal SramPopWrite            : bit1;
+  --
+  signal TempPixelOut            : word(PixelW-1 downto 0);
+  signal TempPixelOutVal         : bit1;
 
 begin
   -- Pll
@@ -209,7 +212,10 @@ begin
       SramWriteAddr => SramWriteAddr,
       SramWd        => SramContWd,
       SramWe        => SramWe,
-      PopWrite      => SramPopWrite
+      PopWrite      => SramPopWrite,
+      --
+      PixelOut      => TempPixelOut,
+      PixelOutVal   => TempPixelOutVal
       );
 
   SramArb : entity work.SramArbiter
@@ -257,8 +263,10 @@ begin
       WrClk         => Clk25MHz,
       --
       Vsync         => Vsync_i,
-      Href          => AlignedPixDataVal,
-      D             => AlignedPixData,
+      --Href          => AlignedPixDataVal,
+      --D             => AlignedPixData,
+      Href          => TempPixelOutVal,
+      D             => TempPixelOut,
       --
       RdClk         => Clk25MHz,
       RdRst_N       => RstN25MHz,
