@@ -239,8 +239,8 @@ begin
       IncThreshold => Btn2Pulse,
       DecThreshold => Btn1Pulse,
       --
-      PixelIn      => PixelData,
-      PixelInVal   => PixelVal,
+      PixelIn      => AlignedPixData,
+      PixelInVal   => AlignedPixDataVal,
       --
       PixelOut     => PixelPostFilter,
       PixelOutVal  => PixelPostFilterVal
