@@ -150,6 +150,10 @@ set_location_assignment PIN_96 -to SramOeN
 set_location_assignment PIN_95 -to SramUbN
 set_location_assignment PIN_97 -to SramWeN
 
+set_location_assignment PIN_144 -to Button1
+set_location_assignment PIN_145 -to Button2
+set_location_assignment PIN_146 -to Button3
+
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 set_location_assignment PIN_117 -to VgaBlue[0]
@@ -172,6 +176,17 @@ set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name SMART_RECOMPILE ON
+
+set_global_assignment -name VHDL_FILE ../Lib/Debounce.vhd
+set_global_assignment -name VHDL_FILE ../Lib/ButtonPulse.vhd
+set_global_assignment -name VHDL_FILE ../OV76X0/OV76X0Pack.vhd
+set_global_assignment -name VHDL_FILE source/ConvFilter.vhd
+set_global_assignment -name VHDL_FILE source/FloydSteinberg2PRAM.vhd
+set_global_assignment -name VHDL_FILE source/FilterChain.vhd
+set_global_assignment -name VHDL_FILE source/MedianFilter.vhd
+set_global_assignment -name VHDL_FILE source/LineSampler1PRAM.vhd
+set_global_assignment -name VHDL_FILE source/LineSampler.vhd
+set_global_assignment -name VHDL_FILE source/DitherFloydSteinberg.vhd
 set_global_assignment -name VHDL_FILE source/TemporalDiff.vhd
 set_global_assignment -name VHDL_FILE source/SramArbiter.vhd
 set_global_assignment -name VHDL_FILE "../SramTest-IS61LV25616AL/SramController.vhd"
@@ -202,7 +217,6 @@ set_global_assignment -name VHDL_FILE ConvFilter.vhd
 set_global_assignment -name VHDL_FILE LineSampler.vhd
 set_global_assignment -name VHDL_FILE FloydSteinberg2PRAM.vhd
 set_global_assignment -name VHDL_FILE DitherFloydSteinberg.vhd
-
 set_global_assignment -name QIP_FILE PLL.qip
 set_global_assignment -name QIP_FILE ReqFifo.qip
 set_global_assignment -name QIP_FILE RespFIFO.qip
