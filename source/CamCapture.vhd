@@ -101,7 +101,6 @@ begin
       wrfull  => FifoFull
       );
   assert not (FifoFull = '1' and ValData_N = '1') report "ClkCrossing fifo full" severity failure;
-  assert not (FifoEmpty = '1' and RdFifo = '1') report "Reading from empty ClkCrossing fifo" severity failure;
   
   RdFifo <= not FifoEmpty;
 
@@ -119,6 +118,8 @@ begin
     if RstN = '0' then
       PixelVal_D <= '0';
     elsif rising_edge(Clk) then
+      assert not (FifoEmpty = '1' and RdFifo = '1') report "Reading from empty ClkCrossing fifo" severity failure;
+
       PixelVal_D <= FifoRdVal_D;
     end if;
   end process;
