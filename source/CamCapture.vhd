@@ -31,6 +31,7 @@ entity CamCapture is
 end entity;
 
 architecture rtl of CamCapture is
+  signal FifoFull                 : bit1;
   signal ValData_N                : bit1;
   signal PixelData_N, PixelData_D : word(DataW-1 downto 0);
   signal SeenVsync_N, SeenVsync_D : word(4-1 downto 0);
@@ -97,8 +98,11 @@ begin
       rdreq   => RdFifo,
       q       => RdData,
       --
-      wrfull  => open
+      wrfull  => FifoFull
       );
+  assert not (FifoFull = '1' and ValData_N = '1') report "ClkCrossing fifo full" severity failure;
+  assert not (FifoEmpty = '1' and RdFifo = '1') report "Reading from empty ClkCrossing fifo" severity failure;
+  
   RdFifo <= not FifoEmpty;
 
   ClkAsync : process (RdFifo)
