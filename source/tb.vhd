@@ -32,9 +32,13 @@ architecture rtl of tb is
   signal SdramDQ      : word(DSIZE-1 downto 0);
   signal SdramDQM     : word(DSIZE/8-1 downto 0);
   signal SdramClk     : bit1;
-
   signal SdramClk_Del : bit1;
-  signal SramD : word(SramDataW-1 downto 0);
+  --
+  signal SramD        : word(SramDataW-1 downto 0);
+  signal SramCeN      : bit1;
+  signal SramOeN      : bit1;
+  signal SramWeN      : bit1;  
+  signal SramCnt      : word(SramDataW-1 downto 0);
 
 begin
   RstN <= '0', '1' after 100 ns;
@@ -85,15 +89,25 @@ begin
       --
       SramD      => SramD,
       SramAddr   => open,
-      SramCeN    => open,
-      SramOeN    => open,
-      SramWeN    => open,
+      SramCeN    => SramCeN,
+      SramOeN    => SramOeN,
+      SramWeN    => SramWeN,
       SramUbN    => open,
       SramLbN    => open
       );
 
-  SramD <= (others => 'Z');
-  SramD <= "1111000011110000";
+  SramCntProc : process (RstN, SramCeN)
+  begin
+    if RstN = '0' then
+      SramCnt <= (others => '0');
+    elsif falling_edge(SramCeN) then
+      if SramWeN = '1' then
+        SramCnt <= SramCnt + 1;
+      end if;
+    end if;
+  end process;
+ 
+  SramD <= SramCnt when SramOeN = '1' else (others => 'Z');
 
   FakeCam : entity work.FakeVgaCam
     port map (
