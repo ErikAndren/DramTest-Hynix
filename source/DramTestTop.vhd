@@ -214,6 +214,24 @@ begin
       PopWrite      => SramPopWrite
       );
 
+  SramArb : entity work.SramArbiter
+    port map (
+      RstN      => RstN25MHz,
+      Clk       => Clk25MHz,
+      --
+      WriteReq  => SramWe,
+      WriteAddr => SramWriteAddr,
+      PopWrite  => SramPopWrite,
+      --
+      ReadReq   => SramRe,
+      ReadAddr  => SramReadAddr,
+      PopRead   => SramPopRead,
+      --
+      SramAddr  => SramContAddr,
+      SramWe    => SramContWe,
+      SramRe    => SramContRe
+      );
+
   -- Filter chain or temporal?
   SramCon : entity work.SramController
     port map (
