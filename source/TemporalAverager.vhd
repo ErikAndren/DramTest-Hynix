@@ -107,13 +107,14 @@ begin
     variable Avg         : word(DataW downto 0);
     variable SramRdSlice : word(DataW-1 downto 0);
   begin
-    LineCnt_N  <= LineCnt_D;
-    PixelCnt_N <= PixelCnt_D;
-    SramRe_N   <= SramRe_D;
-    SramWe_N   <= SramWe_D;
-    SramWd_N   <= SramWd_D;
-    SramRd_N   <= SramRd_D;
-    PixelOut   <= (others => 'X');
+    LineCnt_N   <= LineCnt_D;
+    PixelCnt_N  <= PixelCnt_D;
+    SramRe_N    <= SramRe_D;
+    SramWe_N    <= SramWe_D;
+    SramWd_N    <= SramWd_D;
+    SramRd_N    <= SramRd_D;
+    PixelOut    <= (others => 'X');
+    SramRdVal_N <= SramRdVal_D;
 
     if SramRdVal_D = '0' then
       SramRe_N <= '1';
