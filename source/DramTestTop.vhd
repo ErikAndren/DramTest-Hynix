@@ -201,8 +201,8 @@ begin
       --
       Vsync         => Vsync_i,
       --
-      PixelInVal    => PixelVal,
-      PixelIn       => PixelData,
+      PixelInVal    => AlignedPixDataVal,
+      PixelIn       => AlignedPixData,
       --
       SramReadAddr  => SramReadAddr,
       SramRe        => SramRe,
