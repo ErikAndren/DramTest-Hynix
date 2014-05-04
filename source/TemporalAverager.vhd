@@ -51,7 +51,7 @@ architecture rtl of TemporalAverager is
   signal WordCnt_N, WordCnt_D                   : word(1-1 downto 0);
   signal SramReadAddr_i                         : word(SramAddrW-1 downto 0);
 
-  constant Threshold : positive := 16;
+  constant Threshold : positive := 24;
   
   function CalcOldAddr(LineCnt : word; PixCnt : word) return word is
     variable NewLineCnt : word(LineCnt'length-1 downto 0);
@@ -159,15 +159,15 @@ begin
       --  newAvg = oldAvg - oldAvg>>2 + newColor>>2.
       SramRdSlice := ExtractSlice(SramRd_D, DataW, conv_integer(WordCnt_D));
       
-      Avg         := (SramRdSlice - SramRdSlice(SramRdSlice'high downto 2)) + PixelIn(PixelIn'high downto 2);
+      Avg         := (SramRdSlice - SramRdSlice(SramRdSlice'length-1 downto 3)) + PixelIn(PixelIn'length-1 downto 3);
 
-      if Avg > PixelIn then
-        Diff := (Avg - PixelIn);
+      if SramRdSlice > PixelIn then
+        Diff := (SramRdSlice - PixelIn);
       else
-        Diff := (PixelIn - Avg);
+        Diff := (PixelIn - SramRdSlice);
       end if;
 
-      if Diff > Threshold then
+      if Diff >= Threshold then
         PixelOut <= PixelIn;
       end if;
       
