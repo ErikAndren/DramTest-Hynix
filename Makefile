@@ -3,6 +3,7 @@ FILES=source/DramTestPack.vhd \
 	RespFIFO.vhd \
 	PLL.vhd \
 	AsyncFifo.vhd \
+	source/ObjectFinder.vhd \
 	source/GaussianFilter.vhd \
 	source/FloydSteinberg2PRAM.vhd \
 	source/DitherFloydSteinberg.vhd \
