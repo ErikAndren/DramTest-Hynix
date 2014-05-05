@@ -62,8 +62,8 @@ begin
       PixelCnt_D        <= (others => '0');
       LineCnt_D         <= (others => '0');
     elsif rising_edge(Clk) then
-      NextTopLeft_D     <= TopLeft_N;
-      NextBottomRight_D <= BottomRight_N;
+      NextTopLeft_D     <= NextTopLeft_N;
+      NextBottomRight_D <= NextBottomRight_N;
       --
       PixelCnt_D        <= PixelCnt_N;
       LineCnt_D         <= LineCnt_N;
