@@ -6,6 +6,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
+use work.VgaPack.all;
 
 entity VGAGenerator is
   generic (
@@ -32,15 +33,6 @@ end entity;
 
 architecture rtl of VGAGenerator is
   signal PixelClk : bit1;
-
-  constant HSyncEnd  : positive := 95;
-  constant HDatBegin : positive := 143;
-  constant HDatEnd   : positive := 783;
-  constant HPixelEnd : positive := 799;
-  constant VSyncEnd  : positive := 1;
-  constant VDatBegin : positive := 34;
-  constant VDatEnd   : positive := 514;
-  constant VLineEnd  : positive := 524;
 
   signal hCount     : word(bits(HPixelEnd)-1 downto 0);
   signal vCount     : word(bits(VLineEnd)-1 downto 0);

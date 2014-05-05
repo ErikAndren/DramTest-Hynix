@@ -4,13 +4,9 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
+use work.VgaPack.all;
 
 package DramTestPack is
-  constant VgaHeight          : positive              := 480;
-  constant VgaHeightW         : positive              := bits(VgaHeight);
-  constant VgaWidth           : positive              := 640;
-  constant VgaWidthW          : positive              := bits(VgaWidth);
-  constant VgaRes             : positive              := VgaHeight * VgaWidth;
   constant PixelW             : positive              := 8;
   --
   constant ColResW            : positive              := 3;

@@ -10,6 +10,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
 use work.SramPack.all;
+use work.VgaPack.all;
 use work.DramTestPack.all;
 
 entity TemporalDiff is
