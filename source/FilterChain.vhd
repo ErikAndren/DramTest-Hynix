@@ -140,6 +140,7 @@ begin
       PixelOut    => PixelFromDither(DataW-1 downto DataW-3),
       PixelOutVal => PixelFromDitherVal
       );
+  PixelFromDither(5-1 downto 0) <= (others => '0');
 
   FilterSync : process (Clk, RstN)
   begin
