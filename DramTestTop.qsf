@@ -177,6 +177,8 @@ set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name SMART_RECOMPILE ON
 
+set_global_assignment -name VHDL_FILE source/PWMCtrl.vhd
+set_global_assignment -name VHDL_FILE source/ServoPack.vhd
 set_global_assignment -name VHDL_FILE ../Lib/VgaPack.vhd
 set_global_assignment -name VHDL_FILE source/ObjectFinder.vhd
 set_global_assignment -name VHDL_FILE ../Lib/Debounce.vhd
