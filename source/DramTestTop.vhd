@@ -120,7 +120,9 @@ architecture rtl of DramTestTop is
   signal PixelPostFilterVal              : bit1;
   --
   signal Btn1Pulse, Btn2Pulse, Btn3Pulse : bit1;
-
+  --
+  signal PixelToObjFin                   : word(PixelW-1 downto 0);
+  signal DrawRect                        : bit1;
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -241,6 +243,8 @@ begin
       --
       PixelIn      => AlignedPixData,
       PixelInVal   => AlignedPixDataVal,
+      --PixelIn      => TempPixelOut,
+      --PixelInVal   => TempPixelOutVal,
       --
       PixelOut     => PixelPostFilter,
       PixelOutVal  => PixelPostFilterVal
@@ -258,8 +262,10 @@ begin
       --
       Vsync         => Vsync_i,
       --
-      PixelInVal    => AlignedPixDataVal,
-      PixelIn       => AlignedPixData,
+      --PixelInVal    => AlignedPixDataVal,
+      --PixelIn       => AlignedPixData,
+      PixelInVal    => PixelPostFilterVal,
+      PixelIn       => PixelPostFilter,
       --
       SramReadAddr  => SramReadAddr,
       SramRe        => SramRe,
@@ -274,6 +280,8 @@ begin
       PixelOut      => TempPixelOut,
       PixelOutVal   => TempPixelOutVal
       );
+
+  
 
   SramArb : entity work.SramArbiter
     port map (
@@ -321,10 +329,10 @@ begin
       Vsync         => Vsync_i,
       --Href          => AlignedPixDataVal,
       --D             => AlignedPixData,
-      --Href          => TempPixelOutVal,
-      --D             => TempPixelOut,
-      Href          => PixelPostFilterVal,
-      D             => PixelPostFilter,
+      Href          => TempPixelOutVal,
+      D             => TempPixelOut,
+      --Href          => PixelPostFilterVal,
+      --D             => PixelPostFilter,
       --
       RdClk         => Clk25MHz,
       RdRst_N       => RstN25MHz,
@@ -336,6 +344,7 @@ begin
       LastFrameComp => LastFrameComp
       );
 
+  
 
   SdramArb : entity work.SdramArbiter
     port map (
@@ -428,7 +437,25 @@ begin
       -- Vga interface
       VgaVsync      => VgaVsync_i,
       InView        => VgaInView,
-      PixelToDisp   => VgaPixelToDisp
+      PixelToDisp   => PixelToObjFin
+      );
+
+  ObjFin : entity work.ObjectFinder
+    generic map (
+      DataW => PixelW
+      )
+    port map (
+      RstN        => RstN25MHz,
+      Clk         => Clk25MHz,
+      --
+      Vsync       => Vsync_i,
+      --
+      PixelIn     => PixelToObjFin,
+      PixelInVal  => VgaInView,
+      --
+      PixelOut    => VgaPixelToDisp,
+      PixelOutVal => open,
+      RectAct     => DrawRect
       );
 
   VGAGen : entity work.VGAGenerator
@@ -441,7 +468,7 @@ begin
       RstN           => RstN25MHz,
       --
       PixelToDisplay => VgaPixelToDisp,
-      DrawRect       => '0',
+      DrawRect       => DrawRect,
       InView         => VgaInView,
       --
       Red            => VgaRed,
