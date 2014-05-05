@@ -6,6 +6,7 @@ use ieee.std_logic_unsigned.all;
 use work.Types.all;
 use work.DramTestPack.all;
 use work.SramPack.all;
+use work.VgaPack.all;
 
 entity DramTestTop is
   port (
@@ -57,6 +58,8 @@ architecture rtl of DramTestTop is
   --
   signal Clk25MHz                        : bit1;
   signal RstN25MHz                       : bit1;
+  --
+  signal Clk64KHz                        : bit1;
   --
   signal SdramAddr                       : word(ASIZE-1 downto 0);
   signal SdramCmd                        : word(3-1 downto 0);
@@ -123,6 +126,9 @@ architecture rtl of DramTestTop is
   --
   signal PixelToObjFin                   : word(PixelW-1 downto 0);
   signal DrawRect                        : bit1;
+  --
+  signal ObjTopLeft, ObjBottomRight      : Cord;
+
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -189,7 +195,7 @@ begin
       SIO_C        => SIO_C,
       SIO_D        => SIO_D
       );
- 
+  
   -- This clock is probably invalid for this purpose. Use the raw clk divided
   CaptPixel : entity work.CamCapture
     generic map (
@@ -455,7 +461,23 @@ begin
       --
       PixelOut    => VgaPixelToDisp,
       PixelOutVal => open,
-      RectAct     => DrawRect
+      RectAct     => DrawRect,
+      --
+      TopLeft     => ObjTopLeft,
+      BottomRight => ObjBottomRight
+      );
+
+  PWMC : entity work.PWMCtrl
+    port map (
+      RstN        => RstN25MHz,
+      Clk         => Clk25MHz,
+      Clk64KHz    => Clk64KHz,
+      --
+      TopLeft     => ObjTopLeft,
+      BottomRight => ObjBottomRight,
+      --
+      YawPos      => open,
+      PitchPos    => open
       );
 
   VGAGen : entity work.VGAGenerator

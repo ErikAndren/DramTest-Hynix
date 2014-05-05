@@ -39,15 +39,15 @@ architecture rtl of ObjectFinder is
   signal NextBottomRight_N, NextBottomRight_D : Cord;
 
   --
-  signal PixelCnt_N, PixelCnt_D       : word(VgaWidthW-1 downto 0);
-  signal LineCnt_N, LineCnt_D         : word(VgaHeightW-1 downto 0);
+  signal PixelCnt_N, PixelCnt_D         : word(VgaWidthW-1 downto 0);
+  signal LineCnt_N, LineCnt_D           : word(VgaHeightW-1 downto 0);
   --
-  signal PixelOut_N, PixelOut_D       : word(DataW-1 downto 0);
+  signal PixelOut_N, PixelOut_D         : word(DataW-1 downto 0);
   --
   -- Set low threshold for now
-  constant Threshold                  : natural  := 32;
+  constant Threshold                    : natural := 32;
   --
-  signal TopLeftFound_N, TopLeftFound_D         : bit1;
+  signal TopLeftFound_N, TopLeftFound_D : bit1;
              
 begin
   SyncProc : process (Clk, RstN)

@@ -3,6 +3,8 @@ FILES=source/DramTestPack.vhd \
 	RespFIFO.vhd \
 	PLL.vhd \
 	AsyncFifo.vhd \
+	source/ServoPack.vhd \
+	source/PWMCtrl.vhd \
 	source/ObjectFinder.vhd \
 	source/FloydSteinberg2PRAM.vhd \
 	source/DitherFloydSteinberg.vhd \
