@@ -32,8 +32,11 @@ entity ObjectFinder is
 end entity;
 
 architecture rtl of ObjectFinder is
-  signal TopLeft_N, TopLeft_D         : Cord;
-  signal BottomRight_N, BottomRight_D : Cord;
+  signal TopLeft_N, TopLeft_D                 : Cord;
+  signal BottomRight_N, BottomRight_D         : Cord;
+  signal NextTopLeft_N, NextTopLeft_D         : Cord;
+  signal NextBottomRight_N, NextBottomRight_D : Cord;
+
   --
   signal PixelCnt_N, PixelCnt_D       : word(FrameWW-1 downto 0);
   signal LineCnt_N, LineCnt_D         : word(FrameHW-1 downto 0);
@@ -49,25 +52,31 @@ begin
   SyncProc : process (Clk, RstN)
   begin
     if RstN = '0' then
-      TopLeft_D          <= Z_Cord;
-      BottomRight_D      <= Z_Cord;
-      TopLeftFound_D     <= '0';
+      TopLeft_D         <= Z_Cord;
+      BottomRight_D     <= Z_Cord;
+      NextTopLeft_D     <= Z_Cord;
+      NextBottomRight_D <= Z_Cord;
       --
-      PixelCnt_D         <= (others => '0');
-      LineCnt_D          <= (others => '0');
+      TopLeftFound_D    <= '0';
+      --
+      PixelCnt_D        <= (others => '0');
+      LineCnt_D         <= (others => '0');
     elsif rising_edge(Clk) then
-      TopLeft_D          <= TopLeft_N;
-      BottomRight_D      <= BottomRight_N;
+      NextTopLeft_D     <= TopLeft_N;
+      NextBottomRight_D <= BottomRight_N;
       --
-      PixelCnt_D         <= PixelCnt_N;
-      LineCnt_D          <= LineCnt_N;
+      PixelCnt_D        <= PixelCnt_N;
+      LineCnt_D         <= LineCnt_N;
       --
-      TopLeftFound_D     <= TopLeftFound_N;
+      TopLeftFound_D    <= TopLeftFound_N;
 
 
       if Vsync = '1' then
-        TopLeft_D      <= Z_Cord;
-        BottomRight_D  <= Z_Cord;
+        NextTopLeft_D     <= Z_Cord;
+        NextBottomRight_D <= Z_Cord;
+        TopLeft_D         <= NextTopLeft_D;
+        BottomRight_D     <= NextBottomRight_D;
+        --
         TopLeftFound_D <= '0';
         PixelCnt_D     <= (others => '0');
         LineCnt_D      <= (others => '0');
@@ -75,10 +84,13 @@ begin
     end if;
   end process;
   
-  AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, TopLeftFound_D)
+  AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, TopLeftFound_D, NextTopLeft_D, NextBottomRight_D)
   begin
-    TopLeft_N     <= TopLeft_D;
-    BottomRight_N <= BottomRight_D;
+    TopLeft_N         <= TopLeft_D;
+    BottomRight_N     <= BottomRight_D;
+    NextTopLeft_N     <= NextTopLeft_D;
+    NextBottomRight_N <= NextBottomRight_D;
+    
     PixelCnt_N    <= PixelCnt_D;
     LineCnt_N     <= LineCnt_D;
     TopLeftFound_N <= TopLeftFound_D;
@@ -98,17 +110,17 @@ begin
 
       if PixelIn >= Threshold then
         if TopLeftFound_D = '0' then
-          TopLeft_N.X <= PixelCnt_D;
-          TopLeft_N.Y <= LineCnt_D;
+          NextTopLeft_N.X <= PixelCnt_D;
+          NextTopLeft_N.Y <= LineCnt_D;
           TopLeftFound_N <= '1';
         end if;
 
-        if BottomRight_D.X < PixelCnt_D then
-          BottomRight_N.X <= PixelCnt_D;
+        if NextBottomRight_D.X < PixelCnt_D then
+          NextBottomRight_N.X <= PixelCnt_D;
         end if;
 
-        if BottomRight_D.Y < LineCnt_D then
-          BottomRight_N.Y <= LineCnt_D;
+        if NextBottomRight_D.Y < LineCnt_D then
+          NextBottomRight_N.Y <= LineCnt_D;
         end if;
       end if;      
     end if;
