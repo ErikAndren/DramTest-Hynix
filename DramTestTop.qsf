@@ -178,7 +178,6 @@ set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name SMART_RECOMPILE ON
 
 set_global_assignment -name VHDL_FILE source/ObjectFinder.vhd
-set_global_assignment -name VHDL_FILE source/GaussianFilter.vhd
 set_global_assignment -name VHDL_FILE ../Lib/Debounce.vhd
 set_global_assignment -name VHDL_FILE ../Lib/ButtonPulse.vhd
 set_global_assignment -name VHDL_FILE ../OV76X0/OV76X0Pack.vhd
