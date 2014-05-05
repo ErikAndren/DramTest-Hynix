@@ -4,7 +4,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
-use work.OV76X0Pack.all;
+use work.DramTestPack.all;
+use work.VgaPack.all;
 
 entity ConvFilter is
   generic (
@@ -21,7 +22,7 @@ entity ConvFilter is
     IncThreshold : in  bit1;
     DecThreshold : in bit1;
     --
-    RdAddr       : in  word(bits(FrameW)-1 downto 0);
+    RdAddr       : in  word(bits(VgaWidth)-1 downto 0);
     Vsync        : in  bit1;
     --
     PixelInVal   : in  bit1;
@@ -121,7 +122,7 @@ begin
 
       if LineFilter_D > 0 then
         PixelOut_N <= (others => '0');
-        if RdAddr = FrameW-1 then
+        if RdAddr = VgaWidth-1 then
           LineFilter_N <= LineFilter_D - 1;
         end if;
       end if;

@@ -4,7 +4,6 @@ FILES=source/DramTestPack.vhd \
 	PLL.vhd \
 	AsyncFifo.vhd \
 	source/ObjectFinder.vhd \
-	source/GaussianFilter.vhd \
 	source/FloydSteinberg2PRAM.vhd \
 	source/DitherFloydSteinberg.vhd \
 	source/LineSampler1PRAM.vhd \

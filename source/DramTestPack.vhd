@@ -41,6 +41,9 @@ package DramTestPack is
   -- 5
   constant PixelsPerBurstW    : positive              := bits(PixelsPerBurst);
   --
+  type PixVec is array (3-1 downto 0) of word(PixelW-1 downto 0);
+  type PixVec2D is array (natural range <>) of PixVec;
+  --
   constant CmdW               : positive              := 3;
   constant DRAM_NOP           : word(CmdW-1 downto 0) := "000";
   constant DRAM_READA         : word(CmdW-1 downto 0) := "001";
@@ -54,6 +57,13 @@ package DramTestPack is
   constant tRCD     : positive := 3;
   constant tCL      : positive := 2;
   constant tRdDel   : positive := 4;
+
+  constant NONE_MODE              : natural := 0;
+  constant DITHER_MODE            : natural := 1;
+  constant SOBEL_MODE             : natural := 2;
+  constant GAUSSIAN_MODE          : natural := 3;
+  constant MODES                  : natural := GAUSSIAN_MODE + 1;
+  constant MODESW                 : natural := bits(MODES);
   
   type DramRequest is record
     Val  : word1;

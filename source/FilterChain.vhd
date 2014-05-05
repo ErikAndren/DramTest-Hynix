@@ -4,7 +4,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
-use work.OV76X0Pack.all;
+use work.DramTestPack.all;
+use work.VgaPack.all;
 
 entity FilterChain is
   generic (
@@ -39,9 +40,9 @@ architecture rtl of FilterChain is
   signal PixelFromDitherVal                       : bit1;
   signal PixelFromGaussian                        : word(DataW-1 downto 0);
   signal PixelFromGaussianVal                     : bit1;
-  signal RdAddr                                   : word(bits(FrameW)-1 downto 0);
-
-  signal FilterSel_N, FilterSel_D : word(MODESW-1 downto 0);
+  signal RdAddr                                   : word(VgaWidthW-1 downto 0);
+  --
+  signal FilterSel_N, FilterSel_D                 : word(MODESW-1 downto 0);
 begin
   LS : entity work.LineSampler
     generic map (

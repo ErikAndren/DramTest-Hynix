@@ -4,7 +4,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
-use work.OV76X0pack.all;
+use work.DramTestPack.all;
+use work.VgaPack.all;
 
 entity DitherFloydSteinberg is
   generic (
@@ -46,12 +47,12 @@ architecture rtl of DitherFloydSteinberg is
   type ErrorVector is array (natural range <>) of word(MaxErrorW-1 downto 0);
   signal ErrorVect_N, ErrorVect_D     : ErrorVector(LookAheadBufs-1 downto 0);
 
-  signal LineCnt_N, LineCnt_D   : word(FrameHW-1 downto 0);
-  signal PixelCnt_N, PixelCnt_D : word(bits(FrameW)-1 downto 0);
+  signal LineCnt_N, LineCnt_D   : word(VgaHeightW-1 downto 0);
+  signal PixelCnt_N, PixelCnt_D : word(VgaWidthW-1 downto 0);
 
-  signal ToErrMem : word(MaxErrorW-1 downto 0);
-  signal FromErrMem, ToErrMemTrunc        : word(TruncBits-1 downto 0);
-  signal WrAddr, RdAddr       : word(bits(FrameW)-1 downto 0);
+  signal ToErrMem                  : word(MaxErrorW-1 downto 0);
+  signal FromErrMem, ToErrMemTrunc : word(TruncBits-1 downto 0);
+  signal WrAddr, RdAddr            : word(VgaWidthW-1 downto 0);
 
   --Pixel 1, 0
   --1. Add error from right error to pixel (contains prev. right err and error_vector error)
@@ -126,7 +127,7 @@ begin
     ToErrMem <= SHR(ErrorVect_D(0) + conv_word(3 * conv_integer(error), MaxErrorW), "100");
 
     -- Zero out error on end of frame
-    if (LineCnt_D = FrameH-1) then
+    if (LineCnt_D = VgaHeight-1) then
       ToErrMem <= (others => '0');
     end if;
 
@@ -138,7 +139,7 @@ begin
       RightErr_N <= SHR(conv_word(7 * conv_integer(error), MaxErrorW), "100") + ErrorVect_D(2);
 
       -- Do not propagate error on the end of the line
-      if (PixelCnt_D = FrameW-1) then
+      if (PixelCnt_D = VgaWidth-1) then
         RightErr_N <= (others => '0');
       end if;
       --
@@ -151,10 +152,10 @@ begin
       PixelOut_N    <= ClosestPixelVal;
 
       PixelCnt_N <= PixelCnt_D + 1;
-      if (PixelCnt_D = FrameW-1) then
+      if (PixelCnt_D = VgaWidth-1) then
         PixelCnt_N <= (others => '0');
         LineCnt_N  <= LineCnt_D + 1;
-        if (LineCnt_D = FrameH-1) then
+        if (LineCnt_D = VgaHeight-1) then
           LineCnt_N <= (others => '0');
         end if;
       end if;
@@ -174,12 +175,12 @@ begin
     RdAddr <= PixelCnt_D + 2;
 
     if PixelCnt_D = 0 then
-      WrAddr <= conv_word(FrameW-1, WrAddr'length);
+      WrAddr <= conv_word(VgaWidth-1, WrAddr'length);
     end if;
 
-    if PixelCnt_D = FrameW-2 then
+    if PixelCnt_D = VgaWidth-2 then
       RdAddr <= conv_word(0, RdAddr'length);
-    elsif PixelCnt_D = FrameW-1 then
+    elsif PixelCnt_D = VgaWidth-1 then
       RdAddr <= conv_word(1, RdAddr'length);
     end if;
   end process;

@@ -7,7 +7,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
-use work.OV76X0Pack.all;
+use work.DramTestPack.all;
+use work.VgaPack.all;
 
 entity ObjectFinder is
   generic (
@@ -38,8 +39,8 @@ architecture rtl of ObjectFinder is
   signal NextBottomRight_N, NextBottomRight_D : Cord;
 
   --
-  signal PixelCnt_N, PixelCnt_D       : word(FrameWW-1 downto 0);
-  signal LineCnt_N, LineCnt_D         : word(FrameHW-1 downto 0);
+  signal PixelCnt_N, PixelCnt_D       : word(VgaWidthW-1 downto 0);
+  signal LineCnt_N, LineCnt_D         : word(VgaHeightW-1 downto 0);
   --
   signal PixelOut_N, PixelOut_D       : word(DataW-1 downto 0);
   --
@@ -64,6 +65,8 @@ begin
     elsif rising_edge(Clk) then
       NextTopLeft_D     <= NextTopLeft_N;
       NextBottomRight_D <= NextBottomRight_N;
+      TopLeft_D         <= TopLeft_N;
+      BottomRight_D     <= BottomRight_N;
       --
       PixelCnt_D        <= PixelCnt_N;
       LineCnt_D         <= LineCnt_N;
@@ -98,11 +101,11 @@ begin
     if PixelInVal = '1' then
       -- Pixel counting
       PixelCnt_N <= PixelCnt_D + 1;
-      if PixelCnt_D + 1 = FrameW then
+      if PixelCnt_D + 1 = VgaWidth then
         -- End of line
         PixelCnt_N <= (others => '0');
         LineCnt_N <= LineCnt_D + 1;
-        if LineCnt_D + 1 = FrameH then
+        if LineCnt_D + 1 = VgaHeight then
           LineCnt_N <= (others => '0');
           -- End of frame
         end if;

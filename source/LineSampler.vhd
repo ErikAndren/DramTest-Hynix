@@ -9,7 +9,8 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
-use work.OV76X0Pack.all;
+use work.DramTestPack.all;
+use work.VgaPack.all;
 
 entity LineSampler is
   generic (
@@ -22,7 +23,7 @@ entity LineSampler is
     RstN        : in  bit1;
     --
     Vsync       : in  bit1;
-    RdAddr      : out word(bits(FrameW)-1 downto 0);
+    RdAddr      : out word(VgaWidthW-1 downto 0);
     --
     PixelIn     : in  word(DataW-1 downto 0);
     PixelInVal  : in  bit1;
@@ -33,7 +34,7 @@ entity LineSampler is
 end entity;
 
 architecture rtl of LineSampler is
-  signal Addr_N, Addr_D       : word(FrameWW-1 downto 0);
+  signal Addr_N, Addr_D       : word(VgaWidthW-1 downto 0);
   type AddrArr is array (natural range <>) of word(Buffers-1 downto 0);
   signal PixArr_N, PixArr_D   : PixVec2D(3-1 downto 0);
   --
@@ -82,7 +83,7 @@ begin
     if PixelInVal = '1' then
       Addr_N <= Addr_D + 1;
  
-      if Addr_D + 1 = FrameW then
+      if Addr_D + 1 = VgaWidth then
         Addr_N <= (others => '0');
         LineCnt_N <= LineCnt_D + 1;
         if LineCnt_D + 1 = Buffers then
@@ -95,9 +96,6 @@ begin
         PixArr_N(i)(0) <= PixArr_D(i)(1);        
         PixArr_N(i)(1) <= PixArr_D(i)(2);
         PixArr_N(i)(2) <= RamOut(CalcLine(LineCnt_D, i));
-
-        -- Clear buffer on the end of the line
-        -- FIXME: is this necessary?
       end loop;
     end if;
   end process;
