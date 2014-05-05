@@ -78,7 +78,15 @@ altera_mf:
 		-explicit $(QUARTUS_PATH)/eda/sim_lib/altera_mf.vhd
 
 clean:
-	rm -rf *~ rtl_work *.wlf transcript *.bak source/*~ source/*.bak
+	rm -rf *~ \
+		rtl_work \
+		*.wlf \
+		transcript \
+		*.bak \
+		source/*~ \
+		source/*.bak \
+		output_files
+
 
 vhdlfiles:
 	$(VHDL) $(VHDL_FLAGS) $(FLAGS) $(FILES)
