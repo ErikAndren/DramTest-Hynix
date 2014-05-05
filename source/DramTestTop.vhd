@@ -7,6 +7,7 @@ use work.Types.all;
 use work.DramTestPack.all;
 use work.SramPack.all;
 use work.VgaPack.all;
+use work.ServoPack.all;
 
 entity DramTestTop is
   port (
@@ -48,7 +49,10 @@ entity DramTestTop is
     SramOeN    : out   bit1;
     SramWeN    : out   bit1;
     SramUbN    : out   bit1;
-    SramLbN    : out   bit1
+    SramLbN    : out   bit1;
+    -- Servo interface
+    PitchServo : out   bit1;
+    YawServo   : out   bit1    
     );
 end entity;
 
@@ -128,6 +132,7 @@ architecture rtl of DramTestTop is
   signal DrawRect                        : bit1;
   --
   signal ObjTopLeft, ObjBottomRight      : Cord;
+  signal YawPos, PitchPos                : word(ServoResW-1 downto 0);
 
 begin
   -- Pll
@@ -157,6 +162,17 @@ begin
       --
       Rst_N    => RstN25MHz
       );
+
+  Clk64kHzGen : entity work.ClkDiv
+    generic map (
+      SourceFreq => 25000000,
+      SinkFreq   => 16000
+    )
+    port map (
+      Clk     => Clk25MHz,
+      RstN    => RstN25MHz,
+      Clk_out => Clk64kHz
+      );  
 
   DebBtn1 : entity work.ButtonPulse
     port map (
@@ -471,14 +487,40 @@ begin
     port map (
       RstN        => RstN25MHz,
       Clk         => Clk25MHz,
-      Clk64KHz    => Clk64KHz,
+      Clk64KHz    => Clk64kHz,
       --
       TopLeft     => ObjTopLeft,
       BottomRight => ObjBottomRight,
       --
-      YawPos      => open,
-      PitchPos    => open
+      YawPos      => YawPos,
+      PitchPos    => PitchPos
       );
+
+  YawServoDriver : entity work.ServoPwm
+    generic map (
+      ResW => ServoResW
+      )
+    port map (
+      Clk   => Clk64Khz,
+      RstN  => RstN25MHz,
+      --
+      Pos   => YawPos,
+      --
+      Servo => YawServo
+      );
+
+  PitchServoDriver : entity work.ServoPwm
+    generic map (
+      ResW => ServoResW
+      )
+    port map (
+      Clk   => Clk64Khz,
+      RstN  => RstN25MHz,
+      --
+      Pos   => PitchPos,
+      --
+      Servo => PitchServo
+      );  
 
   VGAGen : entity work.VGAGenerator
     generic map (
