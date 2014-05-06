@@ -82,6 +82,7 @@ set_output_delay -clock SdramClk_pin -source -max $sdram_output_delay_max [get_p
 set_output_delay -clock SdramClk_pin -source -min -${sdram_output_delay_min} [get_ports Sdram*]
 
 set_multicycle_path -from [get_clocks SdramClk_pin] -to [get_clocks {Pll100MHz|altpll_component|pll|clk[0]}] -setup -end 2
+set_multicycle_path -from [get_clocks SdramClk_pin] -to [get_clocks {Pll100MHz|altpll_component|pll|clk[0]}] -hold -end 2
 
 # Validate this
 set_multicycle_path -from {Pll100MHz|altpll_component|pll|clk[1]} -to {SdramClk} -setup -end 2
