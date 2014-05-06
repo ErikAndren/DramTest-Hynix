@@ -70,6 +70,8 @@ derive_pll_clocks -create_base_clocks
 # Create pll clock
 create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] [get_ports {SdramClk}]
 
+create_generated_clock -name Clk64kHz -source [get_pins {Pll100MHz|altpll_component|pll|clk[2]}] -divide_by 16000 [get_registers {ClkDiv:Clk64kHzGen|divisor}]
+
 derive_clock_uncertainty
 
 # Constrain data in
@@ -81,8 +83,8 @@ set_output_delay -clock SdramClk_pin -source -min -${sdram_output_delay_min} [ge
 
 set_multicycle_path -from [get_clocks SdramClk_pin] -to [get_clocks {Pll100MHz|altpll_component|pll|clk[0]}] -setup -end 2
 
-set_multicycle_path -from {Pll100MHz|altpll_component|pll|clk[1]} -to {SdramClk} -setup -end 2
 # Validate this
+set_multicycle_path -from {Pll100MHz|altpll_component|pll|clk[1]} -to {SdramClk} -setup -end 2
 set_multicycle_path -from {Pll100MHz|altpll_component|pll|clk[1]} -to {SdramClk} -hold -end 2 
 
 #**************************************************************
