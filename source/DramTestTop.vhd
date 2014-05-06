@@ -63,7 +63,8 @@ architecture rtl of DramTestTop is
   signal Clk25MHz                        : bit1;
   signal RstN25MHz                       : bit1;
   --
-  signal Clk64KHz                        : bit1;
+  signal Clk64kHz                        : bit1;
+  signal RstN64kHz                       : bit1;
   --
   signal SdramAddr                       : word(ASIZE-1 downto 0);
   signal SdramCmd                        : word(3-1 downto 0);
@@ -144,6 +145,17 @@ begin
       c2     => Clk25MHz
       );
 
+  Clk64kHzGen : entity work.ClkDiv
+    generic map (
+      SourceFreq => 25000000,
+      SinkFreq   => 16000
+    )
+    port map (
+      Clk     => Clk25MHz,
+      RstN    => RstN25MHz,
+      Clk_out => Clk64kHz
+      );
+  
   CamClkFeed : CamClk <= Clk25MHz;
 
   -- Reset synchronizer
@@ -163,17 +175,14 @@ begin
       Rst_N    => RstN25MHz
       );
 
-  Clk64kHzGen : entity work.ClkDiv
-    generic map (
-      SourceFreq => 25000000,
-      SinkFreq   => 16000
-    )
+  RstSync64kHz : entity work.ResetSync
     port map (
-      Clk     => Clk25MHz,
-      RstN    => RstN25MHz,
-      Clk_out => Clk64kHz
-      );  
-
+      AsyncRst => AsyncRst,
+      Clk      => Clk64kHz,
+      --
+      Rst_N    => RstN64kHz
+      );
+  
   DebBtn1 : entity work.ButtonPulse
     port map (
       Clk         => Clk25MHz,
@@ -485,9 +494,8 @@ begin
 
   PWMC : entity work.PWMCtrl
     port map (
-      RstN        => RstN25MHz,
-      Clk         => Clk25MHz,
-      Clk64KHz    => Clk64kHz,
+      Clk64kHz    => Clk64kHz,
+      RstN64kHz   => RstN64kHz,
       --
       TopLeft     => ObjTopLeft,
       BottomRight => ObjBottomRight,

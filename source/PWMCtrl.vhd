@@ -14,9 +14,8 @@ use work.ServoPack.all;
 
 entity PWMCtrl is
   port (
-    RstN        : in  bit1;
-    Clk         : in  bit1;
-    Clk64KHz    : in  bit1;
+    Clk64kHz    : in  bit1;
+    RstN64kHz   : in  bit1;
     --
     TopLeft     : in  Cord;
     BottomRight : in  Cord;
@@ -113,9 +112,9 @@ begin
     end if;
   end process;
 
-  SyncProc : process (Clk64Khz, RstN)
+  SyncProc : process (Clk64Khz, RstN64kHz)
   begin
-    if RstN = '0' then
+    if RstN64kHz = '0' then
       CurYawPos_D   <= conv_word(ServoYawStart, CurYawPos_D'length);
       CurPitchPos_D <= conv_word(ServoPitchStart, CurPitchPos_D'length);
       Cnt_D <= (others => '0');
