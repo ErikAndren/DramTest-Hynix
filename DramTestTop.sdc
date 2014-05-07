@@ -29,25 +29,25 @@ set board_delay 1.000
 
 # Sdram timing constants
 set sdram_clk_period 10.000
-
 # sdram input hold tHO
 set sdram_tH 0.800
-
 set sdram_tOH 2.000
-
 set sdram_tOLZ 1.000
-
 set sdram_tOHZ 5.400
-
 set sdram_tDH 0.800
-
 set sdram_tDS 1.500
 
 set sdram_data_input_delay_max [expr $board_delay + $sdram_tOHZ]
 set sdram_data_input_delay_min [expr $board_delay + $sdram_tOH]
-
 set sdram_output_delay_max [expr $board_delay + $sdram_tDS]
 set sdram_output_delay_min [expr $board_delay + $sdram_tDH]
+
+# OV7660 Constraints
+set ov7660_tSU 15.000
+set ov7660_tHD 8.000
+
+set_false_path -from [get_ports {AsyncRst}] -through [get_pins {AsyncRst|combout}]
+set_false_path -from [get_ports {Button1 Button2 Button3}] -through [get_pins {Button1|combout Button2|combout Button3|combout}]
 
 #**************************************************************
 # Time Information
@@ -68,6 +68,9 @@ create_clock -name {Clk} -period 20.000 -waveform { 0.000 10.000 } [get_ports {C
 derive_pll_clocks -create_base_clocks
 
 create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] [get_ports {ClkToSdram}]
+
+# create_generated_clock -name CamClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[0]}] [get_ports {CamClk}]
+
 
 create_generated_clock -name Clk64kHz -source [get_pins {Pll100MHz|altpll_component|pll|clk[2]}] -divide_by 16000 [get_registers {ClkDiv:Clk64kHzGen|divisor}]
 
