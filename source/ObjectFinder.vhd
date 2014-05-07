@@ -37,7 +37,6 @@ architecture rtl of ObjectFinder is
   signal BottomRight_N, BottomRight_D         : Cord;
   signal NextTopLeft_N, NextTopLeft_D         : Cord;
   signal NextBottomRight_N, NextBottomRight_D : Cord;
-
   --
   signal PixelCnt_N, PixelCnt_D         : word(VgaWidthW-1 downto 0);
   signal LineCnt_N, LineCnt_D           : word(VgaHeightW-1 downto 0);
@@ -48,7 +47,9 @@ architecture rtl of ObjectFinder is
   constant Threshold                    : natural := 32;
   --
   signal TopLeftFound_N, TopLeftFound_D : bit1;
-             
+  signal DidFindTopLeft_N, DidFindTopLeft_D : bit1;
+  signal NewVsync_D : bit1;
+  
 begin
   SyncProc : process (Clk, RstN)
   begin
@@ -59,9 +60,11 @@ begin
       NextBottomRight_D <= Z_Cord;
       --
       TopLeftFound_D    <= '0';
+      DidFindTopLeft_D  <= '0';
       --
       PixelCnt_D        <= (others => '0');
       LineCnt_D         <= (others => '0');
+      NewVsync_D        <= '0';
     elsif rising_edge(Clk) then
       NextTopLeft_D     <= NextTopLeft_N;
       NextBottomRight_D <= NextBottomRight_N;
@@ -72,13 +75,17 @@ begin
       LineCnt_D         <= LineCnt_N;
       --
       TopLeftFound_D    <= TopLeftFound_N;
+      DidFindTopLeft_D  <= DidFindTopLeft_N;
+      NewVsync_D        <= Vsync;
 
-
-      if Vsync = '1' then
+      -- Latch in coordinates to draw for the next frame
+      if Vsync = '1' and NewVSync_D = '0' then
         NextTopLeft_D     <= Z_Cord;
         NextBottomRight_D <= Z_Cord;
-        TopLeft_D         <= NextTopLeft_D;
-        BottomRight_D     <= NextBottomRight_D;
+        --
+        TopLeft_D         <= NextTopLeft_N;
+        BottomRight_D     <= NextBottomRight_N;
+        DidFindTopLeft_D  <= TopLeftFound_N;
         --
         TopLeftFound_D <= '0';
         PixelCnt_D     <= (others => '0');
@@ -87,15 +94,16 @@ begin
     end if;
   end process;
   
-  AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, TopLeftFound_D, NextTopLeft_D, NextBottomRight_D)
+  AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, TopLeftFound_D, NextTopLeft_D, NextBottomRight_D, DidFindTopLeft_D)
   begin
     TopLeft_N         <= TopLeft_D;
     BottomRight_N     <= BottomRight_D;
     NextTopLeft_N     <= NextTopLeft_D;
     NextBottomRight_N <= NextBottomRight_D;
+    DidFindTopLeft_N  <= DidFindTopLeft_D;
     
-    PixelCnt_N    <= PixelCnt_D;
-    LineCnt_N     <= LineCnt_D;
+    PixelCnt_N     <= PixelCnt_D;
+    LineCnt_N      <= LineCnt_D;
     TopLeftFound_N <= TopLeftFound_D;
 
     if PixelInVal = '1' then
@@ -129,10 +137,10 @@ begin
     end if;
   end process;
 
-  RectAct <= '1' when ((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or 
-                      ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or
-                      ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y))) or
-                      ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y))) else '0';  
+  RectAct <= '1' when (((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or 
+                       ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or
+                       ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y))) or
+                       ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))) and DidFindTopLeft_D = '1' else '0';  
 
   TopLeftAssign     : TopLeft     <= TopLeft_D;
   BottomRightAssign : BottomRight <= BottomRight_D;
