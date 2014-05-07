@@ -49,6 +49,12 @@ set ov7660_tHD 8.000
 set_false_path -from [get_ports {AsyncRst}] -through [get_pins {AsyncRst|combout}]
 set_false_path -from [get_ports {Button1 Button2 Button3}] -through [get_pins {Button1|combout Button2|combout Button3|combout}]
 
+# PWM Signals
+set_false_path -to [get_ports {PitchServo YawServo}]
+
+# No need to time this path
+set_false_path -to [get_ports {Vga*}]
+
 #**************************************************************
 # Time Information
 #**************************************************************
