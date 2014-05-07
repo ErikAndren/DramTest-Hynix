@@ -272,10 +272,10 @@ begin
       IncThreshold => Btn2Pulse,
       DecThreshold => Btn1Pulse,
       --
-      PixelIn      => AlignedPixData,
-      PixelInVal   => AlignedPixDataVal,
-      --PixelIn      => TempPixelOut,
-      --PixelInVal   => TempPixelOutVal,
+      --PixelIn      => AlignedPixData,
+      --PixelInVal   => AlignedPixDataVal,
+      PixelIn      => TempPixelOut,
+      PixelInVal   => TempPixelOutVal,
       --
       PixelOut     => PixelPostFilter,
       PixelOutVal  => PixelPostFilterVal
@@ -293,10 +293,10 @@ begin
       --
       Vsync         => Vsync_i,
       --
-      --PixelInVal    => AlignedPixDataVal,
-      --PixelIn       => AlignedPixData,
-      PixelInVal    => PixelPostFilterVal,
-      PixelIn       => PixelPostFilter,
+      PixelInVal    => AlignedPixDataVal,
+      PixelIn       => AlignedPixData,
+      --PixelInVal    => PixelPostFilterVal,
+      --PixelIn       => PixelPostFilter,
       --
       SramReadAddr  => SramReadAddr,
       SramRe        => SramRe,
@@ -311,8 +311,6 @@ begin
       PixelOut      => TempPixelOut,
       PixelOutVal   => TempPixelOutVal
       );
-
-  
 
   SramArb : entity work.SramArbiter
     port map (
@@ -360,10 +358,10 @@ begin
       Vsync         => Vsync_i,
       --Href          => AlignedPixDataVal,
       --D             => AlignedPixData,
-      Href          => TempPixelOutVal,
-      D             => TempPixelOut,
-      --Href          => PixelPostFilterVal,
-      --D             => PixelPostFilter,
+--      Href          => TempPixelOutVal,
+--      D             => TempPixelOut,
+      Href          => PixelPostFilterVal,
+      D             => PixelPostFilter,
       --
       RdClk         => Clk25MHz,
       RdRst_N       => RstN25MHz,
@@ -374,8 +372,6 @@ begin
       FirstFrameVal => FirstFrameVal,
       LastFrameComp => LastFrameComp
       );
-
-  
 
   SdramArb : entity work.SdramArbiter
     port map (
@@ -479,7 +475,7 @@ begin
       RstN        => RstN25MHz,
       Clk         => Clk25MHz,
       --
-      Vsync       => Vsync_i,
+      Vsync       => VgaVsync_i,
       --
       PixelIn     => PixelToObjFin,
       PixelInVal  => VgaInView,
