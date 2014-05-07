@@ -170,7 +170,7 @@ set_location_assignment PIN_118 -to VgaRed[0]
 set_location_assignment PIN_116 -to VgaRed[1]
 set_location_assignment PIN_114 -to VgaRed[2]
 set_location_assignment PIN_105 -to VgaVSync
-set_location_assignment PIN_182 -to SdramClk
+set_location_assignment PIN_182 -to ClkToSdram
 set_global_assignment -name OUTPUT_PIN_LOAD 7 -section_id "3.3-V LVTTL"
 set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V PCI"
 set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V PCI-X"

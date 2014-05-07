@@ -23,7 +23,7 @@ entity DramTestTop is
     SdramWE_N  : out   bit1;
     SdramDQ    : inout word(DSIZE-1 downto 0);
     SdramDQM   : out   word(DSIZE/8-1 downto 0);
-    SdramClk   : out   bit1;
+    ClkToSdram : out   bit1;
     -- VGA interface
     VgaRed     : out   word(ColResW-1 downto 0);
     VgaGreen   : out   word(ColResW-1 downto 0);
@@ -41,7 +41,7 @@ entity DramTestTop is
     -- Button interface
     Button1    : in    bit1;
     Button2    : in    bit1;
-    Button3    : in    bit1;    
+    Button3    : in    bit1;
     -- Sram interface
     SramD      : inout word(SramDataW-1 downto 0);
     SramAddr   : out   word(SramAddrW-1 downto 0);
@@ -52,7 +52,7 @@ entity DramTestTop is
     SramLbN    : out   bit1;
     -- Servo interface
     PitchServo : out   bit1;
-    YawServo   : out   bit1    
+    YawServo   : out   bit1
     );
 end entity;
 
@@ -141,7 +141,7 @@ begin
     port map (
       inclk0 => Clk,
       c0     => Clk100MHz,
-      c1     => SdramClk,
+      c1     => ClkToSdram,
       c2     => Clk25MHz
       );
 
