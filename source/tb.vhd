@@ -71,7 +71,7 @@ begin
       SdramWE_N  => SdramWE_N,
       SdramDQ    => SdramDQ,
       SdramDQM   => SdramDQM,
-      SdramClk   => SdramClk,
+      ClkToSdram => SdramClk,
       --
       VgaRed     => open,
       VgaGreen   => open,
@@ -87,9 +87,9 @@ begin
       CamVSync   => CamVSync,
       CamD       => CamD,
       --
-      Button1   => '1',
-      Button2   => '1',
-      Button3   => '1',      
+      Button1    => '1',
+      Button2    => '1',
+      Button3    => '1',
       --
       SramD      => SramD,
       SramAddr   => open,
