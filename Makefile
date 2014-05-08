@@ -38,7 +38,7 @@ FILES=source/DramTestPack.vhd \
 IP_VLOG_FILES=../ip/H57V2562GTR.v
 
 WORK_DIR="/tmp/work"
-MODELSIMINI_PATH=/home/erik/Development/FPGA/OV76X0/modelsim.ini
+MODELSIMINI_PATH=./modelsim.ini
 
 QUARTUS_PATH=/opt/altera/13.0sp1/quartus
 
@@ -87,7 +87,6 @@ clean:
 		source/*~ \
 		source/*.bak \
 		output_files
-
 
 vhdlfiles:
 	$(VHDL) $(VHDL_FLAGS) $(FLAGS) $(FILES)
