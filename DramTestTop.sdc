@@ -46,18 +46,27 @@ set sdram_output_delay_min [expr $board_delay + $sdram_tDH]
 set ov7660_tSU 15.000
 set ov7660_tHD 8.000
 
+# False path all sram ports for now
+set_false_path -from [get_registers *] -to [get_ports Sram*]
+# False path from all sram ports for now
+set_false_path -from [get_ports Sram*] -to [get_registers *]
+
+# False path cam ports for now
+set_false_path -from [get_ports Cam*] -to [get_registers *]
+
 set_false_path -from [get_ports {AsyncRst}] -through [get_pins {AsyncRst|combout}]
 set_false_path -from [get_ports {Button1 Button2 Button3}] -through [get_pins {Button1|combout Button2|combout Button3|combout}]
 
 # False path these signals. The frequency is so low that we handle the timing manually
-set_false_path -from [get_registers {SccbMaster:SccbM|ClkFlop_D}] -to [get_ports {SIO_C}]
-set_false_path -from [get_registers {SccbMaster:SccbM|SccbCtrl:SccbM|bit_out}] -to [get_ports {SIO_D}]
+set_false_path -from [get_registers {*}] -to [get_ports {SIO_C SIO_D}]
 
 # PWM Signals
-set_false_path -to [get_ports {PitchServo YawServo}]
+set_false_path -from [get_registers {*}] -to [get_ports {YawServo PitchServo}]
 
 # No need to time this path
-set_false_path -to [get_ports {Vga*}]
+# set_false_path -to [get_ports {Vga*}]
+#set_false_path -from [get_registers {VGAGenerator:VGAGen|*}] -to [get_ports {Vga*}]
+set_false_path -from [get_registers {*}] -to [get_ports {Vga*}]
 
 #**************************************************************
 # Time Information
@@ -79,12 +88,11 @@ derive_pll_clocks -create_base_clocks
 
 create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] [get_ports {ClkToSdram}]
 
-# create_generated_clock -name CamClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[0]}] [get_ports {CamClk}]
-
 create_generated_clock -name Clk64kHz -source [get_pins {Pll100MHz|altpll_component|pll|clk[2]}] -divide_by 16000 [get_registers {ClkDiv:Clk64kHzGen|divisor}]
 
 # Clk is received by OV7660 who generates a new clock from it
 set_false_path -from [get_clocks {Pll100MHz|altpll_component|pll|clk[2]}] -to [get_ports {CamClk}]
+
 
 derive_clock_uncertainty
 
