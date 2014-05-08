@@ -52,7 +52,7 @@ architecture rtl of TemporalAverager is
   signal WordCnt_N, WordCnt_D                   : word(1-1 downto 0);
   signal SramReadAddr_i                         : word(SramAddrW-1 downto 0);
 
-  constant Threshold : positive := 24;
+  constant Threshold : natural := 24;
   
   function CalcOldAddr(LineCnt : word; PixCnt : word) return word is
     variable NewLineCnt : word(LineCnt'length-1 downto 0);
@@ -112,6 +112,7 @@ begin
     variable Avg         : word(DataW-1 downto 0);
     variable Diff        : word(DataW-1 downto 0);
     variable SramRdSlice : word(DataW-1 downto 0);
+    variable SramRdSlice_i : integer;
   begin
     WordCnt_N   <= WordCnt_D;
     LineCnt_N   <= LineCnt_D;
@@ -125,7 +126,6 @@ begin
 
     if SramRdVal_D = '0' and PopRead_D = '0' and SramRe_D = '0' then
       SramRe_N <= '1';
-      --
     end if;
 
     if PopRead = '1' then
@@ -157,24 +157,31 @@ begin
       end if;
       
       -- Perform delta calculation
-      --  newAvg = oldAvg - oldAvg>>2 + newColor>>2.
-      SramRdSlice := ExtractSlice(SramRd_D, DataW, conv_integer(WordCnt_D));
-      
-      Avg         := (SramRdSlice - SramRdSlice(SramRdSlice'length-1 downto 3)) + PixelIn(PixelIn'length-1 downto 3);
+      SramRdSlice   := ExtractSlice(SramRd_D, DataW, conv_integer(WordCnt_D));
+      SramRdSlice_i := conv_integer(SramRdSlice);
+      --
+      Avg           := conv_word((7*SramRdSlice_i + conv_integer(PixelIn)) / 8, DataW);
 
-      if SramRdSlice > PixelIn then
-        Diff := (SramRdSlice - PixelIn);
+      if Avg > PixelIn then
+        Diff := (Avg - PixelIn);
       else
-        Diff := (PixelIn - SramRdSlice);
+        Diff := (PixelIn - Avg);
       end if;
 
       if Diff >= Threshold then
         PixelOut <= PixelIn;
       end if;
-      
-      SramWd_N    <= ModifySlice(SramWd_D, DataW, conv_integer(WordCnt_D), Avg(SramRdSlice'length-1 downto 0));
-      SramWe_N    <= WordCnt_D(0);
 
+      if PixelCnt_D < 40 then
+        PixelOut <= (others => '0');
+      end if;
+
+      if PixelCnt_D > 600 then
+        PixelOut <= (others => '0');
+      end if;
+ 
+      SramWd_N    <= ModifySlice(SramWd_D, DataW, conv_integer(WordCnt_D), Avg);
+      SramWe_N    <= WordCnt_D(0);
       SramRdVal_N <= WordCnt_D(0);
     end if;
   end process;
