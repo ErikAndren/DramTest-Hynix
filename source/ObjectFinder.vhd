@@ -121,9 +121,12 @@ begin
 
       if PixelIn >= Threshold then
         if TopLeftFound_D = '0' then
-          NextTopLeft_N.X <= PixelCnt_D;
           NextTopLeft_N.Y <= LineCnt_D;
           TopLeftFound_N <= '1';
+        end if;
+
+        if NextTopLeft_D.X > PixelCnt_D then
+          NextTopLeft_N.X <= PixelCnt_D;
         end if;
 
         if NextBottomRight_D.X < PixelCnt_D then
