@@ -38,7 +38,7 @@ package DramTestPack is
   constant BurstSz            : natural               := BurstLen * DSIZE;
   -- 128 / 8 = 16
   constant PixelsPerBurst     : positive              := BurstSz / PixelW;
-  -- 5
+  -- 4
   constant PixelsPerBurstW    : positive              := bits(PixelsPerBurst);
   --
   type PixVec is array (3-1 downto 0) of word(PixelW-1 downto 0);
