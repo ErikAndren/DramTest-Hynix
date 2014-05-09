@@ -149,8 +149,13 @@ begin
 
   TopLeftAssign     : TopLeft     <= TopLeft_D;
   BottomRightAssign : BottomRight <= BottomRight_D;
-  -- HACK: hijack lowest bit right now to draw a rectangle
-  PixelOutAssign    : PixelOut    <= PixelIn(DataW-1 downto 1) & RectAct_i;
+
+
+  -- Create grey scale image
+  RedPixelOutAssign   : PixelOut(RedHigh downto RedLow)     <= PixelIn(8-1 downto 5);
+  GreenPixelOutAssign : PixelOut(GreenHigh downto GreenLow) <= (others => '1') when RectAct_i = '1' else PixelIn(8-1 downto 5);
+  BluePixelOutAssign  : PixelOut(BlueHigh downto BlueLow)   <= PixelIn(8-1 downto 6);
+  
   PixelOutValAssign : PixelOutVal <= PixelInVal;
   RectActAssign     : RectAct     <= RectAct_i;
 end architecture rtl;
