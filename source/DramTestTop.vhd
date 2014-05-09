@@ -350,6 +350,68 @@ begin
       LbN     => SramLbN
       );
 
+  ObjFin : entity work.ObjectFinder
+    generic map (
+      DataW => PixelW
+      )
+    port map (
+      RstN        => RstN25MHz,
+      Clk         => Clk25MHz,
+      --
+      Vsync       => VgaVsync_i,
+      --
+      PixelIn     => PixelToObjFin,
+      PixelInVal  => VgaInView,
+      --
+      PixelOut    => VgaPixelToDisp,
+      PixelOutVal => open,
+      RectAct     => DrawRect,
+      --
+      TopLeft     => ObjTopLeft,
+      BottomRight => ObjBottomRight
+      );
+  Servo : block
+  begin
+
+    PWMC : entity work.PWMCtrl
+      port map (
+        Clk64kHz    => Clk64kHz,
+        RstN64kHz   => RstN64kHz,
+        --
+        TopLeft     => ObjTopLeft,
+        BottomRight => ObjBottomRight,
+        --
+        YawPos      => YawPos,
+        PitchPos    => PitchPos
+        );
+
+    YawServoDriver : entity work.ServoPwm
+      generic map (
+        ResW => ServoResW
+        )
+      port map (
+        Clk   => Clk64Khz,
+        RstN  => RstN25MHz,
+        --
+        Pos   => YawPos,
+        --
+        Servo => YawServo
+        );
+
+    PitchServoDriver : entity work.ServoPwm
+      generic map (
+        ResW => ServoResW
+        )
+      port map (
+        Clk   => Clk64Khz,
+        RstN  => RstN25MHz,
+        --
+        Pos   => PitchPos,
+        --
+        Servo => PitchServo
+        );
+  end block;
+
   CamAlign : entity work.CamAligner
     port map (
       WrRst_N       => RstN25MHz,
@@ -466,65 +528,6 @@ begin
       InView        => VgaInView,
       PixelToDisp   => PixelToObjFin
       );
-
-  ObjFin : entity work.ObjectFinder
-    generic map (
-      DataW => PixelW
-      )
-    port map (
-      RstN        => RstN25MHz,
-      Clk         => Clk25MHz,
-      --
-      Vsync       => VgaVsync_i,
-      --
-      PixelIn     => PixelToObjFin,
-      PixelInVal  => VgaInView,
-      --
-      PixelOut    => VgaPixelToDisp,
-      PixelOutVal => open,
-      RectAct     => DrawRect,
-      --
-      TopLeft     => ObjTopLeft,
-      BottomRight => ObjBottomRight
-      );
-
-  PWMC : entity work.PWMCtrl
-    port map (
-      Clk64kHz    => Clk64kHz,
-      RstN64kHz   => RstN64kHz,
-      --
-      TopLeft     => ObjTopLeft,
-      BottomRight => ObjBottomRight,
-      --
-      YawPos      => YawPos,
-      PitchPos    => PitchPos
-      );
-
-  YawServoDriver : entity work.ServoPwm
-    generic map (
-      ResW => ServoResW
-      )
-    port map (
-      Clk   => Clk64Khz,
-      RstN  => RstN25MHz,
-      --
-      Pos   => YawPos,
-      --
-      Servo => YawServo
-      );
-
-  PitchServoDriver : entity work.ServoPwm
-    generic map (
-      ResW => ServoResW
-      )
-    port map (
-      Clk   => Clk64Khz,
-      RstN  => RstN25MHz,
-      --
-      Pos   => PitchPos,
-      --
-      Servo => PitchServo
-      );  
 
   VGAGen : entity work.VGAGenerator
     generic map (
