@@ -172,7 +172,7 @@ begin
         PixelOut <= PixelIn;
       end if;
 
-      if PixelCnt_D < 40 then
+      if PixelCnt_D < 45 then
         PixelOut <= (others => '0');
       end if;
 
