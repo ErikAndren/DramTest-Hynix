@@ -127,14 +127,17 @@ architecture rtl of DramTestTop is
   signal PixelPostFilter                 : word(PixelW-1 downto 0);
   signal PixelPostFilterVal              : bit1;
   --
+  signal ObjFindPixel                    : word(PixelW-1 downto 0);
+  signal ObjFindPixelVal                 : bit1;
+  --
   signal Btn1Pulse, Btn2Pulse, Btn3Pulse : bit1;
   --
-  signal PixelToObjFin                   : word(PixelW-1 downto 0);
   signal DrawRect                        : bit1;
   --
   signal ObjTopLeft, ObjBottomRight      : Cord;
   signal YawPos, PitchPos                : word(ServoResW-1 downto 0);
-
+  --
+  
 begin
   -- Pll
   Pll100MHz : entity work.PLL
@@ -361,14 +364,14 @@ begin
       RstN        => RstN25MHz,
       Clk         => Clk25MHz,
       --
-      Vsync       => VgaVsync_i,
+      Vsync       => Vsync_i,
       --
-      PixelIn     => PixelToObjFin,
-      PixelInVal  => VgaInView,
+      PixelIn     => PixelPostFilter,
+      PixelInVal  => PixelPostFilterVal,
       --
-      PixelOut    => VgaPixelToDisp,
-      PixelOutVal => open,
-      RectAct     => DrawRect,
+      PixelOut    => ObjFindPixel,
+      PixelOutVal => ObjFindPixelVal,
+      RectAct     => open,
       --
       TopLeft     => ObjTopLeft,
       BottomRight => ObjBottomRight
@@ -425,8 +428,10 @@ begin
       --D             => AlignedPixData,
 --      Href          => TempPixelOutVal,
 --      D             => TempPixelOut,
-      Href          => PixelPostFilterVal,
-      D             => PixelPostFilter,
+      --Href          => PixelPostFilterVal,
+      --D             => PixelPostFilter,
+      Href          => ObjFindPixelVal,
+      D             => ObjFindPixel,
       --
       RdClk         => Clk25MHz,
       RdRst_N       => RstN25MHz,
@@ -529,9 +534,10 @@ begin
       -- Vga interface
       VgaVsync      => VgaVsync_i,
       InView        => VgaInView,
-      PixelToDisp   => PixelToObjFin
+      PixelToDisp   => VgaPixelToDisp
       );
 
+  DrawRect <= VgaPixelToDisp(0);
   VGAGen : entity work.VGAGenerator
     generic map (
       DataW     => PixelW,
