@@ -38,17 +38,19 @@ architecture rtl of ObjectFinder is
   signal NextTopLeft_N, NextTopLeft_D         : Cord;
   signal NextBottomRight_N, NextBottomRight_D : Cord;
   --
-  signal PixelCnt_N, PixelCnt_D         : word(VgaWidthW-1 downto 0);
-  signal LineCnt_N, LineCnt_D           : word(VgaHeightW-1 downto 0);
+  signal PixelCnt_N, PixelCnt_D               : word(VgaWidthW-1 downto 0);
+  signal LineCnt_N, LineCnt_D                 : word(VgaHeightW-1 downto 0);
   --
-  signal PixelOut_N, PixelOut_D         : word(DataW-1 downto 0);
+  signal PixelOut_N, PixelOut_D               : word(DataW-1 downto 0);
   --
   -- Set low threshold for now
-  constant Threshold                    : natural := 32;
+  constant Threshold                          : natural := 32;
   --
-  signal TopLeftFound_N, TopLeftFound_D : bit1;
-  signal DidFindTopLeft_N, DidFindTopLeft_D : bit1;
-  signal NewVsync_D : bit1;
+  signal TopLeftFound_N, TopLeftFound_D       : bit1;
+  signal DidFindTopLeft_N, DidFindTopLeft_D   : bit1;
+  signal NewVsync_D                           : bit1;
+  --
+  signal RectAct_i                            : bit1;
   
 begin
   SyncProc : process (Clk, RstN)
@@ -140,13 +142,15 @@ begin
     end if;
   end process;
 
-  RectAct <= '1' when (((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or 
+  RectAct_i <= '1' when (((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or 
                        ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or
                        ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y))) or
                        ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))) and DidFindTopLeft_D = '1' else '0';  
 
   TopLeftAssign     : TopLeft     <= TopLeft_D;
   BottomRightAssign : BottomRight <= BottomRight_D;
-  PixelOutAssign    : PixelOut    <= PixelIn;
+  -- HACK: hijack lowest bit right now to draw a rectangle
+  PixelOutAssign    : PixelOut    <= PixelIn(DataW-1 downto 1) & RectAct_i;
   PixelOutValAssign : PixelOutVal <= PixelInVal;
+  RectActAssign     : RectAct     <= RectAct_i;
 end architecture rtl;
