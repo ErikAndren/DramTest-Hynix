@@ -312,43 +312,46 @@ begin
       PixelOutVal   => TempPixelOutVal
       );
 
-  SramArb : entity work.SramArbiter
-    port map (
-      RstN      => RstN25MHz,
-      Clk       => Clk25MHz,
-      --
-      WriteReq  => SramWe,
-      WriteAddr => SramWriteAddr,
-      PopWrite  => SramPopWrite,
-      --
-      ReadReq   => SramRe,
-      ReadAddr  => SramReadAddr,
-      PopRead   => SramPopRead,
-      --
-      SramAddr  => SramContAddr,
-      SramWe    => SramContWe,
-      SramRe    => SramContRe
-      );
+  Sram : block
+  begin
+    SramArb : entity work.SramArbiter
+      port map (
+        RstN      => RstN25MHz,
+        Clk       => Clk25MHz,
+        --
+        WriteReq  => SramWe,
+        WriteAddr => SramWriteAddr,
+        PopWrite  => SramPopWrite,
+        --
+        ReadReq   => SramRe,
+        ReadAddr  => SramReadAddr,
+        PopRead   => SramPopRead,
+        --
+        SramAddr  => SramContAddr,
+        SramWe    => SramContWe,
+        SramRe    => SramContRe
+        );
 
-  SramCon : entity work.SramController
-    port map (
-      Clk     => Clk25MHz,
-      RstN    => RstN25MHz,
-      --
-      AddrIn  => SramContAddr,
-      WrData  => SramContWd,
-      RdData  => SramContRd,
-      We      => SramContWe,
-      Re      => SramContRe,
-      --
-      D       => SramD,
-      AddrOut => SramAddr,
-      CeN     => SramCeN,
-      OeN     => SramOeN,
-      WeN     => SramWeN,
-      UbN     => SramUbN,
-      LbN     => SramLbN
-      );
+    SramCon : entity work.SramController
+      port map (
+        Clk     => Clk25MHz,
+        RstN    => RstN25MHz,
+        --
+        AddrIn  => SramContAddr,
+        WrData  => SramContWd,
+        RdData  => SramContRd,
+        We      => SramContWe,
+        Re      => SramContRe,
+        --
+        D       => SramD,
+        AddrOut => SramAddr,
+        CeN     => SramCeN,
+        OeN     => SramOeN,
+        WeN     => SramWeN,
+        UbN     => SramUbN,
+        LbN     => SramLbN
+        );
+  end block;
 
   ObjFin : entity work.ObjectFinder
     generic map (
