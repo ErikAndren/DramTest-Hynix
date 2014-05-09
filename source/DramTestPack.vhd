@@ -64,6 +64,14 @@ package DramTestPack is
   constant GAUSSIAN_MODE          : natural := 3;
   constant MODES                  : natural := GAUSSIAN_MODE + 1;
   constant MODESW                 : natural := bits(MODES);
+
+  
+  constant RedHigh   : natural := 2;
+  constant RedLow    : natural := 0;
+  constant GreenHigh : natural := 5;
+  constant GreenLow  : natural := 3;
+  constant BlueHigh  : natural := 7;
+  constant BlueLow   : natural := 6;
   
   type DramRequest is record
     Val  : word1;
