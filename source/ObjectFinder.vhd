@@ -58,7 +58,7 @@ begin
     if RstN = '0' then
       TopLeft_D         <= Z_Cord;
       BottomRight_D     <= Z_Cord;
-      NextTopLeft_D     <= Z_Cord;
+      NextTopLeft_D     <= M_Cord;
       NextBottomRight_D <= Z_Cord;
       --
       TopLeftFound_D    <= '0';
@@ -82,7 +82,7 @@ begin
 
       -- Latch in coordinates to draw for the next frame
       if Vsync = '1' and NewVSync_D = '0' then
-        NextTopLeft_D     <= Z_Cord;
+        NextTopLeft_D     <= M_Cord;
         NextBottomRight_D <= Z_Cord;
         --
         TopLeft_D         <= NextTopLeft_N;
@@ -103,7 +103,7 @@ begin
     NextTopLeft_N     <= NextTopLeft_D;
     NextBottomRight_N <= NextBottomRight_D;
     DidFindTopLeft_N  <= DidFindTopLeft_D;
-    
+    --
     PixelCnt_N     <= PixelCnt_D;
     LineCnt_N      <= LineCnt_D;
     TopLeftFound_N <= TopLeftFound_D;
