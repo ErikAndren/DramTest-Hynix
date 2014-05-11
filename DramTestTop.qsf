@@ -223,7 +223,7 @@ set_global_assignment -name QIP_FILE ReqFifo.qip
 set_global_assignment -name QIP_FILE RespFIFO.qip
 set_global_assignment -name QIP_FILE AsyncFifo.qip
 set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE AREA
-set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP OFF
 set_global_assignment -name AUTO_SHIFT_REGISTER_RECOGNITION OFF
 set_global_assignment -name REMOVE_REDUNDANT_LOGIC_CELLS ON
 set_global_assignment -name MUX_RESTRUCTURE ON
