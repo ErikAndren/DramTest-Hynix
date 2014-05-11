@@ -35,7 +35,8 @@ architecture rtl of PWMCtrl is
 
   signal Cnt_N, Cnt_D : word(bits(64000)-1 downto 0);
 
-  constant X_Thres        : natural := 0;
+  constant X_Thres        : natural := 1;
+  constant Y_Thres        : natural := 1;
   constant BoxHeightThres : natural := 20;
   constant BoxWidthThres  : natural := 20;
   
@@ -56,7 +57,7 @@ begin
 
     if BoxDelta.X > BoxWidthThres then
       -- Box is on right side of screen, must move camera to the left
-      if BoxMiddle.X(VgaHeightW-1 downto X_Thres) > MiddleOfScreen.X(VgaHeightW-1 downto X_Thres) then
+      if BoxMiddle.X(VgaWidthW-1 downto X_Thres) > MiddleOfScreen.X(VgaWidthW-1 downto X_Thres) then
         -- DeltaToMiddle.X := BoxMiddle.X - MiddleXOfScreen;
         -- Delta must be adjusted to available pwm resolution
         -- Add adjusted delta to yaw pos
@@ -67,8 +68,8 @@ begin
           CurYawPos_N <= conv_word(ServoYawMax, CurYawPos_N'length);
         end if;
         
-      elsif BoxMiddle.X(VgaHeightW-1 downto X_Thres) < MiddleOfScreen.X(VgaHeightW-1 downto X_Thres) then
-        -- DeltaToMiddle.X := MiddleXOfScreen - BoxMiddle.X;
+      elsif BoxMiddle.X(VgaWidthW-1 downto X_Thres) < MiddleOfScreen.X(VgaWidthW-1 downto X_Thres) then
+        -- Deltatomiddle.X := MiddleXOfScreen - BoxMiddle.X;
         --CurYawPos_N     <= CurYawPos_D - Quotient(DeltaToMiddle.X, TileXRes);
         CurYawPos_N <= CurYawPos_D - 1;
         -- Protect against underflow
@@ -79,28 +80,24 @@ begin
     end if;
 
     if BoxDelta.Y > BoxHeightThres then
-      -- Lower half of screen, must decrement to lower
-      if BoxMiddle.Y > MiddleYOfScreen then
+      -- Lower half of screen, must lower camera
+      if BoxMiddle.Y(VgaHeightW-1 downto Y_Thres) > MiddleOfScreen.Y(VgaHeightW-1 downto Y_Thres) then
         --DeltaToMiddle.Y := BoxMiddle.Y - MiddleYOfScreen;
         --CurPitchPos_N   <= CurPitchPos_D - Quotient(DeltaToMiddle.Y, TileYRes);
-        CurPitchPos_N   <= CurPitchPos_D - 1;
+        CurPitchPos_N   <= CurPitchPos_D + 1;
         -- Protect against underflow
-        if CurPitchPos_D - 1 < ServoPitchMin then
-          CurPitchPos_N <= conv_word(ServoPitchMin, CurPitchPos_N'length);
+        if CurPitchPos_D + 1 > ServoPitchMax then
+          CurPitchPos_N <= conv_word(ServoPitchMax, CurPitchPos_N'length);
         end if;
-      else
+      elsif BoxMiddle.Y(VgaHeightW-1 downto Y_Thres) < MiddleOfScreen.Y(VgaHeightW-1 downto Y_Thres) then
         -- DeltaToMiddle.Y := MiddleYOfScreen - BoxMiddle.Y;
         --CurPitchPos_N   <= CurPitchPos_D + Quotient(DeltaToMiddle.Y, TileYRes);
-        CurPitchPos_N   <= CurPitchPos_D + 1;
-        if CurPitchPos_D + 1 > ServoPitchMax then
-          CurPitchPos_N <= conv_word(ServoPitchMax, CurPitchPos_D'length);
+        CurPitchPos_N   <= CurPitchPos_D - 1;
+        if CurPitchPos_D - 1 > ServoPitchMin then
+          CurPitchPos_N <= conv_word(ServoPitchMin, CurPitchPos_D'length);
         end if;
       end if;
     end if;
-
---    CalcMiddle <= DeltaToMiddle;
-    -- FIXME: Keep idle for now
---    CurPitchPos_N <= CurPitchPos_D;
 
     -- Limit the servo update rate to 20 Hz for now, otherwise the servos go bonkers
     Cnt_N <= Cnt_D + 1;
