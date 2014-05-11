@@ -12,7 +12,8 @@ package ServoPack is
   constant MiddleServoPos  : positive := ServoRes / 2;
   --
   constant ServoPitchMin   : natural  := 20;
-  constant ServoPitchMax   : positive := 120;
+--    constant ServoPitchMax   : positive := 120
+  constant ServoPitchMax   : positive := 80;
   constant ServoPitchStart : positive := 80;
   constant ServoPitchRange : positive := ServoPitchMax - ServoPitchMin;
   --
