@@ -47,7 +47,7 @@ set ov7660_tSU 15.000
 set ov7660_tHD 8.000
 
 # False path all sram ports for now
-set_false_path -from [get_registers *] -to [get_ports Sram*]
+set_false_path -from [get_registers *] -to [get_ports {SramD* SramAddr* SramCeN SramOeN SramWeN SramUbN SramLbN}]
 # False path from all sram ports for now
 set_false_path -from [get_ports Sram*] -to [get_registers *]
 
