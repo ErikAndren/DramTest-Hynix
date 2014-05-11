@@ -128,7 +128,7 @@ begin
   ReqMux  : ReqIn_i   <= InitReq when InitReq.Val = "1" else ReqIn;
   ReqConv : ReqInWord <= DramRequestToWord(ReqIn_i);
 
-  ShapBp <= InitReq.Val(0);
+  ShapBp <= InitReq.Val(0) or WrFull_i;
 
   RequestFifo : entity work.ReqFifo
     port map (
