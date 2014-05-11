@@ -151,7 +151,7 @@ begin
   Clk64kHzGen : entity work.ClkDiv
     generic map (
       SourceFreq => 25000000,
-      SinkFreq   => 16000
+      SinkFreq => 64000
     )
     port map (
       Clk     => Clk25MHz,
@@ -250,15 +250,15 @@ begin
 
   PixAlign : entity work.PixelAligner
     port map (
-      RstN        => RstN25MHz,
-      Clk         => Clk25MHz,
+      RstN            => RstN25MHz,
+      Clk             => Clk25MHz,
       --
-      Vsync       => Vsync_i,
-      PixelInVal  => PixelVal,
-      PixelIn     => PixelData,
+      Vsync           => Vsync_i,
+      PixelInVal      => PixelVal,
+      PixelIn         => PixelData,
       --
-      PixelOut    => AlignedPixData,
-      PixelOutVal => AlignedPixDataVal
+      GrayScaleOut    => AlignedPixData,
+      GrayScaleOutVal => AlignedPixDataVal
       );
 
   FChain : entity work.FilterChain
@@ -376,9 +376,9 @@ begin
       TopLeft     => ObjTopLeft,
       BottomRight => ObjBottomRight
       );
+
   Servo : block
   begin
-
     PWMC : entity work.PWMCtrl
       port map (
         Clk64kHz    => Clk64kHz,
