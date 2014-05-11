@@ -194,7 +194,6 @@ set_global_assignment -name VHDL_FILE source/MedianFilter.vhd
 set_global_assignment -name VHDL_FILE source/LineSampler1PRAM.vhd
 set_global_assignment -name VHDL_FILE source/LineSampler.vhd
 set_global_assignment -name VHDL_FILE source/DitherFloydSteinberg.vhd
-set_global_assignment -name VHDL_FILE source/TemporalDiff.vhd
 set_global_assignment -name VHDL_FILE source/SramArbiter.vhd
 set_global_assignment -name VHDL_FILE "../SramTest-IS61LV25616AL/SramController.vhd"
 set_global_assignment -name VHDL_FILE source/PixelAligner.vhd
