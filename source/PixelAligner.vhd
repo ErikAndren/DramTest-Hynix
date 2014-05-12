@@ -84,22 +84,34 @@ begin
     end if;
   end process;
 
-  --AdjY  <= Y_D - 16   when Y_D - 16 = 0   else (others => '0');
-  --AdjCr <= Cr_D - 128 when Cr_D - 128 = 0 else (others => '0');
-  --AdjCb <= Cb_D - 128 when Cb_D - 128 = 0 else (others => '0');
-  --RGBConv : process (AdjY, AdjCb, AdjCr)
-  --  variable B_T : word(B'length downto 0);
-  --begin
+  AdjY  <= Y_D - 16   when Y_D - 16 = 0   else (others => '0');
+  AdjCr <= Cr_D - 128 when Cr_D - 128 = 0 else (others => '0');
+  AdjCb <= Cb_D - 128 when Cb_D - 128 = 0 else (others => '0');
+  
+  RGBConv : process (AdjY, AdjCb, AdjCr)
+    variable B_T : word(B'length downto 0);
+    variable G_T : word(G'length downto 0);
+    variable R_T : word(R'length downto 0);
+  begin
+    -- Cb_D = U, Cr_D = V
+    -- B = 1.164(Y - 16)                  + 2.018(U - 128)
+    -- G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
+    -- R = 1.164(Y - 16) + 1.596(V - 128)
+
+    B_T := ('0' & AdjY) + SHL('0' & AdjCb, "1");
+    B   <= minval(B_T, xt1(9))(B'length-1 downto 0);
+
+    G_T := ('1' & AdjY) - AdjCr - AdjCb;
+    if G_T(G_T'high) = '1' then
+      G <= (others => '0');
+    else
+      G <= G_T(G'length-1 downto 0);
+    end if;
     
-  --  -- Cb_D = U, Cr_D = V
-  --  -- B = 1.164(Y - 16)                   + 2.018(U - 128)
-  --  -- G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
-  --  -- R = 1.164(Y - 16) + 1.596(V - 128)
-  --  -- 
-  --  B_T := (('0' & AdjY + '0' & SHR(AdjY, "11")) + SHL(('0' & AdjCb) + '0' & SHR(AdjCb, conv_word(6, bits(6))), "1"));
-  --  B   <= minval(B_T, xt1(8));
-  --  -- FIXME: Add G, R
-  --end process;
+    R_T := ('0' & AdjY) + ('0' & AdjCr);
+    R <= minval(R_T, xt1(9))(R'length-1 downto 0);
+    
+  end process;
 
   GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
   GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
