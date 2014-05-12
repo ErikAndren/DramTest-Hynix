@@ -91,8 +91,7 @@ begin
     FifoWe_N        <= '0';
     FirstFrameVal_N <= FirstFrameVal_D;
 
-    if Href = '1' then
-      
+    if Href = '1' then      
       WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);        
       WordCnt_N <= WordCnt_D + 1;
 
@@ -129,6 +128,8 @@ begin
   DramRequest_i.Addr <= xt0(Frame_D & Addr_D, ASIZE);
   DramRequestWord    <= DramRequestToWord(DramRequest_i);
 
+  -- Is this fifo really necessary?
+  -- Shouldn't the sdram arbiter and request fifo cope anyway?
   RFifo : entity work.ReqFifo
     port map (
       -- Clear fifo upon vsync
