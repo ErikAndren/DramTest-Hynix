@@ -45,7 +45,6 @@ architecture rtl of RespHandler is
   signal FillLvl     : word(FifoSizeW-1 downto 0);
 
   -- Must be less than 16
---  constant ReadReqThrottle            : positive := 8;
   constant ReadReqThrottle            : positive := 15;
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW downto 0);
@@ -113,6 +112,7 @@ begin
       WrClk   => WrClk,
       WrReq   => RespDataVal,
       Data    => RespData,
+      wrFull  => FifoFull,
       --
       -- Clear fifo between each frame
       aclr    => VgaVsync,
@@ -120,11 +120,11 @@ begin
       RdReq   => ReadFifo,
       Q       => DataToVga,
       RdEmpty => FifoEmpty,
-      RdUsedW => FillLvl,
-      wrFull  => FifoFull
+      RdUsedW => FillLvl
       );
 
   assert not (RespDataVal = '1' and FifoFull = '1') report "Overflowing response fifo" severity failure;
+  
   SyncProc : process (RdClk, RdRst_N)
   begin
     if RdRst_N = '0' then
@@ -164,5 +164,4 @@ begin
       WordCnt_N <= (others => '0');
     end if;
   end process;
-
 end architecture rtl;
