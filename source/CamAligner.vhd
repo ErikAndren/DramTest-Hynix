@@ -106,6 +106,7 @@ begin
       Addr_N    <= Addr_D + BurstLen;
 
       if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDword then
+        -- Send signal to read path that the first frame is complete
         FirstFrameVal_N <= '1';
         Addr_N          <= (others => '0');
         Frame_N         <= Frame_D + 1;
@@ -130,6 +131,9 @@ begin
 
   RFifo : entity work.ReqFifo
     port map (
+      -- Clear fifo upon vsync
+      AClr    => Vsync,
+      --
       WrClk   => WrClk,
       WrReq   => FifoWe_D,
       Data    => DramRequestWord,
