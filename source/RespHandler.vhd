@@ -61,6 +61,53 @@ architecture rtl of RespHandler is
   signal Addr_N, Addr_D   : word(VgaPixelsPerDwordW-1 downto 0);
 begin
   
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync)
+  begin
+    ReadReq <= Z_DramRequest;
+    Addr_N  <= Addr_D;
+    Frame_N <= Frame_D;
+    --
+    ReqThrottle_N <= ReqThrottle_D - 1;
+    if ReqThrottle_D = 0 then
+      ReqThrottle_N <= (others => '0');
+    end if;
+
+    -- Generate read requests when:
+    -- 1. Fifo is less than half full
+    -- 2. No throttling is occurring
+    -- 3. A full, valid frame has been generated
+    -- 4. The VGA is not syncing, if so we must load the next frame
+    if (conv_integer(FillLvl) < FillLevelThres) and (ReqThrottle_D = 0) and (FirstFrameVal = '1') and (VgaVSync = '0') then
+      ReadReq.Val   <= "1";
+      ReadReq.Cmd   <= DRAM_READA;
+      ReadReq.Addr  <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
+    end if;
+
+    if ReadReqAck = '1' then
+      Addr_N        <= Addr_D + BurstLen;
+
+      -- Throttle the time to the next read request to avoid burstiness
+      ReqThrottle_N <= conv_word(ReadReqThrottle, ReqThrottle_N'length);
+
+      -- Wrap address upon frame completion
+      -- Should not be needed as the vga vsync will ensure the address pointer
+      -- is reset
+      if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDword then
+        Addr_N  <= (others => '0');
+      end if;
+    end if;
+
+    -- Reset address pointer as the next frame must be loaded upon vga vsync release
+    if VgaVSync = '1' then
+      Addr_N <= (others => '0');
+
+      -- Update to latest frame
+      if ((LastFrameComp > Frame_D) or (LastFrameComp = 0)) then
+        Frame_N <= LastFrameComp;
+      end if;
+    end if;
+  end process;
+
   RespFifo : entity work.RespFIFO
     port map (
       WrClk   => WrClk,
@@ -118,39 +165,4 @@ begin
     end if;
   end process;
 
-  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync)
-  begin
-    ReadReq <= Z_DramRequest;
-    Addr_N  <= Addr_D;
-    Frame_N <= Frame_D;
-    --
-    ReqThrottle_N <= ReqThrottle_D - 1;
-    if ReqThrottle_D = 0 then
-      ReqThrottle_N <= (others => '0');
-    end if;
-
-    -- Generate read requests as long as fifo is less than half full
-    if (conv_integer(FillLvl) < FillLevelThres) and (ReqThrottle_D = 0) and (FirstFrameVal = '1') and (VgaVSync = '0') then
-      ReadReq.Val   <= "1";
-      ReadReq.Cmd   <= DRAM_READA;
-      ReadReq.Addr  <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
-    end if;
-
-    if ReadReqAck = '1' then
-      Addr_N        <= Addr_D + BurstLen;
-      ReqThrottle_N <= conv_word(ReadReqThrottle, ReqThrottle_N'length);
-      
-      if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDword then
-        Addr_N  <= (others => '0');
-
-        if ((LastFrameComp > Frame_D) or (LastFrameComp = 0)) then
-          Frame_N <= LastFrameComp;
-        end if;
-      end if;
-    end if;
-
-    if VgaVSync = '1' then
-      Addr_N <= (others => '0');
-    end if;
-  end process;
 end architecture rtl;
