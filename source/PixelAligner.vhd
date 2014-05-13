@@ -152,14 +152,13 @@ begin
     end if;
     
     R_T := ('0' & AdjY_1_125) + ('0' & AdjCr_1_59375);
-    R <= minval(R_T, xt1(9))(R'length-1 downto 0);
-    
+    R <= minval(R_T, xt1(9))(R'length-1 downto 0);    
   end process;
 
   GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
   GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
---  ColorOutValFeed     : ColorOutVal     <= ColorVal_D;
-  -- FIXME
---  ColorOut <= (others => '0');
-  
+  --
+  ColorOutValFeed     : ColorOutVal     <= ColorVal_D;
+  ColorOutFeed        : ColorOut        <= B(B'high downto 6) & G(G'high downto 5) & R(R'high downto 5);
+
 end architecture rtl;
