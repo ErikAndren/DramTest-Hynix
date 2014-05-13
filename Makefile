@@ -3,6 +3,7 @@ FILES=source/DramTestPack.vhd \
 	RespFIFO.vhd \
 	PLL.vhd \
 	AsyncFifo.vhd \
+	source/ModeToggle.vhd \
 	source/ServoPack.vhd \
 	source/PWMCtrl.vhd \
 	source/ObjectFinder.vhd \
