@@ -38,6 +38,27 @@ architecture rtl of PixelAligner is
   signal ColorVal_N, ColorVal_D           : bit1;
   signal R, G, B                          : word(DataInW-1 downto 0);
   signal AdjY, AdjCr, AdjCb               : word(DataInW-1 downto 0);
+  signal AdjY_1_8                         : word(DataInW-1 downto 0);
+  signal AdjY_1_125                       : word(DataInW-1 downto 0);
+  --
+  signal AdjCr_1_2                        : word(DataInW-1 downto 0);
+  signal AdjCr_1_4                        : word(DataInW-1 downto 0);
+  signal AdjCr_1_8                        : word(DataInW-1 downto 0);
+  signal AdjCr_1_16                       : word(DataInW-1 downto 0);
+  signal AdjCr_1_32                       : word(DataInW-1 downto 0);
+  --
+  signal AdjCr_0_8125                     : word(DataInW-1 downto 0);
+  signal AdjCr_1_59375                    : word(DataInW-1 downto 0);
+  --
+  signal AdjCb_1_2                        : word(DataInW-1 downto 0);
+  signal AdjCb_1_4                        : word(DataInW-1 downto 0);
+  signal AdjCb_1_8                        : word(DataInW-1 downto 0);
+  signal AdjCb_1_16                       : word(DataInW-1 downto 0);
+  signal AdjCb_1_32                       : word(DataInW-1 downto 0);
+  signal AdjCb_1_64                       : word(DataInW-1 downto 0);
+  --
+  signal AdjCb_0_3906                       : word(DataInW-1 downto 0);
+
 begin
   SyncNoRstProc : process (Clk)
   begin
@@ -84,31 +105,53 @@ begin
     end if;
   end process;
 
-  AdjY  <= Y_D - 16   when Y_D - 16 = 0   else (others => '0');
-  AdjCr <= Cr_D - 128 when Cr_D - 128 = 0 else (others => '0');
-  AdjCb <= Cb_D - 128 when Cb_D - 128 = 0 else (others => '0');
+  AdjY       <= Y_D - 16        when Y_D - 16 = 0                   else (others => '0');
+  AdjY_1_8   <= SHR(AdjY, "11");
+  AdjY_1_125 <= AdjY + AdjY_1_8 when AdjY + AdjY_1_8 < xt1(DataInW) else (others => '1');
+  --
+  AdjCr      <= Cr_D - 128      when Cr_D - 128 = 0                 else (others => '0');
+  AdjCb      <= Cb_D - 128      when Cb_D - 128 = 0 else (others                 => '0');
+
+  AdjCr_1_2     <= SHR(AdjCr, "01");
+  AdjCr_1_4     <= SHR(AdjCr, "10");
+  AdjCr_1_8     <= SHR(AdjCr, "11");
+  AdjCr_1_16    <= SHR(AdjCr, "100");
+  AdjCr_1_32    <= SHR(AdjCr, "101");
+  --
+  AdjCr_0_8125  <= AdjCr - AdjCr_1_4 + AdjCr_1_8 - AdjCr_1_16;
+  AdjCr_1_59375 <= AdjCr + AdjCr_1_2 + AdjCr_1_8 + AdjCr_1_32;
+
+  AdjCb_1_2 <= SHR(AdjCb, "01");
+  AdjCb_1_4 <= SHR(AdjCb, "10");
+  AdjCb_1_8 <= SHR(AdjCb, "11");
+  AdjCb_1_16 <= SHR(AdjCb, "100");
+  AdjCb_1_32 <= SHR(AdjCb, "101");
+  AdjCb_1_64 <= SHR(AdjCb, "110");
+  --
+  AdjCb_0_3906 <= AdjCb - AdjCb_1_2 - AdjCb_1_4 + AdjCb_1_8 + AdjCb_1_16 - ADjCb_1_32 - AdjCb_1_64;
   
-  RGBConv : process (AdjY, AdjCb, AdjCr)
-    variable B_T : word(B'length downto 0);
+  RGBConv : process (AdjY_1_125, AdjCb, AdjCr_0_8125, AdjCr_1_59375, AdjCb_0_3906)
+    variable B_T : word(B'length downto 0);  
     variable G_T : word(G'length downto 0);
     variable R_T : word(R'length downto 0);
+    
   begin
     -- Cb_D = U, Cr_D = V
     -- B = 1.164(Y - 16)                  + 2.018(U - 128)
     -- G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
     -- R = 1.164(Y - 16) + 1.596(V - 128)
-
-    B_T := ('0' & AdjY) + SHL('0' & AdjCb, "1");
+    
+    B_T := ('0' & AdjY_1_125) + SHL('0' & AdjCb, "1");
     B   <= minval(B_T, xt1(9))(B'length-1 downto 0);
 
-    G_T := ('1' & AdjY) - AdjCr - AdjCb;
+    G_T := ('1' & AdjY_1_125) - AdjCr_0_8125 - AdjCb_0_3906;
     if G_T(G_T'high) = '1' then
       G <= (others => '0');
     else
       G <= G_T(G'length-1 downto 0);
     end if;
     
-    R_T := ('0' & AdjY) + ('0' & AdjCr);
+    R_T := ('0' & AdjY_1_125) + ('0' & AdjCr_1_59375);
     R <= minval(R_T, xt1(9))(R'length-1 downto 0);
     
   end process;
