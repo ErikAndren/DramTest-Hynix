@@ -96,9 +96,14 @@ architecture rtl of DramTestTop is
   signal ReadReqFromRespHdlerAck         : bit1;
   --
   signal PixelVal                        : bit1;
-  signal PixelData                       : word(8-1 downto 0);
+  signal PixelData                       : word(PixelW-1 downto 0);
+  --
   signal AlignedPixDataVal               : bit1;
-  signal AlignedPixData                  : word(8-1 downto 0);
+  signal AlignedPixData                  : word(PixelW-1 downto 0);
+  signal AlignedGrayPixDataVal           : bit1;
+  signal AlignedGrayPixData              : word(PixelW-1 downto 0);
+  signal AlignedColPixDataVal            : bit1;
+  signal AlignedColPixData               : word(PixelW-1 downto 0);
   --
   signal VSync_i                         : bit1;
   --
@@ -124,6 +129,9 @@ architecture rtl of DramTestTop is
   signal TempPixelOut                    : word(PixelW-1 downto 0);
   signal TempPixelOutVal                 : bit1;
   --
+  signal TempPixelPostMux                : word(PixelW-1 downto 0);
+  signal TempPixelValPostMux             : bit1;
+  --
   signal PixelPostFilter                 : word(PixelW-1 downto 0);
   signal PixelPostFilterVal              : bit1;
   --
@@ -136,10 +144,8 @@ architecture rtl of DramTestTop is
   --
   signal ObjTopLeft, ObjBottomRight      : Cord;
   signal YawPos, PitchPos                : word(ServoResW-1 downto 0);
-  --
   
 begin
-  -- Pll
   Pll100MHz : entity work.PLL
     port map (
       inclk0 => Clk,
@@ -224,10 +230,9 @@ begin
       SIO_D        => SIO_D
       );
   
-  -- This clock is probably invalid for this purpose. Use the raw clk divided
   CaptPixel : entity work.CamCapture
     generic map (
-      DataW => 8
+      DataW => PixelW
       )
     port map (
       RstN      => RstN25MHz,
@@ -235,7 +240,7 @@ begin
       --
       PRstN     => RstN25MHz,
       -- HACK: We use the internal raw 25 MHz clock for
-      -- now due to the bad quality of the incoming one.      
+      -- now due to the poor quality of the incoming one.      
       PClk      => Clk25MHz,
       --                   
       Vsync     => CamVSYNC,
@@ -257,8 +262,41 @@ begin
       PixelInVal      => PixelVal,
       PixelIn         => PixelData,
       --
-      GrayScaleOut    => AlignedPixData,
-      GrayScaleOutVal => AlignedPixDataVal
+      GrayScaleOut    => AlignedGrayPixData,
+      GrayScaleOutVal => AlignedGrayPixDataVal,
+      --
+      ColorOut        => AlignedColPixData,
+      ColorOutVal     => AlignedColPixDataVal
+      );
+
+  ModeTogg : entity work.ModeToggle
+    generic map (
+      DataW => PixelW
+      )
+    port map (
+      Clk                   => Clk25MHz,
+      RstN                  => RstN25MHz,
+      --
+      TemporalFiltToggle    => Btn1Pulse,
+      ColorToggle           => Btn2Pulse,
+      --
+      FromTempFiltValPreMux => TempPixelOutVal,
+      FromTempFiltPreMux    => TempPixelOut,
+      --
+      TempFiltValPostMux    => TempPixelValPostMux,
+      TempFiltPostMux       => TempPixelPostMux,
+      --
+      ObjFindPixValPreMux   => ObjFindPixelVal,
+      ObjFindPixPreMux      => ObjFindPixel,
+      --
+      GrayScaleIn           => AlignedGrayPixData,
+      GrayScaleVal          => AlignedGrayPixDataVal,
+      --
+      ColorIn               => AlignedColPixData,
+      ColorVal              => AlignedColPixDataVal,
+      --
+      PixelValPostMux       => AlignedPixDataVal,
+      PixelPostMux          => AlignedPixData
       );
 
   FChain : entity work.FilterChain
@@ -272,13 +310,11 @@ begin
       --
       Vsync        => Vsync_i,
       ToggleMode   => Btn3Pulse,
-      IncThreshold => Btn2Pulse,
-      DecThreshold => Btn1Pulse,
+      IncThreshold => '0',
+      DecThreshold => '0',
       --
-      --PixelIn      => AlignedPixData,
-      --PixelInVal   => AlignedPixDataVal,
-      PixelIn      => TempPixelOut,
-      PixelInVal   => TempPixelOutVal,
+      PixelIn      => TempPixelPostMux,
+      PixelInVal   => TempPixelValPostMux,
       --
       PixelOut     => PixelPostFilter,
       PixelOutVal  => PixelPostFilterVal
@@ -296,10 +332,8 @@ begin
       --
       Vsync         => Vsync_i,
       --
-      PixelInVal    => AlignedPixDataVal,
-      PixelIn       => AlignedPixData,
-      --PixelInVal    => PixelPostFilterVal,
-      --PixelIn       => PixelPostFilter,
+      PixelInVal    => AlignedGrayPixDataVal,
+      PixelIn       => AlignedGrayPixData,
       --
       SramReadAddr  => SramReadAddr,
       SramRe        => SramRe,
@@ -424,14 +458,9 @@ begin
       WrClk         => Clk25MHz,
       --
       Vsync         => Vsync_i,
-      --Href          => AlignedPixDataVal,
-      --D             => AlignedPixData,
---      Href          => TempPixelOutVal,
---      D             => TempPixelOut,
-      --Href          => PixelPostFilterVal,
-      --D             => PixelPostFilter,
-      Href          => ObjFindPixelVal,
-      D             => ObjFindPixel,
+      --
+      Href          => AlignedPixDataVal,
+      D             => AlignedPixData,
       --
       RdClk         => Clk25MHz,
       RdRst_N       => RstN25MHz,
