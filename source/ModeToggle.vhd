@@ -53,7 +53,7 @@ begin
     end if;
   end process;
 
-  AsyncProc : process (TempFilt_D, TemporalFiltToggle, ColSel_D)
+  AsyncProc : process (TempFilt_D, TemporalFiltToggle, ColSel_D, ColorToggle)
   begin
     TempFilt_N <= TempFilt_D;
     ColSel_N   <= ColSel_D;
