@@ -149,15 +149,15 @@ begin
       );
 
   assert not (FifoFull = '1' and FifoWe_D = '1') report "CamAligner fifo overflow" severity failure;
-	
+
   WriteReq_i <= WordToDramRequest(WriteReqWord);
   WriteReq   <= WriteReq_i when ArbAck_D = '0' else Z_DramRequest;
-  
+
   RdSyncProc : process (RdClk, RdRst_N)
   begin
     if RdRst_N = '0' then
       WasEmpty_D <= '0';
-      ArbAck_D   <= '0';
+      ArbAck_D   <= '1';
     elsif rising_edge(RdClk) then
       WasEmpty_D <= FifoEmpty;
       ArbAck_D   <= ArbAck_N;
@@ -177,14 +177,14 @@ begin
     -- There is more to read
     if FifoEmpty = '0' then
       -- Last request was read, read out the next entry and flag it as valid
-      if WriteReqAck = '1' then
+      if WriteReqAck = '1' and ArbAck_D = '1' then
         ReadFifo <= '1';
         ArbAck_N <= '0';
       end if;
     end if;
 
     -- Detect that fifo has gone from empty to non empty. Read out first entry
-    if WasEmpty_D = '1' and FifoEmpty = '0' then
+    if WasEmpty_D = '1' and FifoEmpty = '0' and ArbAck_D = '1' then
       ReadFifo <= '1';
       ArbAck_N <= '0';
     end if;      
