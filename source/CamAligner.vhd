@@ -102,6 +102,7 @@ begin
     end if;
 
     if FifoWe_D = '1' then
+      -- Increase address after the last entry was written
       Addr_N    <= Addr_D + BurstLen;
 
       if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDword then
@@ -109,7 +110,8 @@ begin
         FirstFrameVal_N <= '1';
         Addr_N          <= (others => '0');
         Frame_N         <= Frame_D + 1;
-        
+
+        -- Wrap frame counter
         if Frame_D + 1 = Frames then
           Frame_N <= (others => '0');
         end if;
@@ -167,17 +169,21 @@ begin
     ReadFifo <= '0';
     ArbAck_N <= ArbAck_D;
 
+    -- Arbiter has acked request, proceed to mask the output
     if WriteReqAck = '1' then
       ArbAck_N <= '1';
     end if;
 
+    -- There is more to read
     if FifoEmpty = '0' then
+      -- Last request was read, read out the next entry and flag it as valid
       if WriteReqAck = '1' then
         ReadFifo <= '1';
         ArbAck_N <= '0';
       end if;
     end if;
 
+    -- Detect that fifo has gone from empty to non empty. Read out first entry
     if WasEmpty_D = '1' and FifoEmpty = '0' then
       ReadFifo <= '1';
       ArbAck_N <= '0';
