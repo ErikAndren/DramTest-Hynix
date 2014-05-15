@@ -51,6 +51,8 @@ architecture rtl of ObjectFinder is
   signal NewVsync_D                           : bit1;
   --
   signal RectAct_i                            : bit1;
+
+  signal DrawTop, DrawLeft, DrawRight, DrawBottom : bit1;
   
 begin
   SyncProc : process (Clk, RstN)
@@ -142,14 +144,14 @@ begin
     end if;
   end process;
 
-  RectAct_i <= '1' when (((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or 
-                       ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) or
-                       ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y))) or
-                       ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))) and DidFindTopLeft_D = '1' else '0';  
+  DrawTop    <= '1' when ((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X)))             else '0';
+  DrawBottom <= '1' when ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X)))         else '0';
+  DrawLeft   <= '1' when ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))              else '0';
+  DrawRight  <= '1' when ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))          else '0';
+  RectAct_i  <= '1' when ((DrawTop = '1') or (DrawLeft = '1') or (DrawRight = '1') or (DrawBottom = '1')) and (DidFindTopLeft_D = '1') else '0';
 
   TopLeftAssign     : TopLeft     <= TopLeft_D;
   BottomRightAssign : BottomRight <= BottomRight_D;
-
 
   -- Create grey scale image
   RedPixelOutAssign   : PixelOut(RedHigh downto RedLow)     <= PixelIn(8-1 downto 5);
