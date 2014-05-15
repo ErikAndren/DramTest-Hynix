@@ -68,7 +68,9 @@ begin
       if Vsync = '1' then
         LineCnt_D <= (others => '0');
         Addr_D    <= (others => '0');
-        -- FIXME: Is clearing the pixel array really necessary?
+
+        -- Clear pixel array during vsync to avoid frames from contaminating
+        -- each other
         PixArr_D  <= (others => (others => (others => '0')));
       end if;
     end if;
@@ -81,25 +83,32 @@ begin
     PixArr_N  <= PixArr_D;
 
     if PixelInVal = '1' then
+      -- Shift all entries one step to the left
+      -- Outer loop runs thru the three lines, inner, unrolled loop handles the
+      -- rows
+      for i in 0 to OutRes-1 loop
+        PixArr_N(i)(0) <= PixArr_D(i)(1);        
+        PixArr_N(i)(1) <= PixArr_D(i)(2);
+        PixArr_N(i)(2) <= RamOut(CalcLine(LineCnt_D, i));
+      end loop;
+
+      -- Bump address for the next write
       Addr_N <= Addr_D + 1;
 
       -- Wrap new line
       if Addr_D + 1 = VgaWidth then
         Addr_N <= (others => '0');
 
-        -- Wrap new frame
+        -- FIXME: Should we start to clear old entries to prevent them from
+        -- leaking into the next line?
+
+        -- Align to a new buffer
         LineCnt_N <= LineCnt_D + 1;
         if LineCnt_D + 1 = Buffers then
+          -- Wrap buffer
           LineCnt_N <= (others => '0');
         end if;
       end if;
-
-      -- Shift all entries one step to the left
-      for i in 0 to OutRes-1 loop
-        PixArr_N(i)(0) <= PixArr_D(i)(1);        
-        PixArr_N(i)(1) <= PixArr_D(i)(2);
-        PixArr_N(i)(2) <= RamOut(CalcLine(LineCnt_D, i));
-      end loop;
     end if;
   end process;
 
