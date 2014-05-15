@@ -52,7 +52,7 @@ architecture rtl of TemporalAverager is
   signal WordCnt_N, WordCnt_D                   : word(1-1 downto 0);
   signal SramReadAddr_i                         : word(SramAddrW-1 downto 0);
 
-  constant Threshold : natural := 24;
+  constant Threshold : natural := 32;
   
   function CalcOldAddr(LineCnt : word; PixCnt : word) return word is
     variable NewLineCnt : word(LineCnt'length-1 downto 0);
@@ -172,11 +172,9 @@ begin
         PixelOut <= PixelIn;
       end if;
 
+      -- Must filter this out for now as the image pipeline currently eats
+      -- parts of the left side of the image
       if PixelCnt_D < 45 then
-        PixelOut <= (others => '0');
-      end if;
-
-      if PixelCnt_D > 600 then
         PixelOut <= (others => '0');
       end if;
  
@@ -195,7 +193,6 @@ begin
   SramReadAddr_i <= xt0(LineCnt_N & PixelCnt_N(PixelCnt_D'length-1 downto 1), SramAddrW);
   SramReadAddr   <= SramReadAddr_i;
 
-  -- FIXME
   PixelOutVal <= PixelInVal;
 
 end architecture rtl;
