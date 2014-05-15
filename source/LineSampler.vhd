@@ -2,7 +2,6 @@
 -- This is then sent in a 3x3 array to a filter
 -- Copyright Erik Zachrisson erik@zachrisson.info
 
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -69,6 +68,7 @@ begin
       if Vsync = '1' then
         LineCnt_D <= (others => '0');
         Addr_D    <= (others => '0');
+        -- FIXME: Is clearing the pixel array really necessary?
         PixArr_D  <= (others => (others => (others => '0')));
       end if;
     end if;
@@ -82,9 +82,12 @@ begin
 
     if PixelInVal = '1' then
       Addr_N <= Addr_D + 1;
- 
+
+      -- Wrap new line
       if Addr_D + 1 = VgaWidth then
         Addr_N <= (others => '0');
+
+        -- Wrap new frame
         LineCnt_N <= LineCnt_D + 1;
         if LineCnt_D + 1 = Buffers then
           LineCnt_N <= (others => '0');
