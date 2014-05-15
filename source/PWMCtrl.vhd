@@ -93,7 +93,7 @@ begin
         -- DeltaToMiddle.Y := MiddleYOfScreen - BoxMiddle.Y;
         --CurPitchPos_N   <= CurPitchPos_D + Quotient(DeltaToMiddle.Y, TileYRes);
         CurPitchPos_N   <= CurPitchPos_D - 1;
-        if CurPitchPos_D - 1 > ServoPitchMin then
+        if CurPitchPos_D - 1 < ServoPitchMin then
           CurPitchPos_N <= conv_word(ServoPitchMin, CurPitchPos_D'length);
         end if;
       end if;
