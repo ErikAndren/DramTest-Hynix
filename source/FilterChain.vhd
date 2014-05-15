@@ -1,3 +1,4 @@
+-- Wrapper file to include the full pipe line
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -38,47 +39,49 @@ architecture rtl of FilterChain is
   signal PixelFromSobelVal                        : bit1;
   signal PixelFromDither                          : word(CompDataW-1 downto 0);
   signal PixelFromDitherVal                       : bit1;
-  signal PixelFromGaussian                        : word(DataW-1 downto 0);
-  signal PixelFromGaussianVal                     : bit1;
+  signal PixelFromMedian                          : word(DataW-1 downto 0);
+  signal PixelFromMedianVal                       : bit1;
   signal RdAddr                                   : word(VgaWidthW-1 downto 0);
   --
   signal FilterSel_N, FilterSel_D                 : word(MODESW-1 downto 0);
 begin
-  LS : entity work.LineSampler
-    generic map (
-      DataW   => DataW,
-      Buffers => 4,
-      OutRes  => Res
-      )
-    port map (
-      Clk         => Clk,
-      RstN        => RstN,
-      --
-      Vsync       => Vsync,
-      RdAddr      => open,
-      --
-      PixelIn     => PixelIn,
-      PixelInVal  => PixelInVal,
-      --
-      PixelOut    => PixelArray,
-      PixelOutVal => PixelArrayVal
-    );
+  MedianFilterB : block
+  begin
+    LS : entity work.LineSampler
+      generic map (
+        DataW   => DataW,
+        Buffers => 4,
+        OutRes  => Res
+        )
+      port map (
+        Clk         => Clk,
+        RstN        => RstN,
+        --
+        Vsync       => Vsync,
+        --
+        PixelIn     => PixelIn,
+        PixelInVal  => PixelInVal,
+        --
+        PixelOut    => PixelArray,
+        PixelOutVal => PixelArrayVal
+        );
 
-  MF : entity work.MedianFilter
-    generic map (
-      DataW => DataW,
-      Res   => Res
-      )
-    port map (
-      Clk         => Clk,
-      RstN        => RstN,
-      --
-      PixelIn     => PixelArray,
-      PixelInVal  => PixelArrayVal,
-      --
-      PixelOut    => PixelFromGaussian,
-      PixelOutVal => PixelFromGaussianVal
-      );
+    MF : entity work.MedianFilter
+      generic map (
+        DataW => DataW,
+        Res   => Res
+        )
+      port map (
+        Clk         => Clk,
+        RstN        => RstN,
+        --
+        PixelIn     => PixelArray,
+        PixelInVal  => PixelArrayVal,
+        --
+        PixelOut    => PixelFromMedian,
+        PixelOutVal => PixelFromMedianVal
+        );
+  end block;
   
   LS_Conv : entity work.LineSampler
     generic map (
@@ -93,8 +96,8 @@ begin
       Vsync       => Vsync,
       RdAddr      => RdAddr,
       --
-      PixelIn     => PixelFromGaussian,
-      PixelInVal  => PixelFromGaussianVal,
+      PixelIn     => PixelFromMedian,
+      PixelInVal  => PixelFromMedianVal,
       --
       PixelOut    => PixelArrayToConvFilter,
       PixelOutVal => PixelArrayToConvFilterVal
@@ -163,7 +166,7 @@ begin
     end if;
   end process;
 
-  FilterMux : process (FilterSel_D, PixelFromSobel, PixelFromSobelVal, PixelFromDither, PixelFromDitherVal, PixelIn, PixelInVal, PixelFromGaussian, PixelFromGaussianVal)
+  FilterMux : process (FilterSel_D, PixelFromSobel, PixelFromSobelVal, PixelFromDither, PixelFromDitherVal, PixelIn, PixelInVal, PixelFromMedian, PixelFromMedianVal)
   begin
     if FilterSel_D = SOBEL_MODE then
       PixelOutVal <= PixelFromSobelVal;
@@ -171,9 +174,9 @@ begin
     elsif FilterSel_D = DITHER_MODE then
       PixelOutVal <= PixelFromDitherVal;
       PixelOut    <= PixelFromDither;
-    elsif FilterSel_D = GAUSSIAN_MODE then
-      PixelOutVal <= PixelFromGaussianVal;
-      PixelOut <= PixelFromGaussian(PixelIn'length-1 downto PixelIn'length-PixelOut'length);
+    elsif FilterSel_D = MEDIAN_MODE then
+      PixelOutVal <= PixelFromMedianVal;
+      PixelOut <= PixelFromMedian(PixelIn'length-1 downto PixelIn'length-PixelOut'length);
     else
       PixelOutVal <= PixelInVal;
       PixelOut    <= PixelIn(PixelIn'length-1 downto PixelIn'length-PixelOut'length);

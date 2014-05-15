@@ -58,12 +58,12 @@ package DramTestPack is
   constant tCL      : positive := 2;
   constant tRdDel   : positive := 4;
 
-  constant NONE_MODE              : natural := 0;
-  constant DITHER_MODE            : natural := 1;
-  constant SOBEL_MODE             : natural := 2;
-  constant GAUSSIAN_MODE          : natural := 3;
-  constant MODES                  : natural := GAUSSIAN_MODE + 1;
-  constant MODESW                 : natural := bits(MODES);
+  constant NONE_MODE   : natural := 0;
+  constant DITHER_MODE : natural := 1;
+  constant SOBEL_MODE  : natural := 2;
+  constant MEDIAN_MODE : natural := 3;
+  constant MODES       : natural := MEDIAN_MODE + 1;
+  constant MODESW      : natural := bits(MODES);
 
   
   constant RedHigh   : natural := 2;
