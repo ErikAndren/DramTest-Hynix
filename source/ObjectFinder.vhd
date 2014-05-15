@@ -55,21 +55,9 @@ architecture rtl of ObjectFinder is
   signal DrawTop, DrawLeft, DrawRight, DrawBottom : bit1;
   
 begin
-  SyncProc : process (Clk, RstN)
+  SyncNoRstProcProc : process (Clk)
   begin
-    if RstN = '0' then
-      TopLeft_D         <= Z_Cord;
-      BottomRight_D     <= Z_Cord;
-      NextTopLeft_D     <= M_Cord;
-      NextBottomRight_D <= Z_Cord;
-      --
-      TopLeftFound_D    <= '0';
-      DidFindTopLeft_D  <= '0';
-      --
-      PixelCnt_D        <= (others => '0');
-      LineCnt_D         <= (others => '0');
-      NewVsync_D        <= '0';
-    elsif rising_edge(Clk) then
+    if rising_edge(Clk) then
       NextTopLeft_D     <= NextTopLeft_N;
       NextBottomRight_D <= NextBottomRight_N;
       TopLeft_D         <= TopLeft_N;
@@ -119,7 +107,6 @@ begin
         LineCnt_N <= LineCnt_D + 1;
         if LineCnt_D + 1 = VgaHeight then
           LineCnt_N <= (others => '0');
-          -- End of frame
         end if;
       end if;
 
