@@ -39,31 +39,47 @@ entity ModeToggle is
 end entity;
 
 architecture rtl of ModeToggle is
-  signal TempFilt_N, TempFilt_D : bit1;
-  signal ColSel_N, ColSel_D     : bit1;
+  signal TempFilt_N, TempFilt_D   : bit1;
+  signal ColSel_N, ColSel_D       : bit1;
+  signal Delay_N, Delay_D         : word(20-1 downto 0);
+  signal DelayDone_N, DelayDone_D : bit1;
 begin
   SyncProc : process (Clk, RstN)
   begin
     if RstN = '0' then
       TempFilt_D <= '1';
       ColSel_D   <= '0';
+      Delay_D    <= (others => '1');
+      DelayDone_D <= '0';
     elsif rising_edge(Clk) then
       TempFilt_D <= TempFilt_N;
       ColSel_D   <= ColSel_N;
+      Delay_D    <= Delay_N;
+      DelayDone_D <= DelayDone_N;
     end if;
   end process;
 
-  AsyncProc : process (TempFilt_D, TemporalFiltToggle, ColSel_D, ColorToggle)
+  AsyncProc : process (TempFilt_D, TemporalFiltToggle, ColSel_D, ColorToggle, Delay_D, DelayDone_D)
   begin
-    TempFilt_N <= TempFilt_D;
-    ColSel_N   <= ColSel_D;
-    
-    if TemporalFiltToggle = '1' then
-      TempFilt_N <= not TempFilt_D;
+    TempFilt_N  <= TempFilt_D;
+    ColSel_N    <= ColSel_D;
+    DelayDone_N <= DelayDone_D;
+
+    Delay_N <= Delay_D - 1;
+    if Delay_D = 0 then
+      Delay_N <= (others => '0');
+      DelayDone_N <= '1';
     end if;
 
-    if ColorToggle = '1' then
-      ColSel_N <= not ColSel_D;
+    -- Protect against initial spikes
+    if DelayDone_D = '1' then
+      if TemporalFiltToggle = '1' then
+        TempFilt_N <= not TempFilt_D;
+      end if;
+
+      if ColorToggle = '1' then
+        ColSel_N <= not ColSel_D;
+      end if;
     end if;
   end process;
 
