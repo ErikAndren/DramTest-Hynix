@@ -88,6 +88,10 @@ derive_pll_clocks -create_base_clocks
 
 create_generated_clock -name SdramClk_pin -source [get_pins {Pll100MHz|altpll_component|pll|clk[1]}] [get_ports {ClkToSdram}]
 
+# FIXME: Is this correct?
+set_false_path -from [get_clocks {Pll100MHz|altpll_component|pll|clk[1]}] -to [get_ports {ClkToSdram}]
+
+
 create_generated_clock -name Clk64kHz -source [get_pins {Pll100MHz|altpll_component|pll|clk[2]}] -divide_by 16000 [get_registers {ClkDiv:Clk64kHzGen|divisor}]
 
 # Clk is received by OV7660 who generates a new clock from it
