@@ -71,7 +71,7 @@ begin
       NewVsync_D        <= Vsync;
 
       -- Latch in coordinates to draw for the next frame
-      if Vsync = '1' and NewVSync_D = '0' then
+      if Vsync = '0' and NewVSync_D = '1' then
         NextTopLeft_D     <= M_Cord;
         NextBottomRight_D <= Z_Cord;
         --
@@ -85,7 +85,7 @@ begin
       end if;
     end if;
   end process;
-  
+
   AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, TopLeftFound_D, NextTopLeft_D, NextBottomRight_D, DidFindTopLeft_D)
   begin
     TopLeft_N         <= TopLeft_D;
@@ -116,18 +116,18 @@ begin
           TopLeftFound_N <= '1';
         end if;
 
-        if NextTopLeft_D.X > PixelCnt_D then
+        if LineCnt_D > NextBottomRight_D.Y then
+          NextBottomRight_N.Y <= LineCnt_D;
+        end if;
+
+        if PixelCnt_D < NextTopLeft_D.X  then
           NextTopLeft_N.X <= PixelCnt_D;
         end if;
 
-        if NextBottomRight_D.X < PixelCnt_D then
+        if PixelCnt_D > NextBottomRight_D.X then
           NextBottomRight_N.X <= PixelCnt_D;
         end if;
-
-        if NextBottomRight_D.Y < LineCnt_D then
-          NextBottomRight_N.Y <= LineCnt_D;
-        end if;
-      end if;      
+      end if;
     end if;
   end process;
 
