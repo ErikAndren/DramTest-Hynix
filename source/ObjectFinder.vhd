@@ -74,8 +74,8 @@ begin
         TopLeft_D         <= NextTopLeft_N;
         BottomRight_D     <= NextBottomRight_N;
         --
-        PixelCnt_D     <= (others => '0');
-        LineCnt_D      <= (others => '0');
+        PixelCnt_D        <= (others => '0');
+        LineCnt_D         <= (others => '0');
       end if;
     end if;
   end process;
@@ -87,8 +87,8 @@ begin
     NextTopLeft_N     <= NextTopLeft_D;
     NextBottomRight_N <= NextBottomRight_D;
     --
-    PixelCnt_N     <= PixelCnt_D;
-    LineCnt_N      <= LineCnt_D;
+    PixelCnt_N        <= PixelCnt_D;
+    LineCnt_N         <= LineCnt_D;
 
     if PixelInVal = '1' then
       -- Pixel counting
@@ -96,7 +96,7 @@ begin
       if PixelCnt_D + 1 = VgaWidth then
         -- End of line
         PixelCnt_N <= (others => '0');
-        LineCnt_N <= LineCnt_D + 1;
+        LineCnt_N  <= LineCnt_D + 1;
         if LineCnt_D + 1 = VgaHeight then
           LineCnt_N <= (others => '0');
         end if;
@@ -111,7 +111,7 @@ begin
           NextBottomRight_N.Y <= LineCnt_D;
         end if;
 
-        if PixelCnt_D < NextTopLeft_D.X  then
+        if PixelCnt_D < NextTopLeft_D.X then
           NextTopLeft_N.X <= PixelCnt_D;
         end if;
 
@@ -135,7 +135,7 @@ begin
   RedPixelOutAssign   : PixelOut(RedHigh downto RedLow)     <= PixelIn(8-1 downto 5);
   GreenPixelOutAssign : PixelOut(GreenHigh downto GreenLow) <= (others => '1') when RectAct_i = '1' else PixelIn(8-1 downto 5);
   BluePixelOutAssign  : PixelOut(BlueHigh downto BlueLow)   <= PixelIn(8-1 downto 6);
-  
+
   PixelOutValAssign : PixelOutVal <= PixelInVal;
   RectActAssign     : RectAct     <= RectAct_i;
 end architecture rtl;
