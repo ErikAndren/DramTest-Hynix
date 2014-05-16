@@ -46,8 +46,6 @@ architecture rtl of ObjectFinder is
   -- Set low threshold for now
   constant Threshold                          : natural := 32;
   --
-  signal TopLeftFound_N, TopLeftFound_D       : bit1;
-  signal DidFindTopLeft_N, DidFindTopLeft_D   : bit1;
   signal NewVsync_D                           : bit1;
   --
   signal RectAct_i                            : bit1;
@@ -66,8 +64,6 @@ begin
       PixelCnt_D        <= PixelCnt_N;
       LineCnt_D         <= LineCnt_N;
       --
-      TopLeftFound_D    <= TopLeftFound_N;
-      DidFindTopLeft_D  <= DidFindTopLeft_N;
       NewVsync_D        <= Vsync;
 
       -- Latch in coordinates to draw for the next frame
@@ -77,26 +73,22 @@ begin
         --
         TopLeft_D         <= NextTopLeft_N;
         BottomRight_D     <= NextBottomRight_N;
-        DidFindTopLeft_D  <= TopLeftFound_N;
         --
-        TopLeftFound_D <= '0';
         PixelCnt_D     <= (others => '0');
         LineCnt_D      <= (others => '0');
       end if;
     end if;
   end process;
 
-  AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, TopLeftFound_D, NextTopLeft_D, NextBottomRight_D, DidFindTopLeft_D)
+  AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, NextTopLeft_D, NextBottomRight_D)
   begin
     TopLeft_N         <= TopLeft_D;
     BottomRight_N     <= BottomRight_D;
     NextTopLeft_N     <= NextTopLeft_D;
     NextBottomRight_N <= NextBottomRight_D;
-    DidFindTopLeft_N  <= DidFindTopLeft_D;
     --
     PixelCnt_N     <= PixelCnt_D;
     LineCnt_N      <= LineCnt_D;
-    TopLeftFound_N <= TopLeftFound_D;
 
     if PixelInVal = '1' then
       -- Pixel counting
@@ -111,9 +103,8 @@ begin
       end if;
 
       if PixelIn >= Threshold then
-        if TopLeftFound_D = '0' then
+        if LineCnt_D < NextTopLeft_D.Y then
           NextTopLeft_N.Y <= LineCnt_D;
-          TopLeftFound_N <= '1';
         end if;
 
         if LineCnt_D > NextBottomRight_D.Y then
@@ -131,11 +122,11 @@ begin
     end if;
   end process;
 
-  DrawTop    <= '1' when ((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X)))             else '0';
-  DrawBottom <= '1' when ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X)))         else '0';
-  DrawLeft   <= '1' when ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))              else '0';
-  DrawRight  <= '1' when ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))          else '0';
-  RectAct_i  <= '1' when ((DrawTop = '1') or (DrawLeft = '1') or (DrawRight = '1') or (DrawBottom = '1')) and (DidFindTopLeft_D = '1') else '0';
+  DrawTop    <= '1' when ((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X)))     else '0';
+  DrawBottom <= '1' when ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) else '0';
+  DrawLeft   <= '1' when ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))      else '0';
+  DrawRight  <= '1' when ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))  else '0';
+  RectAct_i  <= '1' when ((DrawTop = '1') or (DrawLeft = '1') or (DrawRight = '1') or (DrawBottom = '1'))                      else '0';
 
   TopLeftAssign     : TopLeft     <= TopLeft_D;
   BottomRightAssign : BottomRight <= BottomRight_D;
