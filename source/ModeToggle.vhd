@@ -47,14 +47,14 @@ begin
   SyncProc : process (Clk, RstN)
   begin
     if RstN = '0' then
-      TempFilt_D <= '1';
-      ColSel_D   <= '0';
-      Delay_D    <= (others => '1');
+      TempFilt_D  <= '1';
+      ColSel_D    <= '0';
+      Delay_D     <= (others => '1');
       DelayDone_D <= '0';
     elsif rising_edge(Clk) then
-      TempFilt_D <= TempFilt_N;
-      ColSel_D   <= ColSel_N;
-      Delay_D    <= Delay_N;
+      TempFilt_D  <= TempFilt_N;
+      ColSel_D    <= ColSel_N;
+      Delay_D     <= Delay_N;
       DelayDone_D <= DelayDone_N;
     end if;
   end process;
