@@ -33,23 +33,23 @@ entity ObjectFinder is
 end entity;
 
 architecture rtl of ObjectFinder is
-  signal TopLeft_N, TopLeft_D                 : Cord;
-  signal BottomRight_N, BottomRight_D         : Cord;
-  signal NextTopLeft_N, NextTopLeft_D         : Cord;
-  signal NextBottomRight_N, NextBottomRight_D : Cord;
+  signal TopLeft_N, TopLeft_D                     : Cord;
+  signal BottomRight_N, BottomRight_D             : Cord;
+  signal NextTopLeft_N, NextTopLeft_D             : Cord;
+  signal NextBottomRight_N, NextBottomRight_D     : Cord;
   --
-  signal PixelCnt_N, PixelCnt_D               : word(VgaWidthW-1 downto 0);
-  signal LineCnt_N, LineCnt_D                 : word(VgaHeightW-1 downto 0);
+  signal PixelCnt_N, PixelCnt_D                   : word(VgaWidthW-1 downto 0);
+  signal LineCnt_N, LineCnt_D                     : word(VgaHeightW-1 downto 0);
   --
-  signal PixelOut_N, PixelOut_D               : word(DataW-1 downto 0);
+  signal PixelOut_N, PixelOut_D                   : word(DataW-1 downto 0);
   --
   -- Set low threshold for now
-  constant Threshold                          : natural := 32;
+  constant Threshold                              : natural := 32;
   --
-  signal NewVsync_D                           : bit1;
+  signal NewVsync_D                               : bit1;
   --
-  signal RectAct_i                            : bit1;
-
+  signal RectAct_i                                : bit1;
+  --
   signal DrawTop, DrawLeft, DrawRight, DrawBottom : bit1;
   
 begin
