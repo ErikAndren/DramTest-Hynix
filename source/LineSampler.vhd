@@ -38,9 +38,11 @@ architecture rtl of LineSampler is
   signal PixArr_N, PixArr_D   : PixVec2D(OutRes-1 downto 0);
 
   constant Z_PixArr : PixVec2D(OutRes-1 downto 0) := (others => (others => (others => '0')));
+
+  constant BufW : positive := bits(Buffers);
   
   --
-  signal LineCnt_N, LineCnt_D : word(bits(Buffers)-1 downto 0);
+  signal LineCnt_N, LineCnt_D : word(VgaHeightW-1 downto 0);
   signal WrEn                 : word(Buffers-1 downto 0);
   type BuffArr is array (natural range <>) of word(PixelW-1 downto 0);
   signal RamOut               : BuffArr(Buffers-1 downto 0);
@@ -59,7 +61,7 @@ begin
     WrEn <= (others => '0');
 
     if PixelInVal = '1' then
-      WrEn(conv_integer(LineCnt_D)) <= '1';
+      WrEn(conv_integer(LineCnt_D(BufW-1 downto 0))) <= '1';
     end if;
   end process;
 
@@ -119,7 +121,7 @@ begin
       for i in 0 to OutRes-1 loop
         PixArr_N(i)(0) <= PixArr_D(i)(1);        
         PixArr_N(i)(1) <= PixArr_D(i)(2);
-        PixArr_N(i)(2) <= RamOut(CalcLine(LineCnt_D, i));
+        PixArr_N(i)(2) <= RamOut(CalcLine(LineCnt_D(BufW-1 downto 0), i));
 
         -- Invalidate the rows which contains data from the bottom of the
         -- previous frame
@@ -140,7 +142,7 @@ begin
         
         -- Align to a new buffer
         LineCnt_N <= LineCnt_D + 1;
-        if LineCnt_D + 1 = Buffers then
+        if LineCnt_D + 1 = VgaHeight then
           -- Wrap buffer
           LineCnt_N <= (others => '0');
         end if;
