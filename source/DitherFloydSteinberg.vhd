@@ -1,3 +1,4 @@
+-- Implement Floyd steinberg dithering
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -132,6 +133,7 @@ begin
     end if;
 
     if (PixelInVal = '1') then
+      -- Calculate and distribute the error
       -- 7/16 East, OK, read error_vector[1], low, and add the result and push right
       -- 3/16 South west, N/A [n-1], ok to set anyways?
       -- 5/16 South, OK, error vector [0], Set new error value
