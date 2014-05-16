@@ -177,7 +177,12 @@ begin
       if PixelCnt_D < 45 then
         PixelOut <= (others => '0');
       end if;
- 
+
+      if PixelCnt_D > 620 then
+        PixelOut <= (others => '0');
+      end if;
+
+      
       SramWd_N    <= ModifySlice(SramWd_D, DataW, conv_integer(WordCnt_D), Avg);
       SramWe_N    <= WordCnt_D(0);
       SramRdVal_N <= WordCnt_D(0);
