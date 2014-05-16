@@ -46,9 +46,34 @@ architecture rtl of LineSampler is
   
   function CalcLine(CurLine : word; Offs : natural) return natural is
   begin
+    -- Plus one is to compensate that we are writing into the buffer that is
+    -- not being read
     return ((conv_integer(CurLine) + Offs + 1) mod Buffers);
   end function;
 begin
+  OneHotProc : process (LineCnt_D, PixelInVal)
+  begin
+    WrEn <= (others => '0');
+
+    if PixelInVal = '1' then
+      WrEn(conv_integer(LineCnt_D)) <= '1';
+    end if;
+  end process;
+
+  -- FIXME: The registered output could probably be removed. Timing should be
+  -- lax anyway
+  Ram : for i in 0 to Buffers-1 generate
+    R : entity work.LineSampler1PRAM
+      port map (
+        Clock   => Clk,
+        Data    => PixelIn,
+        WrEn    => WrEn(i),
+        address => Addr_D,
+        --
+        q       => RamOut(i)
+        );
+  end generate;
+
   SyncRstProc : process (RstN, Clk)
   begin
     if RstN = '0' then
@@ -86,10 +111,18 @@ begin
       -- Shift all entries one step to the left
       -- Outer loop runs thru the three lines, inner, unrolled loop handles the
       -- rows
+
       for i in 0 to OutRes-1 loop
         PixArr_N(i)(0) <= PixArr_D(i)(1);        
         PixArr_N(i)(1) <= PixArr_D(i)(2);
         PixArr_N(i)(2) <= RamOut(CalcLine(LineCnt_D, i));
+
+        -- Invalidate the rows which contains data from the bottom of the
+        -- previous frame
+        if LineCnt_D < 3-i then
+          PixArr_N(i)(2) <= (others => '0');
+        end if;
+        
       end loop;
 
       -- Bump address for the next write
@@ -98,7 +131,6 @@ begin
       -- Wrap new line
       if Addr_D + 1 = VgaWidth then
         Addr_N <= (others => '0');
-
         -- FIXME: Should we start to clear old entries to prevent them from
         -- leaking into the next line?
 
@@ -111,27 +143,6 @@ begin
       end if;
     end if;
   end process;
-
-  OneHotProc : process (LineCnt_D, PixelInVal)
-  begin
-    WrEn <= (others => '0');
-
-    if PixelInVal = '1' then
-      WrEn(conv_integer(LineCnt_D)) <= '1';
-    end if;
-  end process;
-
-  Ram : for i in 0 to Buffers-1 generate
-    R : entity work.LineSampler1pRAM
-      port map (
-        Clock   => Clk,
-        Data    => PixelIn,
-        WrEn    => WrEn(i),
-        address => Addr_D,
-        --
-        q       => RamOut(i)
-        );
-  end generate;
 
   AddrFeed        : RdAddr      <= Addr_D;
   PixelOutValFeed : PixelOutVal <= PixelVal_D;
