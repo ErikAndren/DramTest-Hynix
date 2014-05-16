@@ -35,7 +35,10 @@ end entity;
 architecture rtl of LineSampler is
   signal Addr_N, Addr_D       : word(VgaWidthW-1 downto 0);
   type AddrArr is array (natural range <>) of word(Buffers-1 downto 0);
-  signal PixArr_N, PixArr_D   : PixVec2D(3-1 downto 0);
+  signal PixArr_N, PixArr_D   : PixVec2D(OutRes-1 downto 0);
+
+  constant Z_PixArr : PixVec2D(OutRes-1 downto 0) := (others => (others => (others => '0')));
+  
   --
   signal LineCnt_N, LineCnt_D : word(bits(Buffers)-1 downto 0);
   signal WrEn                 : word(Buffers-1 downto 0);
@@ -96,7 +99,7 @@ begin
 
         -- Clear pixel array during vsync to avoid frames from contaminating
         -- each other
-        PixArr_D  <= (others => (others => (others => '0')));
+        PixArr_D  <= Z_PixArr;
       end if;
     end if;
   end process;
@@ -112,6 +115,7 @@ begin
       -- Outer loop runs thru the three lines, inner, unrolled loop handles the
       -- rows
 
+      -- Prepare the box for the next pixel
       for i in 0 to OutRes-1 loop
         PixArr_N(i)(0) <= PixArr_D(i)(1);        
         PixArr_N(i)(1) <= PixArr_D(i)(2);
@@ -121,8 +125,7 @@ begin
         -- previous frame
         if LineCnt_D < 3-i then
           PixArr_N(i)(2) <= (others => '0');
-        end if;
-        
+        end if;        
       end loop;
 
       -- Bump address for the next write
@@ -131,9 +134,10 @@ begin
       -- Wrap new line
       if Addr_D + 1 = VgaWidth then
         Addr_N <= (others => '0');
-        -- FIXME: Should we start to clear old entries to prevent them from
-        -- leaking into the next line?
 
+        -- Clear pixel array upon each line change
+        PixArr_N <= Z_PixArr;
+        
         -- Align to a new buffer
         LineCnt_N <= LineCnt_D + 1;
         if LineCnt_D + 1 = Buffers then
