@@ -89,22 +89,21 @@ begin
           AddrData <= COM2 & x"00";     -- Enable 4x drive
  
         when "0010" =>
-          AddrData <= MVFP & x"10";      -- Flip image to it mount
- 
+          AddrData <= MVFP & x"10";     -- Flip image to it mount
+
+        when "0011" =>
+          AddrData <= COM15 & x"D0";    -- Enable RGB565
+
+        when "0100" =>
+          AddrData <= COM7 & x"04";     -- Enable RGB
+
+          
 --                              when "0001" =>
 --                                      AddrData <= COM7 & x"00"; -- SCCB Register reset release
 --                                      We       <= '1';
 --                                      Start    <= '1';
 --                                      
---                              when "0001" =>
---                                      AddrData <= COM7 & x"04"; -- Enable RGB
---                                      We       <= '1';
---                                      Start    <= '1';
 ----                                    
---                              when "0010" =>
---                                      AddrData <= COM15 & x"D0"; -- Enable RGB565
---                                      We       <= '1';
---                                      Start    <= '1';
 
 --                              when "0010" =>
 --                                      AddrData <= AECH & x"01"; -- 
