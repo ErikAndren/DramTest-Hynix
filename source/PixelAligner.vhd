@@ -95,6 +95,4 @@ begin
   GreenFeed : Color(GreenHigh downto GreenLow) <= G_D(G_D'high downto G_D'high-2);
   BlueFeed  : Color(BlueHigh downto BlueLow)   <= B_D(B_D'high downto B_D'high-1);
   
---  ColorOutFeed        : ColorOut        <= B_D(B_D'high downto B_D'high-1) & G_D(G_D'high downto G_D'high-2) & R_D(R_D'high downto R_D'high-2);
-
 end architecture rtl;
