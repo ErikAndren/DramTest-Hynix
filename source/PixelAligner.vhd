@@ -83,11 +83,21 @@ begin
       Cnt_N <= (others => '0');
     end if;
   end process;
-  
 
+  -- Lightness RGB to grayscale method
+  -- (max(R, G, B) + min(R, G, B)) / 2.
+  GrayscaleGen : process (R_D, G_D, B_D)
+    variable ColMax, ColMin : word(G_D'length-1 downto 0);
+  begin
+    ColMax       := maxval(R_D & '0', G_D);
+    ColMax       := maxval(ColMax, B_D & '0');
+    --
+    ColMin       := minval(R_D & '0', G_D);
+    ColMin       := minval(ColMin, B_D & '0');
+    --
+    GrayScaleOut <= conv_word((conv_integer(ColMax) + conv_integer(ColMin)) / 2, GrayScaleOut'length);
+  end process; 
   GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
-  -- FIXME: Improve
-  GrayScaleOutFeed    : GrayScaleOut    <= conv_word((conv_integer(R_D & '0') + conv_integer(G_D) + conv_integer(B_D & '0') / 3), GrayScaleOut'length);
   --
   ColorOutValFeed     : ColorOutVal     <= ColorVal_D;
 
