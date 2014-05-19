@@ -265,7 +265,7 @@ begin
       GrayScaleOut    => AlignedGrayPixData,
       GrayScaleOutVal => AlignedGrayPixDataVal,
       --
-      ColorOut        => AlignedColPixData,
+      Color           => AlignedColPixData,
       ColorOutVal     => AlignedColPixDataVal
       );
 
