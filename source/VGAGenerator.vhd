@@ -95,18 +95,14 @@ begin
 
   DrawColorProc : process (PixelToDisplay, DrawRect, InView_i)
   begin
-    Red <= (others => '0');
+    Red   <= (others => '0');
     Green <= (others => '0');
-    Blue <= (others => '0');
+    Blue  <= (others => '0');
 
     if InView_i = '1' then
       Red <= PixelToDisplay(RedHigh downto RedLow);
       Green <= PixelToDisplay(GreenHigh downto GreenLow);
       Blue <= PixelToDisplay(BlueHigh downto BlueLow) & '0';
-
-      --Red <= PixelToDisplay(8-1 downto 5);
-      --Green <= PixelToDisplay(8-1 downto 5);
-      --Blue <= PixelToDisplay(8-1 downto 5);
 
       -- Draw green rectangle overlay
       if DrawRect = '1' then
