@@ -54,7 +54,6 @@ architecture rtl of DitherFloydSteinberg is
 
   signal ToErrMem                        : word(MaxErrorW-1 downto 0);
   signal FromErrMem, ToErrMemTrunc       : word(TruncBits-1 downto 0);
-  signal FromErrMemPad, ToErrMemTruncPad : word(5-1 downto 0);
   signal WrAddr, RdAddr                  : word(VgaWidthW-1 downto 0);
 
   --Pixel 1, 0
@@ -174,7 +173,6 @@ begin
   end process;
   
   ToErrMemTrunc <= (others => '1') when ToErrMem > Threshold else ToErrMem(TruncBits-1 downto 0);
-  ToErrMemTruncPad <= xt0(ToErrMemTrunc, 5);
 
   AddrCalc : process (PixelCnt_D)
   begin
@@ -193,17 +191,19 @@ begin
   end process;
 
   ErrorMemory : entity work.FloydSteinberg2PRAM
+    generic map (
+      datawidth => DataW - CompDataW
+      )
     port map (
       clock     => Clk,
-      data      => ToErrMemTruncPad,
+      data      => ToErrMemTrunc,
       rdaddress => RdAddr,
       wraddress => WrAddr,
       --
       wren      => PixelInVal,
       --
-      q         => FromErrMemPad
+      q         => FromErrMem
       );
-  FromErrMem <= FromErrMemPad(TruncBits-1 downto 0);
 
   PixelOut    <= PixelOut_D;
   PixelOutVal <= PixelOutVal_D;
