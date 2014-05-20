@@ -44,7 +44,7 @@ architecture fpga of OV7660Init is
 
   signal InstPtr_N, InstPtr_D : word(4-1 downto 0);
   -- FIXME: Potentially listen for a number of vsync pulses instead. This would
-  -- same a number of flops
+  -- save a number of flops
   signal Delay_N, Delay_D     : word(16-1 downto 0);
 begin
   SyncProc : process (Clk, Rst_N)
@@ -92,10 +92,11 @@ begin
           AddrData <= MVFP & x"10";     -- Flip image to it mount
 
         when "0011" =>
-          AddrData <= COM15 & x"D0";    -- Enable RGB565
+          AddrData <= COM7 & x"04";     -- Enable RGB
 
         when "0100" =>
-          AddrData <= COM7 & x"04";     -- Enable RGB
+          AddrData <= COM15 & x"D0";    -- Enable RGB565
+
 
           
 --                              when "0001" =>
