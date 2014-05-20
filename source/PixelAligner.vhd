@@ -50,7 +50,6 @@ begin
     if rising_edge(Clk) then
       Cnt_D          <= Cnt_N;
       GrayScaleVal_D <= GrayScaleVal_N;
-      ColorVal_D     <= ColorVal_N;
       R_D <= R_N;
       B_D <= B_N;
       G_D <= G_N;
