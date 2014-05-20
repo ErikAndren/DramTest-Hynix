@@ -40,21 +40,24 @@ library altera_mf;
 use altera_mf.all;
 
 entity FloydSteinberg2PRAM is
+  generic (
+    datawidth : positive := 5
+    );
   port
     (
       clock     : in  std_logic := '1';
-      data      : in  std_logic_vector (4 downto 0);
+      data      : in  std_logic_vector (datawidth-1 downto 0);
       rdaddress : in  std_logic_vector (9 downto 0);
       wraddress : in  std_logic_vector (9 downto 0);
       wren      : in  std_logic := '0';
-      q         : out std_logic_vector (4 downto 0)
+      q         : out std_logic_vector (datawidth-1 downto 0)
       );
 end FloydSteinberg2PRAM;
 
 
 architecture SYN of floydsteinberg2pram is
 
-  signal sub_wire0 : std_logic_vector (4 downto 0);
+  signal sub_wire0 : std_logic_vector (datawidth-1 downto 0);
 
 
 
@@ -83,15 +86,15 @@ architecture SYN of floydsteinberg2pram is
     port (
       address_a : in  std_logic_vector (9 downto 0);
       clock0    : in  std_logic;
-      data_a    : in  std_logic_vector (4 downto 0);
-      q_b       : out std_logic_vector (4 downto 0);
+      data_a    : in  std_logic_vector (datawidth-1 downto 0);
+      q_b       : out std_logic_vector (datawidth-1 downto 0);
       wren_a    : in  std_logic;
       address_b : in  std_logic_vector (9 downto 0)
       );
   end component;
 
 begin
-  q <= sub_wire0(4 downto 0);
+  q <= sub_wire0(datawidth-1 downto 0);
 
   altsyncram_component : altsyncram
     generic map (
@@ -111,8 +114,8 @@ begin
       read_during_write_mode_mixed_ports => "DONT_CARE",
       widthad_a                          => 10,
       widthad_b                          => 10,
-      width_a                            => 5,
-      width_b                            => 5,
+      width_a                            => datawidth,
+      width_b                            => datawidth,
       width_byteena_a                    => 1
       )
     port map (
