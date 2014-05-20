@@ -35,11 +35,15 @@ end entity;
 architecture rtl of PixelAligner is
   signal Cnt_N, Cnt_D                   : word(1-1 downto 0);
   signal GrayScaleVal_N, GrayScaleVal_D : bit1;
-  signal ColorVal_N, ColorVal_D         : bit1;
+  signal ColorVal_N                     : bit1;
   signal R_N, R_D, B_N, B_D             : word(5-1 downto 0);
   signal G_N, G_D                       : word(6-1 downto 0);
+  --
+  signal R_Dithered                     : word(3-1 downto 0);
+  signal G_Dithered                     : word(3-1 downto 0);
+  signal B_Dithered                     : word(2-1 downto 0);
+  signal R_DitheredVal                  : bit1;
   
-
 begin
   SyncNoRstProc : process (Clk)
   begin
@@ -99,10 +103,64 @@ begin
   end process; 
   GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
   --
-  ColorOutValFeed     : ColorOutVal     <= ColorVal_D;
+  ColorOutValFeed     : ColorOutVal     <= R_DitheredVal;
 
-  RedFeed   : Color(RedHigh downto RedLow)     <= R_D(R_D'high downto R_D'high-2);
-  GreenFeed : Color(GreenHigh downto GreenLow) <= G_D(G_D'high downto G_D'high-2);
-  BlueFeed  : Color(BlueHigh downto BlueLow)   <= B_D(B_D'high downto B_D'high-1);
+  RedDither : entity work.DitherFloydSteinberg
+    generic map (
+      DataW     => 5,
+      CompDataW => 3
+      )
+    port map (
+      RstN        => RstN,
+      Clk         => Clk,
+      --
+      Vsync       => Vsync,
+      --
+      PixelIn     => R_N,
+      PIxelInVal  => ColorVal_N,
+      --
+      PixelOut    => R_Dithered,
+      PixelOutVal => R_DitheredVal
+      );
+  
+  GreenDither : entity work.DitherFloydSteinberg
+    generic map (
+      DataW     => 6,
+      CompDataW => 3
+      )
+    port map (
+      RstN        => RstN,
+      Clk         => Clk,
+      --
+      Vsync       => Vsync,
+      --
+      PixelIn     => G_N,
+      PIxelInVal  => ColorVal_N,
+      --
+      PixelOut    => G_Dithered,
+      PixelOutVal => open
+      );
+
+  BlueDither : entity work.DitherFloydSteinberg
+    generic map (
+      DataW     => 5,
+      CompDataW => 2
+      )
+    port map (
+      RstN        => RstN,
+      Clk         => Clk,
+      --
+      Vsync       => Vsync,
+      --
+      PixelIn     => B_N,
+      PIxelInVal  => ColorVal_N,
+      --
+      PixelOut    => B_Dithered,
+      PixelOutVal => open
+      );
+  
+  RedFeed   : Color(RedHigh downto RedLow)     <= R_Dithered;
+  GreenFeed : Color(GreenHigh downto GreenLow) <= G_Dithered;
+  BlueFeed  : Color(BlueHigh downto BlueLow)   <= B_Dithered;
   
 end architecture rtl;
