@@ -39,6 +39,7 @@ architecture rtl of DitherFloydSteinberg is
   signal Error                        : word(TruncBits-1 downto 0);
   --
   signal RightErr_N, RightErr_D       : word(MaxErrorW-1 downto 0);
+  signal RightErrTrunc_D              : word(DataW-1 downto 0);
   signal AdjPixelIn                   : word(DataW-1 downto 0);
   --
   signal PixelOutVal_N, PixelOutVal_D : bit1;
@@ -51,9 +52,10 @@ architecture rtl of DitherFloydSteinberg is
   signal LineCnt_N, LineCnt_D   : word(VgaHeightW-1 downto 0);
   signal PixelCnt_N, PixelCnt_D : word(VgaWidthW-1 downto 0);
 
-  signal ToErrMem                  : word(MaxErrorW-1 downto 0);
-  signal FromErrMem, ToErrMemTrunc : word(TruncBits-1 downto 0);
-  signal WrAddr, RdAddr            : word(VgaWidthW-1 downto 0);
+  signal ToErrMem                        : word(MaxErrorW-1 downto 0);
+  signal FromErrMem, ToErrMemTrunc       : word(TruncBits-1 downto 0);
+  signal FromErrMemPad, ToErrMemTruncPad : word(5-1 downto 0);
+  signal WrAddr, RdAddr                  : word(VgaWidthW-1 downto 0);
 
   --Pixel 1, 0
   --1. Add error from right error to pixel (contains prev. right err and error_vector error)
@@ -74,7 +76,9 @@ architecture rtl of DitherFloydSteinberg is
   signal PixelInExt      : word(DataW downto 0);
 begin
   PixelInExt      <= '0' & PixelIn;
-  IncPixelPlusErr <= PixelInExt + RightErr_D;
+  RightErrTrunc_D <= RightErr_D(DataW-1 downto 0) when conv_integer(RightErr_D) < 2**DataW else (others => '1');
+  
+  IncPixelPlusErr <= PixelInExt + RightErrTrunc_D;
 
   PixelValCalc : process (PixelIn, IncPixelPlusErr)
     variable Err : word(DataW-1 downto 0);
@@ -170,6 +174,7 @@ begin
   end process;
   
   ToErrMemTrunc <= (others => '1') when ToErrMem > Threshold else ToErrMem(TruncBits-1 downto 0);
+  ToErrMemTruncPad <= xt0(ToErrMemTrunc, 5);
 
   AddrCalc : process (PixelCnt_D)
   begin
@@ -190,14 +195,15 @@ begin
   ErrorMemory : entity work.FloydSteinberg2PRAM
     port map (
       clock     => Clk,
-      data      => ToErrMemTrunc,
+      data      => ToErrMemTruncPad,
       rdaddress => RdAddr,
       wraddress => WrAddr,
       --
       wren      => PixelInVal,
       --
-      q         => FromErrMem
+      q         => FromErrMemPad
       );
+  FromErrMem <= FromErrMemPad(TruncBits-1 downto 0);
 
   PixelOut    <= PixelOut_D;
   PixelOutVal <= PixelOutVal_D;
