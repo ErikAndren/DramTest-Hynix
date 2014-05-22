@@ -40,13 +40,10 @@ architecture rtl of CamCapture is
   signal RdFifo                   : bit1;
   signal FifoRdVal_N, FifoRdVal_D : bit1;
   signal RdData                   : word(DataW-1 downto 0);
-
-  signal PixelOut_D : word(DataW-1 downto 0);
-  signal PixelVal_D : bit1;
-
   signal VSync_D          : word(4-1 downto 0);
 
   signal VSync_META, VSync_D_Clk : bit1;
+  signal HRef_D                  : bit1;
 begin
   PClkSync : process (PCLK, PRstN)
   begin
@@ -54,18 +51,19 @@ begin
       PixelData_D <= (others => '0');
       SeenVsync_D <= (others => '0');
       Vsync_D     <= (others => '0');
+      Href_D      <= '0';
     elsif rising_edge(PCLK) then
       PixelData_D <= PixelData_N;
       SeenVsync_D <= SeenVsync_N;
       Vsync_D(0)  <= Vsync;
+      Href_D      <= Href;
       for i in 1 to 3 loop
         Vsync_D(i) <= Vsync_D(i-1);
       end loop;
-
     end if;
   end process;
 
-  PClkAsync : process (PixelData, Href, Vsync_D, SeenVsync_D)
+  PClkAsync : process (PixelData, Href_D, Vsync_D, SeenVsync_D)
   begin
     PixelData_N <= PixelData;
     ValData_N   <= '0';
@@ -82,7 +80,7 @@ begin
       SeenVSync_N <= (others => '0');
     end if;
 
-    if Href = '1' and RedAnd(SeenVsync_D) = '1' then
+    if Href_D = '1' and RedAnd(SeenVsync_D) = '1' then
       ValData_N <= '1';
     end if;
   end process;
@@ -102,40 +100,28 @@ begin
       );
   assert not (FifoFull = '1' and ValData_N = '1') report "ClkCrossing fifo full" severity failure;
   
-  RdFifo <= not FifoEmpty;
-
-  ClkAsync : process (RdFifo)
-  begin
-    FifoRdVal_N <= '0';
-
-    if RdFifo = '1' then
-      FifoRdVal_N <= '1';
-    end if;
-  end process;
+  RdFifo      <= not FifoEmpty;
+  FifoRdVal_N <= RdFifo;
 
   ClkRstSync : process (RstN, Clk)
   begin
     if RstN = '0' then
-      PixelVal_D <= '0';
+      FifoRdVal_D <= '0';
     elsif rising_edge(Clk) then
       assert not (FifoEmpty = '1' and RdFifo = '1') report "Reading from empty ClkCrossing fifo" severity failure;
-
-      PixelVal_D <= FifoRdVal_D;
+      FifoRdVal_D <= FifoRdVal_N;
     end if;
   end process;
 
   ClkNoRstSync : process (Clk)
   begin
     if rising_edge(Clk) then
-      FifoRdVal_D <= FifoRdVal_N;
-      PixelOut_D  <= RdData;
-      --
       VSync_META  <= RedAnd(VSync);
       VSync_D_Clk <= VSync_META;
     end if;
   end process;
   
-  PixelFeed    : PixelOut  <= PixelOut_D;
-  PixelValFeed : PixelVal  <= PixelVal_D;
+  PixelFeed    : PixelOut  <= RdData;
+  PixelValFeed : PixelVal  <= FifoRdVal_D;
   VsyncFeed    : Vsync_Clk <= Vsync_D_Clk;
 end architecture;
