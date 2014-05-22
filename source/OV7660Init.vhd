@@ -27,6 +27,8 @@ entity OV7660Init is
 end entity;
 
 architecture fpga of OV7660Init is
+  constant BLUE  : word(8-1 downto 0) := x"01";
+  constant RED   : word(8-1 downto 0) := x"02";  
   constant COM2  : word(8-1 downto 0) := x"09";
   constant AECH  : word(8-1 downto 0) := x"10";
   constant CLKRC : word(8-1 downto 0) := x"11";
@@ -95,8 +97,13 @@ begin
           AddrData <= COM7 & x"04";     -- Enable RGB
 
         when "0100" =>
-          AddrData <= COM15 & x"D0";    -- Enable RGB565
+          AddrData <= COM15 & x"F0";    -- Enable RGB555
 
+        --when "0101" =>
+        --  AddrData <= BLUE & x"C0";    -- Increase blue
+
+        --when "0110" =>
+        --  AddrData <= RED & x"C0";    -- Increase red
 
           
 --                              when "0001" =>
