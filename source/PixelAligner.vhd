@@ -49,15 +49,17 @@ architecture rtl of PixelAligner is
   --
   signal AdjCr_0_8125                     : word(DataInW-1 downto 0);
   signal AdjCr_1_59375                    : word(DataInW downto 0);
+  signal AdjCr_1_375                      : word(DataInW downto 0);
   --
   signal AdjCb_0_5                        : word(DataInW-1 downto 0);
-  signal AdjCb_0_25                        : word(DataInW-1 downto 0);
-  signal AdjCb_0_125                        : word(DataInW-1 downto 0);
-  signal AdjCb_0_0625                       : word(DataInW-1 downto 0);
-  signal AdjCb_0_03125                       : word(DataInW-1 downto 0);
-  signal AdjCb_0_015625                       : word(DataInW-1 downto 0);
+  signal AdjCb_0_25                       : word(DataInW-1 downto 0);
+  signal AdjCb_0_125                      : word(DataInW-1 downto 0);
+  signal AdjCb_0_0625                     : word(DataInW-1 downto 0);
+  signal AdjCb_0_03125                    : word(DataInW-1 downto 0);
+  signal AdjCb_0_015625                   : word(DataInW-1 downto 0);
   --
   signal AdjCb_0_3906                     : word(DataInW-1 downto 0);
+  signal AdjCb_1_772                      : word(DataInW downto 0);
   --
   signal R_Dithered                       : word(3-1 downto 0);
   signal G_Dithered                       : word(3-1 downto 0);
@@ -118,6 +120,8 @@ begin
   AdjY_0_125   <= SHR(AdjY, "11");
   AdjY_1_125 <= ('0' & AdjY) + ('0' & AdjY_0_125);
   --
+  --AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
+  --AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
   AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
   AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
 
@@ -129,7 +133,8 @@ begin
   --
   AdjCr_0_8125  <= AdjCr - AdjCr_0_25 + AdjCr_0_125 - AdjCr_0_0625;
   AdjCr_1_59375 <= ('0' & AdjCr) + ('0' & AdjCr_0_5) + ('0' & AdjCr_0_125) + ('0' & AdjCr_0_03125);
-
+  AdjCr_1_375   <= ('0' & AdjCr) + ('0' & AdjCr_0_5) - ('0' & AdjCr_0_25) + ('0' & AdjCr_0_125);
+  
   AdjCb_0_5 <= SHR(AdjCb, "01");
   AdjCb_0_25 <= SHR(AdjCb, "10");
   AdjCb_0_125 <= SHR(AdjCb, "11");
@@ -138,8 +143,10 @@ begin
   AdjCb_0_015625 <= SHR(AdjCb, "110");
   --
   AdjCb_0_3906 <= AdjCb - AdjCb_0_5 - AdjCb_0_25 + AdjCb_0_125 + AdjCb_0_0625 - AdjCb_0_03125 - AdjCb_0_015625;
+  AdjCb_1_772 <= ('0' & AdjCb) + ('0' & AdjCb_0_5) + ('0' & AdjCb_0_25);
   
-  RGBConv : process (AdjY_1_125, AdjCb, AdjCr_0_8125, AdjCr_1_59375, AdjCb_0_3906)
+  
+  RGBConv : process (AdjY_1_125, AdjCb, AdjCr_0_8125, AdjCr_1_59375, AdjCb_0_3906, AdjCr_1_375, Y_D)
     variable B_T : word(B'length+1 downto 0);  
     variable G_T : word(G'length+1 downto 0);
     variable R_T : word(R'length+1 downto 0);
@@ -150,19 +157,47 @@ begin
     -- G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
     -- R = 1.164(Y - 16) + 1.596(V - 128)
 
+    
+    --B_T := ('0' & AdjY_1_125) + SHL('0' & AdjCb, "1");
+    ---- Check for wrap    
+    --if B_T(B_T'high) = '1' then
+    --  B <= (others => '1');
+    --else
+    --  B <= B_T(B'length-1 downto 0);
+    --end if;
+
+    --G_T := ('1' & AdjY_1_125) - AdjCr_0_8125 - AdjCb_0_3906;
+    ---- Check for negative wrap
+    --if G_T(G_T'high) = '0' then
+    --  G <= (others => '0');
+    ---- Check for positive wrap
+    --elsif G_T(G_T'high-1) = '1' then
+    --  G <= (others => '1');
+    --else
+    --  G <= G_T(G'length-1 downto 0);
+    --end if;
+    
+    --R_T := AdjY_1_125 + ('0' & AdjCr_1_59375);
+    ---- Check for wrap
+    --if R_T(R_T'high) = '1' then
+    --  R <= (others => '1');
+    --else
+    --  R <= R_T(R'length-1 downto 0);
+    --end if;
+
     -- R = Y + 1.402 (Cr-128)
     -- G = Y - 0.34414 * (Cb - 128) - 0.71414 * (Cr - 128)
     -- B = Y + 1.772 * (Cb - 128)
-    
-    B_T := ('0' & AdjY_1_125) + SHL('0' & AdjCb, "1");
-    -- Check for wrap    
-    if B_T(B_T'high) = '1' then
-      B <= (others => '1');
+
+    R_T := ('0' & Y_D) + ('0' & AdjCr_1_375);
+    -- Check for wrap
+    if R_T(R_T'high) = '1' then
+      R <= (others => '1');
     else
-      B <= B_T(B'length-1 downto 0);
+      R <= R_T(R'length-1 downto 0);
     end if;
 
-    G_T := ('1' & AdjY_1_125) - AdjCr_0_8125 - AdjCb_0_3906;
+    G_T := ("01" & Y_D) - ('0' & AdjCb_0_3906) - ('0' & AdjCr_0_8125);
     -- Check for negative wrap
     if G_T(G_T'high) = '0' then
       G <= (others => '0');
@@ -173,12 +208,12 @@ begin
       G <= G_T(G'length-1 downto 0);
     end if;
     
-    R_T := AdjY_1_125 + ('0' & AdjCr_1_59375);
-    -- Check for wrap
-    if R_T(R_T'high) = '1' then
-      R <= (others => '1');
+    B_T := ('0' & Y_D) + ('0' & AdjCb_1_772);
+    --Check for wrap    
+    if B_T(B_T'high) = '1' then
+      B <= (others => '1');
     else
-      R <= R_T(R'length-1 downto 0);
+      B <= B_T(B'length-1 downto 0);
     end if;
   end process;
 
