@@ -39,6 +39,22 @@ architecture fpga of OV7660Init is
   constant MVFP  : word(8-1 downto 0) := x"1e";
   constant TSLB  : word(8-1 downto 0) := x"3a";
   constant COM15 : word(8-1 downto 0) := x"40";
+  -- Comment stolen from ov7660.c
+  -- v-red, v-green, v-blue, u-red, u-green, u-blue
+  -- They are nine-bit signed quantities, with the sign bit
+  -- stored in 0x58.  Sign for v-red is bit 0, and up from there.
+  
+  constant MTX1  : word(8-1 downto 0) := x"4F";
+  constant MTX2  : word(8-1 downto 0) := x"50";
+  constant MTX3  : word(8-1 downto 0) := x"51";
+  constant MTX4  : word(8-1 downto 0) := x"52";
+  constant MTX5  : word(8-1 downto 0) := x"53";
+  constant MTX6  : word(8-1 downto 0) := x"54";
+  constant MTX7  : word(8-1 downto 0) := x"55";
+  constant MTX8  : word(8-1 downto 0) := x"56";
+  constant MTX9  : word(8-1 downto 0) := x"57";
+  constant MTXS  : word(8-1 downto 0) := x"58";
+  --
   constant MANU  : word(8-1 downto 0) := x"67";
   constant MANV  : word(8-1 downto 0) := x"68";
 
@@ -47,6 +63,7 @@ architecture fpga of OV7660Init is
   signal InstPtr_N, InstPtr_D : word(4-1 downto 0);
   -- FIXME: Potentially listen for a number of vsync pulses instead. This would
   -- save a number of flops
+  -- wait for 2**16 cycles * 40 ns = ~2 ms
   signal Delay_N, Delay_D     : word(16-1 downto 0);
 begin
   SyncProc : process (Clk, Rst_N)
@@ -86,7 +103,7 @@ begin
       case InstPtr_D is
         when "0000" =>
           AddrData <= COM7 & x"80";     -- SCCB Register reset
-          
+
         when "0001" =>
           AddrData <= COM2 & x"00";     -- Enable 4x drive
  
@@ -100,44 +117,33 @@ begin
           AddrData <= COM15 & x"F0";    -- Enable RGB555
 
         --when "0101" =>
-        --  AddrData <= BLUE & x"C0";    -- Increase blue
+        --  AddrData <= MTXS & x"0D";
 
         --when "0110" =>
-        --  AddrData <= RED & x"C0";    -- Increase red
+        --  -- Red?
+        --  AddrData <= MTX1 & x"00";
 
+        --when "0111" =>
+        --  -- Green, should decrease as coefficient sign is negative
+        --  AddrData <= MTX2 & x"00";
+
+        --when "1000" =>
+        --  -- Blue? Add blueness
+        --  AddrData <= MTX3 & x"00";
+                      
+        --when "1001" =>
+        --  AddrData <= MTX4 & x"00";
+
+        --when "1010" =>
+        --  -- Decrease green
+        --  AddrData <= MTX5 & x"00";
+
+        --when "1011" =>
+        --  AddrData <= MTX6 & x"00";
+
+        --when "1100" =>
+        --  AddrData <= TSLB & x"04";          
           
---                              when "0001" =>
---                                      AddrData <= COM7 & x"00"; -- SCCB Register reset release
---                                      We       <= '1';
---                                      Start    <= '1';
---                                      
-----                                    
-
---                              when "0010" =>
---                                      AddrData <= AECH & x"01"; -- 
---                                      We       <= '1';
---                                      Start    <= '1';
-
---                              when "0010" =>
---                                      AddrData <= COM8 & x"A9"; -- Enable banding filter, disable AGC
---                                      We       <= '1';
---                                      Start    <= '1';
-
---                              when "0010" =>
---                                      AddrData <= CLKRC & x"80"; -- Reverse PCLK
---                                      We       <= '1';
---                                      Start    <= '1';
-
---                              when "0010" =>
---                                      AddrData <= COM2 & x"11"; -- enable soft sleep
---                                      We       <= '1';
---                                      Start    <= '1';
-
-          --                    when "0000" =>
-          --                            AddrData <= TSLB & x"1C"; -- enable line buffer test option
-          --                            We       <= '1';
-          --                            Start    <= '1';
-
         when others =>
           We        <= '0';
           Start     <= '0';
