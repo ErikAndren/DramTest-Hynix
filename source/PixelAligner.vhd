@@ -120,8 +120,8 @@ begin
   AdjY_0_125   <= SHR(AdjY, "11");
   AdjY_1_125 <= ('0' & AdjY) + ('0' & AdjY_0_125);
   --
-  --AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
-  --AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
+  -- AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
+  -- AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
   AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
   AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
 
@@ -146,7 +146,7 @@ begin
   AdjCb_1_772 <= ('0' & AdjCb) + ('0' & AdjCb_0_5) + ('0' & AdjCb_0_25);
   
   
-  RGBConv : process (AdjY_1_125, AdjCb, AdjCr_0_8125, AdjCr_1_59375, AdjCb_0_3906, AdjCr_1_375, Y_D)
+  RGBConv : process (AdjY_1_125, AdjCb, AdjCr_0_8125, AdjCr_1_59375, AdjCb_0_3906, AdjCr_1_375, Y_D, AdjCb_1_772)
     variable B_T : word(B'length+1 downto 0);  
     variable G_T : word(G'length+1 downto 0);
     variable R_T : word(R'length+1 downto 0);
