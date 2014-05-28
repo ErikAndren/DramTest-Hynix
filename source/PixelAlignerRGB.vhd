@@ -82,7 +82,7 @@ begin
       Cnt_N <= Cnt_D + 1;
 
       if conv_integer(Cnt_D) = 0 then
-        R_N(5-1 downto 0) <= PixelIn(8-1 downto 3);
+        R_N(5-1 downto 0) <= PixelIn(7-1 downto 2);
         G_N(5-1 downto 3) <= PixelIn(2-1 downto 0);
       end if;
 
@@ -112,7 +112,7 @@ begin
   --  --
   --  GrayScaleOut <= conv_word((conv_integer(ColMax) + conv_integer(ColMin)) / 2, GrayScaleOut'length);
   --end process; 
-
+ 
   RedDither : entity work.DitherFloydSteinberg
     generic map (
       DataW     => 5,

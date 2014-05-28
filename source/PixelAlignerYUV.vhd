@@ -36,7 +36,6 @@ architecture rtl of PixelAligner is
   signal Cnt_N, Cnt_D                     : word(2-1 downto 0);
   signal Y_N, Y_D, Cb_N, Cb_D, Cr_N, Cr_D : word(DataInW-1 downto 0);
   signal GrayScaleVal_N, GrayScaleVal_D   : bit1;
-  signal ColorVal_N, ColorVal_D           : bit1;
   signal R, G, B                          : word(DataInW-1 downto 0);
   signal AdjY, AdjCr, AdjCb               : word(DataInW-1 downto 0);
   signal AdjY_0_125                       : word(DataInW-1 downto 0);
@@ -76,7 +75,6 @@ begin
       Cb_D           <= Cb_N;
       Cr_D           <= Cr_N;
       GrayScaleVal_D <= GrayScaleVal_N;
-      ColorVal_D     <= ColorVal_N;
     end if;
   end process;
 
@@ -87,7 +85,6 @@ begin
     Y_N            <= Y_D;
     Cb_N           <= Cb_D;
     Cr_N           <= Cr_D;
-    ColorVal_N     <= '0';
 
     if PixelInVal = '1' then
       Cnt_N <= Cnt_D + 1;
@@ -96,7 +93,6 @@ begin
       if (Cnt_D(0) = '0') then
         Y_N            <= PixelIn;
         GrayScaleVal_N <= '1';
-        ColorVal_N     <= '1';
       end if;
 
       if Cnt_D = "10" then
