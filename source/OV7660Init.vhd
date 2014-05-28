@@ -105,29 +105,36 @@ begin
           AddrData <= COM7 & x"80";     -- SCCB Register reset
 
         when "0001" =>
-          AddrData <= COM2 & x"00";     -- Enable 4x drive
- 
+          AddrData <= COM7 & x"80";     -- SCCB Register reset
+
         when "0010" =>
-          AddrData <= MVFP & x"10";     -- Flip image to it mount
+          AddrData <= COM7 & x"00";     -- SCCB Register reset
 
         when "0011" =>
-          AddrData <= COM7 & x"04";     -- Enable RGB
-
+          AddrData <= COM2 & x"00";     -- Enable 4x drive
+ 
         when "0100" =>
-          AddrData <= COM15 & x"F0";    -- Enable RGB555
+          AddrData <= MVFP & x"10";     -- Flip image to it mount
 
         --when "0101" =>
+        --  AddrData <= COM7 & x"04";     -- Enable RGB
+
+        --when "0110" =>
+        --  AddrData <= COM15 & x"F0";    -- Enable RGB555
+
+        --when "0111" =>
+        --  -- Green, should decrease as coefficient sign is negative
+        --  AddrData <= MTX2 & x"10";
+          
+          --when "0101" =>
         --  AddrData <= MTXS & x"0D";
 
         --when "0110" =>
         --  -- Red?
         --  AddrData <= MTX1 & x"00";
 
-        --when "0111" =>
-        --  -- Green, should decrease as coefficient sign is negative
-        --  AddrData <= MTX2 & x"00";
 
-        --when "1000" =>
+        --when "0110" =>
         --  -- Blue? Add blueness
         --  AddrData <= MTX3 & x"00";
                       
