@@ -34,12 +34,13 @@ architecture rtl of RequestHandler is
   signal ReqIn_i, ReqOut_i              : DramRequest;
   --
   constant tReadWait                    : positive := tRCD + tCL + tRdDel;
-  constant tReadWaitAndBurst            : positive := tReadWait + BurstLen;
+  constant tPostWait                    : natural := 0;
+  constant tReadWaitAndBurst            : positive := tReadWait + BurstLen + tPostWait;
   constant tReadWaitAndBurstW           : positive := bits(tReadWaitAndBurst);
   --
-  constant WritePenalty                 : positive := BurstLen + 4;
+  constant WritePenalty                 : positive := BurstLen + 2;
   constant WritePenaltyW                : positive := bits(WritePenalty);
-  signal WritePenalty_N, WritePenalty_D : word(WritePenaltyW-1 downto 0);
+  signal WritePenalty_N, WritePenalty_D : word(WritePenaltyW downto 0);
   signal ReadPenalty_N, ReadPenalty_D   : word(tReadWaitAndBurstW downto 0);
 
   type DramInitStates is (INIT, DO_PRECHARGE, DO_LOAD_MODE, DO_LOAD_REG2, DO_LOAD_REG1, DONE);
@@ -51,7 +52,7 @@ begin
   WrSyncProc : process (WrClk, WrRstN)
   begin
     if WrRstN = '0' then
-      InitFsm_D <= DO_PRECHARGE;
+      InitFsm_D <= INIT;
     elsif rising_edge(WrClk) then
       InitFsm_D <= InitFsm_N;
     end if;
@@ -67,10 +68,10 @@ begin
         InitFsm_N <= DO_PRECHARGE;
         
       when DO_PRECHARGE =>
-        InitReq.Val <= "1";
+        InitReq.Val  <= "1";
         InitReq.Addr <= (others => '0');
-        InitReq.Cmd <= DRAM_PRECHARGE;
-        InitFsm_N   <= DO_LOAD_MODE;
+        InitReq.Cmd  <= DRAM_PRECHARGE;
+        InitFsm_N    <= DO_LOAD_MODE;
         
       when DO_LOAD_MODE =>
         InitReq.Val <= "1";
@@ -104,8 +105,8 @@ begin
         -- CAS 3
         InitReq.Addr(1 downto 0) <= "11";
 
-        -- RCD 3
-        InitReq.Addr(3 downto 2) <= "11";
+        -- RCD 2
+        InitReq.Addr(3 downto 2) <= "10";
 
         -- RRD 2
         InitReq.Addr(7 downto 4) <= "0010";
@@ -114,7 +115,7 @@ begin
         InitReq.Addr(8) <= '0';
 
         -- Burst length 8
-        InitReq.Addr(12 downto 9) <= conv_word(8, 4);
+        InitReq.Addr(12 downto 9) <= "1000";
         
         InitFsm_N <= DONE;
         
@@ -169,11 +170,11 @@ begin
     ReadFifo <= '0';
 
     if FifoEmpty = '0' then
-      if ReqOut_i.Cmd = DRAM_WRITEA then
+      if ReqOut_i.Cmd = DRAM_WRITEA and CmdMask_D = '1' then
         if WritePenalty_D = 0 then
           ReadFifo <= '1';
         end if;
-      elsif ReqOut_i.Cmd = DRAM_READA then
+      elsif ReqOut_i.Cmd = DRAM_READA and CmdMask_D = '1' then
         if ReadPenalty_D = 0 then
           ReadFifo <= '1';
         end if;
@@ -200,7 +201,7 @@ begin
     RespVal        <= '0';
 
     -- Clear mask upon reading new entry
-    if ReadFifo = '1' then
+    If ReadFifo = '1' then
       CmdMask_N <= '0';
     end if;
 
@@ -212,7 +213,7 @@ begin
       ReadPenalty_N <= ReadPenalty_D - 1;
 
       -- Signal to response chain to sample responses
-      if ReadPenalty_D <= BurstLen then
+      if (ReadPenalty_D <= BurstLen + tPostWait) and (ReadPenalty_D > tPostWait) then
         RespVal <= '1';
       end if;
     end if;
