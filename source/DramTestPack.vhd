@@ -54,9 +54,11 @@ package DramTestPack is
   constant DRAM_LOAD_REG1     : word(CmdW-1 downto 0) := "110";
   constant DRAM_LOAD_REG2     : word(CmdW-1 downto 0) := "111";
 
-  constant tRCD     : positive := 3;
-  constant tCL      : positive := 2;
-  constant tRdDel   : positive := 4;
+  constant tRCD     : positive := 2;
+  constant tCL      : positive := 3;
+
+  -- Best
+  constant tRdDel   : positive := 2; -- Empirically derived
 
   constant NONE_MODE   : natural := 0;
   constant DITHER_MODE : natural := 1;
@@ -64,7 +66,6 @@ package DramTestPack is
   constant MEDIAN_MODE : natural := 3;
   constant MODES       : natural := MEDIAN_MODE + 1;
   constant MODESW      : natural := bits(MODES);
-
   
   constant RedHigh   : natural := 2;
   constant RedLow    : natural := 0;
