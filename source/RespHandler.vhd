@@ -39,8 +39,7 @@ architecture rtl of RespHandler is
   signal DataToVga : word(DSIZE-1 downto 0);
   signal FifoEmpty, ReadFifo, FifoFull : bit1;
 
-  -- FIXME: This can probably be lowered to 16
-  constant FifoSize  : positive := 32;
+  constant FifoSize  : positive := 16;
   constant FifoSizeW : positive := bits(FifoSize);
   signal FillLvl     : word(FifoSizeW-1 downto 0);
 
@@ -49,7 +48,7 @@ architecture rtl of RespHandler is
   constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW downto 0);
 
-  constant FillLevelThres : positive := 16;
+  constant FillLevelThres : positive := 8;
   
   constant PixelsPerWord  : positive := DSIZE / PixelW;
   constant PixelsPerWordW : positive := bits(PixelsPerWord);
