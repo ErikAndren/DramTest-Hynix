@@ -116,37 +116,45 @@ begin
         when "0100" =>
           AddrData <= MVFP & x"10";     -- Flip image to it mount
 
+        when "0101" =>
+          AddrData <= MTXS & x"0F";
+
+        when "0110" =>
+          -- Red?
+          AddrData <= MTX1 & x"58";
+
+        when "0111" =>
+          -- Green, should decrease as coefficient sign is negative
+          AddrData <= MTX2 & x"48";
+          
+        when "1000" =>
+          -- Blue? Add blueness
+          AddrData <= MTX3 & x"10";
+                      
+        when "1001" =>
+          AddrData <= MTX4 & x"28";
+
+        when "1010" =>
+          -- Decrease green
+          AddrData <= MTX5 & x"48";
+
+        when "1011" =>
+          AddrData <= MTX6 & x"70";
+
+        when "1100" =>
+          AddrData <= MTX7 & x"40";
+
+        when "1101" =>
+          AddrData <= MTX8 & x"40";
+
+        when "1110" =>
+          AddrData <= MTX9 & x"40";
+
         --when "0101" =>
         --  AddrData <= COM7 & x"04";     -- Enable RGB
 
         --when "0110" =>
         --  AddrData <= COM15 & x"F0";    -- Enable RGB555
-
-        --when "0111" =>
-        --  -- Green, should decrease as coefficient sign is negative
-        --  AddrData <= MTX2 & x"10";
-          
-          --when "0101" =>
-        --  AddrData <= MTXS & x"0D";
-
-        --when "0110" =>
-        --  -- Red?
-        --  AddrData <= MTX1 & x"00";
-
-
-        --when "0110" =>
-        --  -- Blue? Add blueness
-        --  AddrData <= MTX3 & x"00";
-                      
-        --when "1001" =>
-        --  AddrData <= MTX4 & x"00";
-
-        --when "1010" =>
-        --  -- Decrease green
-        --  AddrData <= MTX5 & x"00";
-
-        --when "1011" =>
-        --  AddrData <= MTX6 & x"00";
 
         --when "1100" =>
         --  AddrData <= TSLB & x"04";          
