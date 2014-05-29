@@ -454,16 +454,13 @@ begin
 
   CamAlign : entity work.CamAligner
     port map (
-      WrRst_N       => RstN25MHz,
-      WrClk         => Clk25MHz,
+      Rst_N       => RstN25MHz,
+      Clk         => Clk25MHz,
       --
       Vsync         => Vsync_i,
       --
       Href          => AlignedPixDataVal,
       D             => AlignedPixData,
-      --
-      RdClk         => Clk25MHz,
-      RdRst_N       => RstN25MHz,
       --
       WriteReq      => WriteReqFromPatGen,
       WriteReqAck   => WriteReqFromPatGenAck,

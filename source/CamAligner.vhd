@@ -8,15 +8,12 @@ use work.DramTestPack.all;
 
 entity CamAligner is
   port (
-    WrRst_N       : in  bit1;
-    WrClk         : in  bit1;
+    Rst_N       : in  bit1;
+    Clk         : in  bit1;
     --
     Vsync         : in  bit1;
     Href          : in  bit1;
     D             : in  word(8-1 downto 0);
-    --
-    RdClk         : in  bit1;
-    RdRst_N       : in  bit1;
     --
     WriteReq      : out DramRequest;
     WriteReqAck   : in  bit1;
@@ -31,16 +28,11 @@ architecture rtl of CamAligner is
   signal Addr_N, Addr_D                   : word(VgaPixelsPerDwordW-1 downto 0);
   --
   signal WordCnt_N, WordCnt_D             : word(PixelsPerBurstW-1 downto 0);
-  -- FIXME: Replace with assymetric fifo?
   signal WrData_N, WrData_D               : word(BurstSz-1 downto 0);
   --
-  signal DramRequest_i, WriteReq_i        : DramRequest;
-  signal DramRequestWord, WriteReqWord    : word(DramRequestW-1 downto 0);
+  signal DramRequest_i                    : DramRequest;
   signal FifoWe_N, FifoWe_D               : bit1;
-  signal WasEmpty_D                       : bit1;
   signal ArbAck_N, ArbAck_D               : bit1;
-  signal ReadFifo                         : bit1;
-  signal FifoEmpty, FifoFull              : bit1;
   signal FirstFrameVal_N, FirstFrameVal_D : bit1;
   
   function CalcLastFrameComp(CurFrame : word) return word is
@@ -55,15 +47,17 @@ architecture rtl of CamAligner is
   end function;
   
 begin
-  WrSyncProc : process (WrClk, WrRst_N)
+  SyncProc : process (Clk, Rst_N)
   begin
-    if WrRst_N = '0' then
+    if Rst_N = '0' then
       Frame_D         <= (others => '0');
       Addr_D          <= (others => '0');
       WordCnt_D       <= (others => '0');
       FifoWe_D        <= '0';
       FirstFrameVal_D <= '0';
-    elsif rising_edge(WrClk) then
+      ArbAck_D        <= '1';
+    elsif rising_edge(Clk) then
+      ArbAck_D        <= ArbAck_N;
       Frame_D         <= Frame_N;
       WordCnt_D       <= WordCnt_N;
       Addr_D          <= Addr_N;
@@ -72,9 +66,9 @@ begin
     end if;
   end process;
 
-  WrSyncNoRstProc : process (WrClk)
+  WrSyncNoRstProc : process (Clk)
   begin
-    if rising_edge(WrClk) then
+    if rising_edge(Clk) then
       WrData_D <= WrData_N;
     end if;
   end process;
@@ -82,14 +76,11 @@ begin
   LastFrameAssign  : LastFrameComp <= CalcLastFrameComp(Frame_D);
   FirstFrameAssign : FirstFrameVal <= FirstFrameVal_D;
   
-  WrAsyncProc : process (WordCnt_D, Frame_D, WrData_D, Vsync, Href, D, Addr_D, FifoWe_D, FirstFrameVal_D)
+  WrAsyncProc : process (WordCnt_D, WrData_D, Vsync, Href, D, FifoWe_D)
   begin
     WordCnt_N       <= WordCnt_D;
-    Frame_N         <= Frame_D;
     WrData_N        <= WrData_D;
-    Addr_N          <= Addr_D;
     FifoWe_N        <= '0';
-    FirstFrameVal_N <= FirstFrameVal_D;
 
     if Href = '1' then      
       WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);        
@@ -101,7 +92,18 @@ begin
       end if;
     end if;
 
-    if FifoWe_D = '1' then
+    if Vsync = '1' then
+      WordCnt_N  <= (others => '0');
+    end if;
+  end process;
+
+  AddrStep : process (Frame_D, Addr_D, FirstFrameVal_D, Vsync, WriteReqAck)
+  begin
+    Frame_N         <= Frame_D;
+    Addr_N          <= Addr_D;
+    FirstFrameVal_N <= FirstFrameVal_D;
+
+    if WriteReqAck = '1' then
       -- Increase address after the last entry was written
       Addr_N    <= Addr_D + BurstLen;
 
@@ -117,9 +119,8 @@ begin
         end if;
       end if;
     end if;
-
+    
     if Vsync = '1' then
-      WordCnt_N  <= (others => '0');
       Addr_N     <= (others => '0');
     end if;
   end process;
@@ -128,45 +129,10 @@ begin
   DramRequest_i.Data <= WrData_D;
   DramRequest_i.Cmd  <= DRAM_WRITEA;
   DramRequest_i.Addr <= xt0(Frame_D & Addr_D, ASIZE);
-  DramRequestWord    <= DramRequestToWord(DramRequest_i);
+  WriteReq           <= DramRequest_i when ArbAck_D = '0' else Z_DramRequest;
 
-  -- Is this fifo really necessary?
-  -- Shouldn't the sdram arbiter and request fifo cope anyway?
-  RFifo : entity work.ReqFifo
-    port map (
-      -- Clear fifo upon vsync
-      AClr    => Vsync,
-      --
-      WrClk   => WrClk,
-      WrReq   => FifoWe_D,
-      Data    => DramRequestWord,
-      --
-      RdClk   => RdClk,
-      RdReq   => ReadFifo,
-      Q       => WriteReqWord,
-      RdEmpty => FifoEmpty,
-      WrFull  => FifoFull
-      );
-
-  assert not (FifoFull = '1' and FifoWe_D = '1') report "CamAligner fifo overflow" severity failure;
-
-  WriteReq_i <= WordToDramRequest(WriteReqWord);
-  WriteReq   <= WriteReq_i when ArbAck_D = '0' else Z_DramRequest;
-
-  RdSyncProc : process (RdClk, RdRst_N)
+  RdAsyncProc : process (WriteReqAck, ArbAck_D, FifoWe_D)
   begin
-    if RdRst_N = '0' then
-      WasEmpty_D <= '0';
-      ArbAck_D   <= '1';
-    elsif rising_edge(RdClk) then
-      WasEmpty_D <= FifoEmpty;
-      ArbAck_D   <= ArbAck_N;
-    end if;
-  end process;
-
-  RdAsyncProc : process (WriteReqAck, WasEmpty_D, FifoEmpty, ArbAck_D)
-  begin
-    ReadFifo <= '0';
     ArbAck_N <= ArbAck_D;
 
     -- Arbiter has acked request, proceed to mask the output
@@ -174,19 +140,9 @@ begin
       ArbAck_N <= '1';
     end if;
 
-    -- There is more to read
-    if FifoEmpty = '0' then
-      -- Last request was read, read out the next entry and flag it as valid
-      if WriteReqAck = '1' and ArbAck_D = '1' then
-        ReadFifo <= '1';
-        ArbAck_N <= '0';
-      end if;
-    end if;
-
-    -- Detect that fifo has gone from empty to non empty. Read out first entry
-    if WasEmpty_D = '1' and FifoEmpty = '0' and ArbAck_D = '1' then
-      ReadFifo <= '1';
+    -- New request
+    if FifoWe_D = '1' then
       ArbAck_N <= '0';
-    end if;      
+    end if;
   end process;  
 end architecture rtl;
