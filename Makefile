@@ -33,6 +33,7 @@ FILES=source/DramTestPack.vhd \
 	source/RequestHandler.vhd \
 	source/sdr_data_path.vhd \
 	source/sdr_sdram.vhd \
+	source/SerialCmdParser.vhd \
 	source/DramTestTop.vhd \
 	source/tb.vhd
 
