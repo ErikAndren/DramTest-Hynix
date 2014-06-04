@@ -8,8 +8,9 @@ use work.DramTestPack.all;
 
 entity SerialCmdParser is
   generic (
-    -- 1 B Op, 4 B Addr, 4 B Data + 3 B spacing
-    BufLen : positive := 12
+    -- Nbr of nibbles
+    AddrLen : positive := 8;
+    DataLen : positive := 8
     );
   port (
     RstN           : in  bit1;
@@ -19,7 +20,7 @@ entity SerialCmdParser is
     IncSerCharVal  : in  bit1;
     --
     OutSerCharBusy : in  bit1;
-    OutSerChar     : out word(8*ByteW-1 downto 0);
+    OutSerChar     : out word(Byte-1 downto 0);
     OutSerCharVal  : out bit1;
     --
     RegAccessOut   : out RegAccessRec;
@@ -33,17 +34,18 @@ architecture rtl of SerialCmdParser is
   constant ReadCmd                : word(8-1 downto 0) := x"52";
   constant SpaceChar              : word(8-1 downto 0) := x"20";
   --
+  constant NbrArgs                : positive           := 3;
+  constant OpLen                  : positive           := 1;
+  --
+  constant BufLen                 : positive           := OpLen + NbrArgs + AddrLen + DataLen;
   constant BufLenW                : positive           := bits(BufLen);
   --
-  constant OpLen                  : positive           := 1;
   constant OpStartOffs            : positive           := BufLen-1;
   constant OpEndOffs              : positive           := OpStartOffs;
   --
-  constant AddrLen                : positive           := 4;
   constant AddrStartOffs          : positive           := OpEndOffs - 2;
   constant AddrEndOffs            : positive           := AddrStartOffs - AddrLen;
   --
-  constant DataLen                : positive           := 4;
   constant DataStartOffs          : positive           := AddrEndOffs - 2;
   constant DataEndOffs            : positive           := DataStartOffs - DataLen;
   --
@@ -54,6 +56,62 @@ architecture rtl of SerialCmdParser is
   signal ShiftBuf                 : word(BufLen*ByteW-1 downto 0);
   signal CurBufLen_N, CurBufLen_D : word(BufLenW-1 downto 0);
   signal DecodeCmd                : bit1;
+
+  function AscToHex(StartOffs : natural; EndOffs : natural; Inc : word) return word is
+    variable j : integer;
+    variable B : word(ByteW-1 downto 0);
+    variable RetVal : word((Inc'length/Byte)*Nibble-1 downto 0);
+  begin
+    RetVal := (others => '0');
+    -- Convert address from ascii to binary representation
+    -- ascii is in 8 bits, binary is 4
+    for i in StartOffs downto EndOffs loop
+      j := i - EndOffs;
+      B := Inc((i+1)*Byte-1 downto i*Byte);
+      -- hex
+      if B >= x"41" then
+        B := B - x"41";
+      else
+        B := B - x"30";
+      end if;
+
+      RetVal((j+1)*Nibble-1 downto j*Nibble) := B(Nibble-1 downto 0);
+    end loop;
+    return RetVal;
+  end function;
+
+  function HexToAsc(StartOffs : natural; EndOffs : natural; Inc : word) return word is
+    variable j                : integer;
+    variable ByteChunk        : word(ByteW-1 downto 0);
+    variable UpperNibbleChunk : word(Nibble-1 downto 0);
+    variable LowerNibbleChunk : word(Nibble-1 downto 0);
+    variable RetVal           : word((Inc'length/Nibble)*Byte-1 downto 0);
+  begin
+    RetVal := (others => '0');
+    -- Convert address from binary to ascii representation
+    -- Each nibble gets its own charachter
+    for i in StartOffs downto EndOffs loop
+      j         := i - AddrEndOffs;
+      ByteChunk := Inc((j+1)*Byte-1 downto j*Byte);
+
+      LowerNibbleChunk := ExtractSlice(ByteChunk, Nibble, 0);
+      UpperNibbleChunk := ExtractSlice(ByteChunk, Nibble, 1);
+      
+      -- Check if hex
+      if LowerNibbleChunk < 10 then
+        RetVal((i+1)*Byte-Nibble-1 downto i*Byte) := LowerNibbleChunk + x"30";        
+      else
+        RetVal((i+1)*Byte-Nibble-1 downto i*Byte) := LowerNibbleChunk + x"41";
+      end if;        
+
+      if UpperNibbleChunk < 10 then
+        RetVal((i+1)*Byte-1 downto i*Byte+Nibble) := UpperNibbleChunk + x"30";        
+      else
+        RetVal((i+1)*Byte-1 downto i*Byte+Nibble) := UpperNibbleChunk + x"41";
+      end if;
+    end loop;
+    return RetVal;  
+  end function;
   
 begin
   IncCharAddSync : process (Clk, RstN)
@@ -76,7 +134,7 @@ begin
     ShiftBuf    <= SHL(IncBuf_D, conv_word((BufLen - conv_integer(CurBufLen_D)) * ByteW, bits(BufLen * ByteW)));
     
     if IncSerCharVal = '1' then
-      IncBuf_T := IncBuf_D(IncBuf_D'length-2 downto 1) & IncSerChar;
+      IncBuf_T := IncBuf_D((IncBuf_D'length-2)*ByteW downto 1*ByteW) & IncSerChar;
       CurBufLen_N <= CurBufLen_D + 1;
       if (CurBufLen_D + 1 = BufLen) then
         CurBufLen_N <= CurBufLen_D;
@@ -93,6 +151,7 @@ begin
 
   DecodeCmdProc : process (ShiftBuf, DecodeCmd, CurBufLen_D)
     variable BufLen : integer;
+    
   begin
     BufLen       := conv_integer(CurBufLen_D);
     RegAccessOut <= Z_RegAccessRec;
@@ -101,13 +160,16 @@ begin
       if ShiftBuf((OpStartOffs+1)*ByteW-1 downto OpEndOffs*ByteW) = WriteCmd then
         RegAccessOut.Val <= "1";
         RegAccessOut.Cmd <= REG_WRITE;
-        RegAccessOut.Addr <= ShiftBuf((AddrStartOffs+1)*ByteW-1 downto AddrEndOffs*ByteW);
-        RegAccessOut.Data <= ShiftBuf((DataStartOffs+1)*ByteW-1 downto DataEndOffs*ByteW);
+
+        -- Convert address from ascii to binary representation
+        -- ascii is in 8 bits, binary is 4
+        RegAccessOut.Addr <= AscToHex(AddrStartOffs, AddrEndOffs, ShiftBuf);
+        RegAccessOut.Data <= AscToHex(DataStartOffs, DataEndOffs, ShiftBuf);
         
       elsif ShiftBuf((OpStartOffs+1)*ByteW-1 downto OpEndOffs*ByteW) = ReadCmd then
         RegAccessOut.Val  <= "1";
         RegAccessOut.Cmd  <= REG_READ;
-        RegAccessOut.Addr <= ShiftBuf((AddrStartOffs+1)*ByteW-1 downto (AddrStartOffs-AddrEndOffs)*ByteW);
+        RegAccessOut.Addr <= AscToHex(AddrStartOffs, AddrEndOffs, ShiftBuf);
       end if;
     end if;
   end process;
@@ -152,8 +214,11 @@ begin
         OutBuf((OpStartOffs+1)*ByteW-1 downto OpEndOffs*ByteW) := WriteCmd;
       end if;
 
-      OutBuf((AddrStartOffs+1)*ByteW-1 downto AddrEndOffs*ByteW) := RegAccessIn.Addr;
-      OutBuf((DataStartOffs+1)*ByteW-1 downto DataEndOffs*ByteW) := RegAccessIn.Data;
+      -- Must add d'48 to all numbers to align to ascii, hex numbers need
+      -- special treatment.
+      -- Each nibble of the data and address must be converted.
+      OutBuf((AddrStartOffs+1)*Byte-1 downto AddrEndOffs*Byte) := HexToAsc(AddrStartOffs, AddrEndOffs, RegAccessIn.Addr);
+      OutBuf((DataStartOffs+1)*ByteW-1 downto DataEndOffs*ByteW) := HexToAsc(DataStartOffs, DataEndOffs, RegAccessIn.Data);
 
       OutBufLen_N <= conv_word(BufLen-1, BufLenW);
       OutBufVal_N <= '1';
