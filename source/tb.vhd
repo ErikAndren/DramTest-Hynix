@@ -97,7 +97,10 @@ begin
       SramOeN    => SramOeN,
       SramWeN    => SramWeN,
       SramUbN    => open,
-      SramLbN    => open
+      SramLbN    => open,
+      --
+      SerialIn   => '1',
+      SerialOut  => open
       );
 
   SramCntProc : process (RstN, SramCeN)
