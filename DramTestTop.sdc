@@ -60,6 +60,11 @@ set_false_path -from [get_ports {Button1 Button2 Button3}] -through [get_pins {B
 # False path these signals. The frequency is so low that we handle the timing manually
 set_false_path -from [get_registers {*}] -to [get_ports {SIO_C SIO_D}]
 
+# False path serial ports
+set_false_path -from [get_registers {*}] -to [get_ports {SerialOut}]
+set_false_path -from [get_ports SerialIn] -to [get_registers *]
+
+
 # PWM Signals
 set_false_path -from [get_registers {*}] -to [get_ports {YawServo PitchServo}]
 
