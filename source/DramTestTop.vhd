@@ -52,11 +52,16 @@ entity DramTestTop is
     SramLbN    : out   bit1;
     -- Servo interface
     PitchServo : out   bit1;
-    YawServo   : out   bit1
+    YawServo   : out   bit1;
+    -- Serial interface
+    SerialIn   : in    bit1;
+    SerialOut  : out   bit1
     );
 end entity;
 
 architecture rtl of DramTestTop is
+  constant Clk25MHz_integer              : positive := 25000000;
+  --
   signal Clk100MHz                       : bit1;
   signal RstN100MHz                      : bit1;
   --
@@ -586,5 +591,58 @@ begin
   VgaVsync_i <= not VgaVSyncN;
   VgaVSync   <= VgaVSyncN;
   VgaHSync   <= VgaHSyncN;
+
+  Serial : block
+    signal OutSerCharVal, IncSerCharVal : bit1;
+    signal OutSerCharBusy               : bit1;
+    signal OutSerChar, IncSerChar        : word(Byte-1 downto 0);
+    --
+    signal RegAccess : RegAccessRec;
+  begin
+    SerWrite : entity work.SerialWriter
+      generic map (
+        ClkFreq => Clk25MHz_integer
+        )
+      port map (
+        Clk       => Clk25MHz,
+        Rst_N     => RstN25MHz,
+        --
+        We        => OutSerCharVal,
+        WData     => OutSerChar,
+        Busy      => OutSerCharBusy,
+        --
+        SerialOut => SerialOut
+        );
+
+    SerRead : entity work.SerialReader
+      generic map (
+        ClkFreq => Clk25MHz_integer
+        )
+      port map (
+        Clk        => Clk25MHz,
+        Rst_N      => RstN25MHz,
+        --
+        SerialIn   => SerialIn,
+        --
+        IncByte    => IncSerChar,
+        IncByteVal => IncSerCharVal
+        );
+
+    SerCmdParser : entity work.SerialCmdParser
+      port map (
+        RstN           => RstN25MHz,
+        Clk            => Clk25MHz,
+        --
+        IncSerChar     => IncSerChar,
+        IncSerCharVal  => IncSerCharVal,
+        --
+        OutSerCharBusy => OutSerCharBusy,
+        OutSerChar     => OutSerChar,
+        OutSerCharVal  => OutSerCharVal,
+        -- FIXME: Loop back register access for now
+        RegAccessOut   => RegAccess,
+        RegAccessIn    => RegAccess
+        );
+  end block;
   
 end architecture rtl;
