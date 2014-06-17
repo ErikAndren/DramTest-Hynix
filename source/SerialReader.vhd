@@ -1,6 +1,3 @@
--- Implements a rs232 decoder
--- Copyright Erik Zachrisson 2014, erik@zachrisson.info
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -10,129 +7,180 @@ use work.Types.all;
 
 entity SerialReader is
   generic (
-    Bitrate    : positive := 9600;
-    DataW      : positive := 8;
-    ClkFreq    : positive := 50000000;
-    ParityBits : natural  := 0
-    );
+    DataW   : positive;
+    ClkFreq : integer := 50000000
+  );
   port (
-    Clk        : in  bit1;
-    Rst_N      : in  bit1;
+    Clk   : in  bit1;
+    RstN  : in  bit1;
     --
-    SerialIn   : in  bit1;
+    Rx    : in  bit1;
     --
-    IncByte    : out word(DataW-1 downto 0);
-    IncByteVal : out bit1
+    Baud  : in  word(3-1 downto 0);
+    --
+    Dout  : out word(DataW-1 downto 0);
+    RxRdy : out bit1
     );
 end entity;
 
-architecture fpga of SerialReader is
-  constant BitRateCnt       : positive := ClkFreq / Bitrate;
-  signal Cnt_N, Cnt_D       : word(bits(bitRateCnt)-1 downto 0);
-  signal SampleLine         : bit1;
+architecture rtl of SerialReader is
+  signal Divisor : integer;
+  signal Top16   : bit1;
+  signal Div16   : integer;
+  signal TopRx   : bit1;
+  signal RxDiv   : integer;
+  signal ClrDiv  : bit1;
   --
-  signal CharCnt_N, CharCnt_D : word(DataW-1 downto 0);
+  signal Rx_Reg : word(DataW-1 downto 0);
+  signal RxBitCnt : integer;
+  type RxFsmType is (Start_Rx, Idle, Edge_Rx, Shift_Rx, Stop_Rx, RxOVF);
+  signal RxFsm : RxFsmType;
+  signal RxRdyi : bit1;
+
+  constant Baud_115200 : word(3-1 downto 0) := "000";
+  constant Baud_57600  : word(3-1 downto 0) := "001";
+  constant Baud_38400  : word(3-1 downto 0) := "010";
+  constant Baud_19200  : word(3-1 downto 0) := "011";
+  constant Baud_9600   : word(3-1 downto 0) := "100";
+  constant Baud_4800   : word(3-1 downto 0) := "101";
+  constant Baud_2400   : word(3-1 downto 0) := "110";
+  constant Baud_1200   : word(3-1 downto 0) := "111";
   
-  signal Str_D, Str_N   : word(DataW-1 downto 0);
-
-  type SerialState is (QUALIFY_DATA, READING, DELAY, WAITING_FOR_STOP, WAITING_FOR_START);
-  signal State_N, State_D   : SerialState;
-  signal SetTimer, setDelay : bit1;
-  signal QualifyData        : bit1;
 begin
-  CntSync : process (Clk, Rst_N)
+  BaudRateSel : process (RstN, Clk)
   begin
-    if (Rst_N = '0') then
-      Cnt_D     <= (others => '0');
-      Str_D     <= (others => '0');
-      CharCnt_D <= (others => '0');
-      State_D   <= WAITING_FOR_START;
+    if RstN = '0' then
+      Divisor <= 0;
     elsif rising_edge(Clk) then
-      Cnt_D     <= Cnt_N;
-      Str_D     <= Str_N;
-      State_D   <= State_N;
-      CharCnt_D <= CharCnt_N;
+      case Baud is
+        when Baud_115200 =>
+          Divisor <= ClkFreq / 2000000;
+          
+        when Baud_57600 =>
+          Divisor <= ClkFreq / 943396;
+          
+        when Baud_38400 =>
+          Divisor <= ClkFreq / 617283;
+          
+        when Baud_19200 =>
+          Divisor <= ClkFreq / 303030;
+          
+        when Baud_9600 =>
+          Divisor <= ClkFreq / 147059;
+          
+        when Baud_4800 =>
+          Divisor <= ClkFreq / 74627;
+          
+        when Baud_2400 =>
+          Divisor <= ClkFreq / 37258;
+                    
+        when Baud_1200 =>
+          Divisor <= ClkFreq / 18601;
+          
+        when others =>
+          Divisor <= ClkFreq / 2000000;
+      end case;
     end if;
   end process;
 
-  AsyncProc : process (State_D, SerialIn, Str_D, CharCnt_D, SampleLine)
+  Clk16Gen : process (RstN, Clk)
   begin
-    State_N     <= State_D;
-    SetTimer    <= '0';
-    Str_N       <= Str_D;
-    CharCnt_N   <= CharCnt_D;
-    QualifyData <= '0';
-    setDelay    <= '0';
-    
-    case State_D is
-      when WAITING_FOR_START =>
-        if SerialIn = '0' then
-          State_N   <= DELAY;
-          CharCnt_N <= (others => '0');
-          -- Wait a bit to not sample the beginning of an edge
-          SetDelay  <= '1';
+    if RstN = '0' then
+      Top16 <= '0';
+      Div16 <= 0;
+    elsif rising_edge(Clk) then
+      Top16 <= '0';
+      if Div16 = Divisor then
+        Div16 <= 0;
+        Top16 <= '1';
+      else
+        Div16 <= Div16 + 1;
+      end if;
+    end if;
+  end process;
+
+  RxSampGen : process (RstN, Clk)
+  begin
+    if RstN = '0' then
+      TopRx <= '0';
+      RxDiv <= 0;
+    elsif rising_edge(Clk) then
+      TopRx <= '0';
+      if ClrDiv = '1' then
+        RxDiv <= 0;
+      elsif Top16 = '1' then
+        if RxDiv = 7 then
+          RxDiv <= 0;
+          TopRx <= '1';
+        else
+          RxDiv <= RxDiv + 1;
         end if;
+      end if;
+    end if;
+  end process;
 
-      when DELAY =>
-        if SampleLine = '1' then
-          SetTimer <= '1';
-          State_N  <= READING;
-        end if;
+  Rx_FSM : process (RstN, Clk)
+  begin
+    if RstN = '0' then
+      Rx_Reg   <= (others => '0');
+      RxBitCnt <= 0;
+      RxFsm    <= Idle;
+      RxRdyi   <= '0';
+      ClrDiv   <= '0';
+    elsif rising_edge(Clk) then
+      ClrDiv <= '0';
+      RxRdyi <= '0';
 
-      when READING =>
-        if SampleLine = '1' then
-          CharCnt_N <= CharCnt_D + 1;
-          Str_N     <= SerialIn & Str_D(Str_N'length-1 downto 1);
-          SetTimer  <= '1';
-
-          if conv_integer(CharCnt_D) = DataW-1 then
-            State_N   <= WAITING_FOR_STOP;
+      case RxFSM is
+        when Idle =>
+          RxBitCnt <= 0;
+          if Top16 = '1' then
+            if Rx = '0' then
+              RxFSM  <= Start_Rx;
+              ClrDiv <= '1';
+            end if;
           end if;
-        end if;
-        
-      when WAITING_FOR_STOP =>
-        if SampleLine = '1' then
-          State_N <= WAITING_FOR_START;
-          SetTimer <= '1';
 
-          if SerialIn = '1' then
-            State_N <= QUALIFY_DATA;
+        when Start_Rx =>
+          if TopRx = '1' then
+            if Rx = '1' then
+              RxFSM <= RxOVF;
+            else
+              RxFSM <= Edge_Rx;
+            end if;
           end if;
-        end if;
+          
+        when Edge_Rx =>
+          if TopRx = '1' then
+            RxFSM <= Shift_Rx;
+            if RxBitCnt = DataW then
+              RxFSM <= Stop_Rx;
+            else
+              RxFSM <= Shift_Rx;
+            end if;
+          end if;
+          
+        when Shift_Rx =>
+          if TopRx = '1' then
+            RxBitCnt <= RxBitCnt + 1;
+            Rx_Reg <= Rx & Rx_Reg(Rx_Reg'high downto 1);
+            RxFSM <= Edge_Rx;
+          end if;
 
-      when QUALIFY_DATA =>
-        if SampleLine = '1' then
-          QualifyData <= '1';
-          State_N <= WAITING_FOR_START;
-        end if;
+        when Stop_Rx =>
+          if TopRx = '1' then
+            RxRdyi <= '1';
+            RxFSM <= Idle;
+          end if;
 
-    end case;
-  end process;
-
-  SetTime : process (SetTimer, SetDelay, Cnt_D)
-  begin
-    Cnt_N <= Cnt_D - 1;
-    if Cnt_D = 0 then
-      Cnt_N <= (others => '0');
-    end if;
-
-    if SetDelay = '1' then
-      Cnt_N <= conv_word(BitRateCnt/2, Cnt_N'length);
-    elsif SetTimer = '1' then
-      Cnt_N <= conv_word(BitRateCnt-1, Cnt_N'length);
-    end if;
-  end process;
-  SampleLine <= '1' when Cnt_D = 0 else '0';
-
-  -- FIXME: Add support for parity
-  QualifyDataProc : process (QualifyData, Str_D)
-  begin
-    IncByte    <= Str_D;
-    IncByteVal <= '0';
-
-    if QualifyData = '1' then
-      IncByteVal <= '1';
+        when RxOVF =>
+          if Rx = '1' then
+            RxFSM <= Idle;
+          end if;
+        end case;
     end if;
   end process;
+  Dout  <= Rx_Reg;
+  RxRdy <= RxRdyi;
+
 end architecture;
-
