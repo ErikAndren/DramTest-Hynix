@@ -5,6 +5,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
 use work.DramTestPack.all;
+use work.SerialPack.all;
 
 entity SerialCmdParser is
   generic (
@@ -29,32 +30,28 @@ entity SerialCmdParser is
 end entity;
 
 architecture rtl of SerialCmdParser is
-  constant NewLine                : word(8-1 downto 0) := x"0A";
-  constant WriteCmd               : word(8-1 downto 0) := x"56";
-  constant ReadCmd                : word(8-1 downto 0) := x"52";
-  constant SpaceChar              : word(8-1 downto 0) := x"20";
   --
-  constant NbrArgs                : positive           := 3;
-  constant OpLen                  : positive           := 1;
+  constant NbrArgs                : positive := 3;
+  constant OpLen                  : positive := 1;
   -- 1111111111
   -- 9876543210987654321 0
   -- O AAAAAAAA DDDDDDDD\n
   -- 1 + 3 + 8 + 8 = 20
-  constant BufLen                 : positive           := OpLen + NbrArgs + AddrLen + DataLen;
+  constant BufLen                 : positive := OpLen + NbrArgs + AddrLen + DataLen;
   -- 5
-  constant BufLenW                : positive           := bits(BufLen);
+  constant BufLenW                : positive := bits(BufLen);
   -- 19
-  constant OpStartOffs            : natural           := BufLen-1;
+  constant OpStartOffs            : natural  := BufLen-1;
   -- 19
-  constant OpEndOffs              : natural           := OpStartOffs;
+  constant OpEndOffs              : natural  := OpStartOffs;
   -- 19 - 2 = 17
-  constant AddrStartOffs          : natural           := OpEndOffs - 2;
+  constant AddrStartOffs          : natural  := OpEndOffs - 2;
   -- 17 - 7 = 10
-  constant AddrEndOffs            : natural           := AddrStartOffs - (AddrLen-1);
+  constant AddrEndOffs            : natural  := AddrStartOffs - (AddrLen-1);
   -- 10 - 2 = 8
-  constant DataStartOffs          : natural           := AddrEndOffs - 2;
+  constant DataStartOffs          : natural  := AddrEndOffs - 2;
   -- 8 - 1 = 1
-  constant DataEndOffs            : natural           := DataStartOffs - (DataLen-1);
+  constant DataEndOffs            : natural  := DataStartOffs - (DataLen-1);
   --
   signal IncBuf_N, IncBuf_D       : word(BufLen*Byte-1 downto 0);
   signal OutBuf_N, OutBuf_D       : word(BufLen*Byte-1 downto 0);
@@ -81,7 +78,7 @@ architecture rtl of SerialCmdParser is
       B := Inc_norm((j+1)*Byte-1 downto j*Byte);
       -- hex
       if B >= x"41" then
-        B := B - x"41";
+        B := B - x"37";
       else
         B := B - x"30";
       end if;
@@ -92,12 +89,10 @@ architecture rtl of SerialCmdParser is
   end function;
 
   function HexToAsc(StartOffs : natural; EndOffs : natural; Inc : word) return word is
-    variable j                : integer;
-    variable ByteChunk        : word(Byte-1 downto 0);
-    variable UpperNibbleChunk : word(Nibble-1 downto 0);
-    variable LowerNibbleChunk : word(Nibble-1 downto 0);
-    variable RetVal           : word((Inc'length/Nibble)*Byte-1 downto 0);
-    variable Inc_norm         : word(Inc'length-1 downto 0);
+    variable j           : integer;
+    variable NibbleChunk : word(Nibble-1 downto 0);
+    variable RetVal      : word((Inc'length/Nibble)*Byte-1 downto 0);
+    variable Inc_norm    : word(Inc'length-1 downto 0);
   begin
     Inc_norm := Inc;
     
@@ -105,24 +100,15 @@ architecture rtl of SerialCmdParser is
     -- Convert address from binary to ascii representation
     -- Each nibble gets its own charachter
     for i in StartOffs downto EndOffs loop
-      j                := i - EndOffs;
-      ByteChunk        := Inc_norm((j+1)*Byte-1 downto j*Byte);
-      --
-      LowerNibbleChunk := ExtractSlice(ByteChunk, Nibble, 0);
-      UpperNibbleChunk := ExtractSlice(ByteChunk, Nibble, 1);
+      j           := i - EndOffs;
+      NibbleChunk := Inc_norm((j+1)*Nibble-1 downto j*Nibble);
       
       -- Check if hex
-      if LowerNibbleChunk < 10 then
-        RetVal((i+1)*Byte-1 downto i*Byte) := LowerNibbleChunk + x"30";        
+      if NibbleChunk < 10 then
+        RetVal((i+1)*Byte-1 downto i*Byte) := NibbleChunk + x"30";        
       else
-        RetVal((i+1)*Byte-1 downto i*Byte) := LowerNibbleChunk + x"41";
+        RetVal((i+1)*Byte-1 downto i*Byte) := NibbleChunk + x"37";
       end if;        
-
-      if UpperNibbleChunk < 10 then
-        RetVal((i+1)*Byte-1 downto i*Byte) := UpperNibbleChunk + x"30";
-      else
-        RetVal((i+1)*Byte-1 downto i*Byte) := UpperNibbleChunk + x"41";
-      end if;
     end loop;
     return RetVal;  
   end function;
@@ -139,7 +125,7 @@ begin
     end if;
   end process;
   
-  IncCharAddAsync : process (IncSerChar, IncSerCharVal, IncBuf_D, CurBufLen_D)
+   IncCharAddAsync : process (IncSerChar, IncSerCharVal, IncBuf_D, CurBufLen_D)
     variable IncBuf_T : word(IncBuf_D'range);
   begin
     IncBuf_T    := IncBuf_D;
@@ -219,6 +205,7 @@ begin
       -- Build the output string
       -- Fill output string with spaces
       OutBuf := ReplicateWord(SpaceChar, BufLen);
+      OutBuf(ByteW-1 downto 0) := NewLine;
 
       if RegAccessIn.Cmd = REG_READ then
         OutBuf((OpStartOffs+1)*Byte-1 downto OpEndOffs*Byte) := ReadCmd;
@@ -229,17 +216,17 @@ begin
       -- Must add d'48 to all numbers to align to ascii, hex numbers need
       -- special treatment.
       -- Each nibble of the data and address must be converted.
-      OutBuf((AddrStartOffs+1)*Byte-1 downto AddrEndOffs*Byte) := HexToAsc(2-1, 0, RegAccessIn.Addr);
-      OutBuf((DataStartOffs+1)*Byte-1 downto DataEndOffs*Byte) := HexToAsc(2-1, 0, RegAccessIn.Data);
+      OutBuf((AddrStartOffs+1)*Byte-1 downto AddrEndOffs*Byte) := HexToAsc(RegAccessIn.Addr'length/Nibble-1, 0, RegAccessIn.Addr);
+      OutBuf((DataStartOffs+1)*Byte-1 downto DataEndOffs*Byte) := HexToAsc(RegAccessIn.Data'length/Nibble-1, 0, RegAccessIn.Data);
 
       OutBuf(Byte-1 downto 0) := NewLine;
 
-      OutBufLen_N <= conv_word(BufLen-1, BufLenW);
+      OutBufLen_N <= conv_word(BufLen, BufLenW);
       OutBufVal_N <= '1';
       OutBuf_N    <= OutBuf;
     end if;
 
-    if OutBufVal_D = '0' and OutSerCharBusy = '0' then
+    if OutBufVal_D = '1' and OutSerCharBusy = '0' then
       OutSerCharVal <= '1';
       OutBufLen_N <= OutBufLen_D - 1;
       if OutBufLen_D - 1 = 0 then
@@ -247,7 +234,5 @@ begin
       end if;
     end if;
   end process;
-
-  OutSerChar <= OutBuf_D((conv_integer(OutBufLen_D)+1)*Byte-1 downto conv_integer(OutBufLen_D)*Byte);
-
+  OutSerChar <= OutBuf_D((conv_integer(OutBufLen_D)+0)*Byte-1 downto (conv_integer(OutBufLen_D)-1)*Byte) when OutBufVal_D = '1' else (others => 'X');
 end architecture rtl;
