@@ -95,23 +95,6 @@ package DramTestPack is
   function DramRequestToWord(Rec : DramRequest) return word;
   function WordToDramRequest(W : word) return DramRequest;
 
-  type RegCmd is (REG_READ, REG_WRITE);
-  constant AddrW : positive := 32;
-  constant DataW : positive := 32;
-  
-  type RegAccessRec is record
-    Val  : word1;
-    Cmd  : RegCmd;
-    Addr : word(AddrW-1 downto 0);
-    Data : word(DataW-1 downto 0);
-  end record;
-
-  constant Z_RegAccessRec : RegAccessRec :=
-    (Val  => "0",
-     Data => (others => '0'),
-     Cmd  => REG_READ,
-     Addr => (others => '0')
-     );
 end package;
 
 package body DramTestPack is
