@@ -8,6 +8,7 @@ use work.DramTestPack.all;
 use work.SramPack.all;
 use work.VgaPack.all;
 use work.ServoPack.all;
+use work.SerialPack.all;
 
 entity DramTestTop is
   port (
@@ -595,10 +596,31 @@ begin
   Serial : block
     signal OutSerCharVal, IncSerCharVal : bit1;
     signal OutSerCharBusy               : bit1;
-    signal OutSerChar, IncSerChar        : word(Byte-1 downto 0);
+    signal OutSerChar, IncSerChar       : word(Byte-1 downto 0);
     --
-    signal RegAccess : RegAccessRec;
+    signal RegAccess                    : RegAccessRec;
+    --
+    signal Baud                         : word(3-1 downto 0);
   begin
+    Baud <= "010";
+
+    SerRead : entity work.SerialReader
+      generic map (
+        DataW   => 8,
+        ClkFreq => Clk25MHz_integer
+        )
+      port map (
+        Clk   => Clk25MHz,
+        RstN  => RstN25MHz,
+        --
+        Rx    => SerialIn,
+        --
+        Baud  => Baud,
+        --
+        Dout  => IncSerChar,
+        RxRdy => IncSerCharVal
+        );
+    
     SerWrite : entity work.SerialWriter
       generic map (
         ClkFreq => Clk25MHz_integer
@@ -607,25 +629,13 @@ begin
         Clk       => Clk25MHz,
         Rst_N     => RstN25MHz,
         --
+        Baud      => Baud,
+        --
         We        => OutSerCharVal,
         WData     => OutSerChar,
+        --
         Busy      => OutSerCharBusy,
-        --
         SerialOut => SerialOut
-        );
-
-    SerRead : entity work.SerialReader
-      generic map (
-        ClkFreq => Clk25MHz_integer
-        )
-      port map (
-        Clk        => Clk25MHz,
-        Rst_N      => RstN25MHz,
-        --
-        SerialIn   => SerialIn,
-        --
-        IncByte    => IncSerChar,
-        IncByteVal => IncSerCharVal
         );
 
     SerCmdParser : entity work.SerialCmdParser
