@@ -66,6 +66,8 @@ architecture rtl of PixelAligner is
   signal B_Dithered                       : word(2-1 downto 0);
   signal R_DitheredVal                    : bit1;
   signal B_DitheredVal                    : bit1;
+
+  
 begin
   SyncRstProc : process (Clk, RstN)
   begin
@@ -117,109 +119,49 @@ begin
   end process;
 
   AdjY       <= Y_D - 16   when Y_D - 16 > 0   else (others => '0');
-  AdjY_0_125   <= SHR(AdjY, "11");
-  AdjY_1_125 <= ('0' & AdjY) + ('0' & AdjY_0_125);
   --
-  -- AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
-  -- AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
   AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
   AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
-
-  AdjCr_0_5     <= SHR(AdjCr, "01");
-  AdjCr_0_25    <= SHR(AdjCr, "10");
-  AdjCr_0_125   <= SHR(AdjCr, "11");
-  AdjCr_0_0625  <= SHR(AdjCr, "100");
-  AdjCr_0_03125 <= SHR(AdjCr, "101");
-  --
-  AdjCr_0_8125  <= AdjCr - AdjCr_0_25 + AdjCr_0_125 - AdjCr_0_0625;
-  AdjCr_1_59375 <= ('0' & AdjCr) + ('0' & AdjCr_0_5) + ('0' & AdjCr_0_125) + ('0' & AdjCr_0_03125);
-  AdjCr_1_375   <= ('0' & AdjCr) + ('0' & AdjCr_0_5) - ('0' & AdjCr_0_25) + ('0' & AdjCr_0_125);
-  
-  AdjCb_0_5 <= SHR(AdjCb, "01");
-  AdjCb_0_25 <= SHR(AdjCb, "10");
-  AdjCb_0_125 <= SHR(AdjCb, "11");
-  AdjCb_0_0625 <= SHR(AdjCb, "100");
-  AdjCb_0_03125 <= SHR(AdjCb, "101");
-  AdjCb_0_015625 <= SHR(AdjCb, "110");
-  --
-  AdjCb_0_3906 <= AdjCb - AdjCb_0_5 - AdjCb_0_25 + AdjCb_0_125 + AdjCb_0_0625 - AdjCb_0_03125 - AdjCb_0_015625;
-  AdjCb_1_772 <= ('0' & AdjCb) + ('0' & AdjCb_0_5) + ('0' & AdjCb_0_25);
-  
-  
-  RGBConv : process (AdjY_1_125, AdjCb, AdjCr_0_8125, AdjCr_1_59375, AdjCb_0_3906, AdjCr_1_375, Y_D, AdjCb_1_772)
-    variable B_T : word(B'length+1 downto 0);  
-    variable G_T : word(G'length+1 downto 0);
-    variable R_T : word(R'length+1 downto 0);
+    
+  RGBConv : process (AdjY, AdjCb, AdjCr)
+    variable C_298 : integer;
+    variable E_208 : integer;
+    variable E_409 : integer;
+    variable D_100 : integer;
+    variable D_516 : integer;
+    variable R_T, G_T, B_T : integer;
     
   begin
-    -- Cb_D = U, Cr_D = V
-    -- B = 1.164(Y - 16)                  + 2.018(U - 128)
-    -- G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
-    -- R = 1.164(Y - 16) + 1.596(V - 128)
-
-    
-    --B_T := ('0' & AdjY_1_125) + SHL('0' & AdjCb, "1");
-    ---- Check for wrap    
-    --if B_T(B_T'high) = '1' then
-    --  B <= (others => '1');
-    --else
-    --  B <= B_T(B'length-1 downto 0);
-    --end if;
-
-    --G_T := ('1' & AdjY_1_125) - AdjCr_0_8125 - AdjCb_0_3906;
-    ---- Check for negative wrap
-    --if G_T(G_T'high) = '0' then
-    --  G <= (others => '0');
-    ---- Check for positive wrap
-    --elsif G_T(G_T'high-1) = '1' then
-    --  G <= (others => '1');
-    --else
-    --  G <= G_T(G'length-1 downto 0);
-    --end if;
-    
-    --R_T := AdjY_1_125 + ('0' & AdjCr_1_59375);
-    ---- Check for wrap
-    --if R_T(R_T'high) = '1' then
-    --  R <= (others => '1');
-    --else
-    --  R <= R_T(R'length-1 downto 0);
-    --end if;
-
-    -- R = Y + 1.402 (Cr-128)
-    -- G = Y - 0.34414 * (Cb - 128) - 0.71414 * (Cr - 128)
-    -- B = Y + 1.772 * (Cb - 128)
-
-    R_T := ('0' & Y_D) + ('0' & AdjCr_1_375);
-    -- Check for wrap
-    if R_T(R_T'high) = '1' then
+    C_298 := conv_integer(AdjY) * 298;
+    E_409 := conv_integer(AdjCr) * 409;
+    E_208 := conv_integer(AdjCr) * 208;
+    D_100 := conv_integer(AdjCb) * 100;
+    D_516 := conv_integer(AdjCb) * 516;
+    --
+    R_T := (C_298 + E_409 + 128) / 2**8;
+    if R_T > 255 then
       R <= (others => '1');
     else
-      R <= R_T(R'length-1 downto 0);
+      R <= conv_word(R_T, R'length);
     end if;
 
-    G_T := ("01" & Y_D) - ('0' & AdjCb_0_3906) - ('0' & AdjCr_0_8125);
-    -- Check for negative wrap
-    if G_T(G_T'high) = '0' then
-      G <= (others => '0');
-    -- Check for positive wrap
-    elsif G_T(G_T'high-1) = '1' then
+    G_T := (C_298 - D_100 - E_208 + 128) / 2**8;
+    if G_T > 255 then
       G <= (others => '1');
     else
-      G <= G_T(G'length-1 downto 0);
+      G <= conv_word(G_T, G'length);
     end if;
-    
-    B_T := ('0' & Y_D) + ('0' & AdjCb_1_772);
-    --Check for wrap    
-    if B_T(B_T'high) = '1' then
+
+    B_T := (C_298 + D_516 + 128) / 2**8;
+    if B_T > 255 then
       B <= (others => '1');
     else
-      B <= B_T(B'length-1 downto 0);
+      B <= conv_word(B_T, B'length);
     end if;
   end process;
 
   GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
   GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
-  --
 
   RedDither : entity work.DitherFloydSteinberg
     generic map (
@@ -275,10 +217,6 @@ begin
       PixelOutVal => B_DitheredVal
       );
   
-  --RedFeed   : Color(RedHigh downto RedLow)     <= R(8-1 downto 5);
-  --GreenFeed : Color(GreenHigh downto GreenLow) <= G(8-1 downto 5);
-  --BlueFeed  : Color(BlueHigh downto BlueLow)   <= B(8-1 downto 6);
-
   RedFeed   : Color(RedHigh downto RedLow)     <= R_Dithered;
   GreenFeed : Color(GreenHigh downto GreenLow) <= G_Dithered;
   BlueFeed  : Color(BlueHigh downto BlueLow)   <= B_Dithered;
