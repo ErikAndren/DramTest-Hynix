@@ -150,6 +150,8 @@ architecture rtl of DramTestTop is
   --
   signal ObjTopLeft, ObjBottomRight      : Cord;
   signal YawPos, PitchPos                : word(ServoResW-1 downto 0);
+  --
+  signal RegAccessIn, RegAccessOut       : RegAccessRec;
   
 begin
   Pll100MHz : entity work.PLL
@@ -231,6 +233,9 @@ begin
       Rst_N        => RstN25MHz,
       --
       DataFromSccb => open,
+      --
+      RegAccessIn  => RegAccessIn,
+      RegAccessOut => RegAccessOut,
       --
       SIO_C        => SIO_C,
       SIO_D        => SIO_D
@@ -589,6 +594,7 @@ begin
       HsyncN         => VgaHsyncN,
       VSyncN         => VgaVsyncN
       );
+
   VgaVsync_i <= not VgaVSyncN;
   VgaVSync   <= VgaVSyncN;
   VgaHSync   <= VgaHSyncN;
@@ -597,8 +603,6 @@ begin
     signal OutSerCharVal, IncSerCharVal : bit1;
     signal OutSerCharBusy               : bit1;
     signal OutSerChar, IncSerChar       : word(Byte-1 downto 0);
-    --
-    signal RegAccess                    : RegAccessRec;
     --
     signal Baud                         : word(3-1 downto 0);
   begin
@@ -650,8 +654,8 @@ begin
         OutSerChar     => OutSerChar,
         OutSerCharVal  => OutSerCharVal,
         -- FIXME: Loop back register access for now
-        RegAccessOut   => RegAccess,
-        RegAccessIn    => RegAccess
+        RegAccessOut   => RegAccessIn,
+        RegAccessIn    => RegAccessOut
         );
   end block;
   
