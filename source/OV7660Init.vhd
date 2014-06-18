@@ -10,23 +10,30 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
+use work.SerialPack.all;
 
 entity OV7660Init is
   port (
-    Clk      : in  bit1;
-    Rst_N    : in  bit1;
+    Clk          : in  bit1;
+    Rst_N        : in  bit1;
     --
-    NextInst : in  bit1;
+    NextInst     : in  bit1;
     --
-    We       : out bit1;
-    Start    : out bit1;
-    AddrData : out word(16-1 downto 0);
+    RegAccessIn  : in  RegAccessRec;
+    RegAccessOut : out RegAccessRec;
     --
-    InstPtr  : out word(4-1 downto 0)
+    We           : out bit1;
+    Start        : out bit1;
+    AddrData     : out word(16-1 downto 0);
+    --
+    InstPtr      : out word(4-1 downto 0)
     );
 end entity;
 
 architecture fpga of OV7660Init is
+  signal We_N, Start_N : bit1;
+  signal AddrData_N : word(16-1 downto 0);
+  --
   constant BLUE  : word(8-1 downto 0) := x"01";
   constant RED   : word(8-1 downto 0) := x"02";  
   constant COM2  : word(8-1 downto 0) := x"09";
@@ -65,6 +72,11 @@ architecture fpga of OV7660Init is
   -- save a number of flops
   -- wait for 2**16 cycles * 40 ns = ~2 ms
   signal Delay_N, Delay_D     : word(16-1 downto 0);
+
+  signal LatchedAddrData_N, LatchedAddrData_D : word(16-1 downto 0);
+  signal LatchedWe_N, LatchedWe_D             : bit1;
+  signal LatchedStart_N, LatchedStart_D       : bit1;
+  
 begin
   SyncProc : process (Clk, Rst_N)
   begin
@@ -78,9 +90,17 @@ begin
       if Synthesis then
         Delay_D <= (others => '0');
       end if;
+
+      LatchedStart_D    <= '0';
+      LatchedWe_D       <= '0';
+      LatchedAddrData_D <= (others => '0');
+      
     elsif rising_edge(Clk) then
-      InstPtr_D <= InstPtr_N;
-      Delay_D   <= Delay_N;
+      InstPtr_D         <= InstPtr_N;
+      Delay_D           <= Delay_N;
+      LatchedStart_D    <= LatchedStart_N;
+      LatchedWe_D       <= LatchedWe_N;
+      LatchedAddrData_D <= LatchedAddrData_N;
     end if;
   end process;
 
@@ -88,9 +108,9 @@ begin
     variable InstPtr_T : word(4-1 downto 0);
   begin
     InstPtr_T := InstPtr_D;
-    AddrData  <= (others => '0');
-    We        <= '1';
-    Start     <= '1';
+    AddrData_N  <= (others => '0');
+    We_N      <= '1';
+    Start_N   <= '1';
     --
     Delay_N   <= Delay_D + 1;
     if (RedAnd(Delay_D) = '1') then
@@ -102,74 +122,61 @@ begin
 
       case InstPtr_D is
         when "0000" =>
-          AddrData <= COM7 & x"80";     -- SCCB Register reset
+          AddrData_N <= COM7 & x"80";     -- SCCB Register reset
 
         when "0001" =>
-          AddrData <= COM7 & x"80";     -- SCCB Register reset
+          AddrData_N <= COM7 & x"80";     -- SCCB Register reset
 
         when "0010" =>
-          AddrData <= COM7 & x"00";     -- SCCB Register reset
+          AddrData_N <= COM7 & x"00";     -- SCCB Register reset
 
         when "0011" =>
-          AddrData <= COM2 & x"00";     -- Enable 4x drive
- 
+          AddrData_N <= COM2 & x"00";     -- Enable 4x drive
+
         when "0100" =>
-          AddrData <= MVFP & x"10";     -- Flip image to it mount
+          AddrData_N <= MVFP & x"10";     -- Flip image to it mount
 
-        when "0101" =>
-          AddrData <= MTXS & x"0F";
-
-        when "0110" =>
-          -- Red?
-          AddrData <= MTX1 & x"58";
-
-        when "0111" =>
-          -- Green, should decrease as coefficient sign is negative
-          AddrData <= MTX2 & x"48";
-          
-        when "1000" =>
-          -- Blue? Add blueness
-          AddrData <= MTX3 & x"10";
-                      
-        when "1001" =>
-          AddrData <= MTX4 & x"28";
-
-        when "1010" =>
-          -- Decrease green
-          AddrData <= MTX5 & x"48";
-
-        when "1011" =>
-          AddrData <= MTX6 & x"70";
-
-        when "1100" =>
-          AddrData <= MTX7 & x"40";
-
-        when "1101" =>
-          AddrData <= MTX8 & x"40";
-
-        when "1110" =>
-          AddrData <= MTX9 & x"40";
-
-        --when "0101" =>
-        --  AddrData <= COM7 & x"04";     -- Enable RGB
-
-        --when "0110" =>
-        --  AddrData <= COM15 & x"F0";    -- Enable RGB555
-
-        --when "1100" =>
-        --  AddrData <= TSLB & x"04";          
-          
         when others =>
-          We        <= '0';
-          Start     <= '0';
+          We_N      <= '0';
+          Start_N   <= '0';
           --
           InstPtr_T := (others => '1');
-          Start     <= '0';
-          
+          Start_N   <= '0';
       end case;
     end if;
 
     InstPtr_N <= InstPtr_T;
+  end process;
+
+  InitAndRegMux : process (We_N, Start_N, RegAccessIn, AddrData_N, LatchedWe_D, LatchedStart_D, LatchedAddrData_D, NextInst)
+  begin
+    We                <= We_N;
+    Start             <= Start_N;
+    RegAccessOut      <= RegAccessIn;
+    AddrData          <= AddrData_N;
+    --
+    LatchedWe_N       <= LatchedWe_D;
+    LatchedStart_N    <= LatchedStart_D;
+    LatchedAddrData_N <= LatchedAddrData_D;
+
+    if RegAccessIn.Val = "1" then
+      if RegAccessIn.Cmd = REG_WRITE then
+        LatchedWe_N       <= '1';
+        LatchedStart_N    <= '1';
+        LatchedAddrData_N <= RegAccessIn.Addr(8-1 downto 0) & RegAccessIn.Data(8-1 downto 0);
+      end if;
+    end if;
+
+    if LatchedStart_D = '1' then
+      Start    <= '1';
+      We       <= LatchedWe_D;
+      AddrData <= LatchedAddrData_D;
+
+      if NextInst = '1' then
+        LatchedStart_N <= '0';
+      end if;
+    end if;
+    
   end process;
 
   InstPtr <= InstPtr_D;
