@@ -5,6 +5,7 @@ FILES=source/DramTestPack.vhd \
 	AsyncFifo.vhd \
 	source/ModeToggle.vhd \
 	source/ServoPack.vhd \
+	source/SerialPack.vhd \
 	source/PWMCtrl.vhd \
 	source/ObjectFinder.vhd \
 	source/FloydSteinberg2PRAM.vhd \
