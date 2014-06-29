@@ -50,13 +50,25 @@ architecture fpga of OV7660Init is
   -- v-red, v-green, v-blue, u-red, u-green, u-blue
   -- They are nine-bit signed quantities, with the sign bit
   -- stored in 0x58.  Sign for v-red is bit 0, and up from there.
-  
+
+  -- Red
   constant MTX1  : word(8-1 downto 0) := x"4F";
+
+  -- Red
   constant MTX2  : word(8-1 downto 0) := x"50";
+
+  -- Red
   constant MTX3  : word(8-1 downto 0) := x"51";
+
+  -- Blue
   constant MTX4  : word(8-1 downto 0) := x"52";
+
+  -- Blue
   constant MTX5  : word(8-1 downto 0) := x"53";
+
+  -- Blue
   constant MTX6  : word(8-1 downto 0) := x"54";
+
   constant MTX7  : word(8-1 downto 0) := x"55";
   constant MTX8  : word(8-1 downto 0) := x"56";
   constant MTX9  : word(8-1 downto 0) := x"57";
