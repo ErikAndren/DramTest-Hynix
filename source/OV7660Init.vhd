@@ -132,21 +132,21 @@ begin
         InstPtr_T := InstPtr_D + 1;
       end if;
 
-      case InstPtr_D is
-        when "0000" =>
+      case conv_integer(InstPtr_D) is
+        when 0 =>
           AddrData_N <= COM7 & x"80";     -- SCCB Register reset
 
-        when "0001" =>
+        when 1 =>
           AddrData_N <= COM7 & x"80";     -- SCCB Register reset
 
-        when "0010" =>
+        when 2 =>
           AddrData_N <= COM7 & x"00";     -- SCCB Register reset
 
-        when "0011" =>
+        when 3 =>
           AddrData_N <= COM2 & x"00";     -- Enable 4x drive
 
-        when "0100" =>
-          AddrData_N <= MVFP & x"10";     -- Flip image to it mount
+        --when "0100" =>
+        --  AddrData_N <= MVFP & x"10";     -- Flip image to it mount
 
         when others =>
           We_N      <= '0';
@@ -172,6 +172,7 @@ begin
     LatchedAddrData_N <= LatchedAddrData_D;
 
     if RegAccessIn.Val = "1" then
+      -- if RegAccessIn.Cmd = REG_WRITE and (RegAccessIn.Addr(32-1 downto 8) = SccbOffset) then
       if RegAccessIn.Cmd = REG_WRITE then
         LatchedWe_N       <= '1';
         LatchedStart_N    <= '1';
