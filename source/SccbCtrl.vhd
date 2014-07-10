@@ -82,159 +82,159 @@ begin
         end if;
 
         if start_i = '1' then
-          case stm is
-            when conv_word(0, stm'length) =>
+          case conv_integer(stm) is
+            when 0 =>
               bit_out <= '1';
-            when conv_word(1, stm'length) =>
+            when 1 =>
               bit_out <= '1';
 
             -- Start write transaction.
-            when conv_word(2, stm'length) =>
+            when 2 =>
               bit_out <= '0';
-            when conv_word(3, stm'length) =>
+            when 3 =>
               sccb_stm_clk <= '0';
 
             -- Write device`s ID address.
-            when conv_word(4, stm'length) =>
+            when 4 =>
               bit_out <= addr_i(7);
-            when conv_word(5, stm'length) =>
+            when 5 =>
               bit_out <= addr_i(6);
-            when conv_word(6, stm'length) =>
+            when 6 =>
               bit_out <= addr_i(5);
-            when conv_word(7, stm'length) =>
+            when 7 =>
               bit_out <= addr_i(4);
-            when conv_word(8, stm'length) =>
+            when 8 =>
               bit_out <= addr_i(3);
-            when conv_word(9, stm'length) =>
+            when 9 =>
               bit_out <= addr_i(2);
-            when conv_word(10, stm'length) =>
+            when 10 =>
               bit_out <= addr_i(1);
-            when conv_word(11, stm'length) =>
+            when 11 =>
               bit_out <= '0';
-            when conv_word(12, stm'length) =>
+            when 12 =>
               bit_out <= '0';
-            when conv_word(13, stm'length) =>
+            when 13 =>
               ack_err <= siod_io;
-            when conv_word(14, stm'length) =>
+            when 14 =>
               bit_out <= '0';
 
             -- Write register address.
-            when conv_word(15, stm'length) =>
+            when 15 =>
               bit_out <= data_i(15);
-            when conv_word(16, stm'length) =>
+            when 16 =>
               bit_out <= data_i(14);
-            when conv_word(17, stm'length) =>
+            when 17 =>
               bit_out <= data_i(13);
-            when conv_word(18, stm'length) =>
+            when 18 =>
               bit_out <= data_i(12);
-            when conv_word(19, stm'length) =>
+            when 19 =>
               bit_out <= data_i(11);
-            when conv_word(20, stm'length) =>
+            when 20 =>
               bit_out <= data_i(10);
-            when conv_word(21, stm'length) =>
+            when 21 =>
               bit_out <= data_i(9);
-            when conv_word(22, stm'length) =>
+            when 22 =>
               bit_out <= data_i(8);
-            when conv_word(23, stm'length) =>
+            when 23 =>
               bit_out <= '0';
-            when conv_word(24, stm'length) =>
+            when 24 =>
               ack_err <= siod_io;
-            when conv_word(25, stm'length) =>
+            when 25 =>
               bit_out <= '0';
 
             -- Write data. This concludes 3-phase write transaction.
-            when conv_word(26, stm'length) =>
+            when 26 =>
               bit_out <= data_i(7);
-            when conv_word(27, stm'length) =>
+            when 27 =>
               bit_out <= data_i(6);
-            when conv_word(28, stm'length) =>
+            when 28 =>
               bit_out <= data_i(5);
-            when conv_word(29, stm'length) =>
+            when 29 =>
               bit_out <= data_i(4);
-            when conv_word(30, stm'length) =>
+            when 30 =>
               bit_out <= data_i(3);
-            when conv_word(31, stm'length) =>
+            when 31 =>
               bit_out <= data_i(2);
-            when conv_word(32, stm'length) =>
+            when 32 =>
               bit_out <= data_i(1);
-            when conv_word(33, stm'length) =>
+            when 33 =>
               bit_out <= data_i(0);
-            when conv_word(34, stm'length) =>
+            when 34 =>
               bit_out <= '0';
-            when conv_word(35, stm'length) =>
+            when 35 =>
               ack_err <= siod_io;
-            when conv_word(36, stm'length) =>
+            when 36 =>
               bit_out <= '0';
 
             -- Stop transaction.
-            when conv_word(37, stm'length) =>
+            when 37 =>
               sccb_stm_clk <= '0';
-            when conv_word(38, stm'length) =>
+            when 38 =>
               sccb_stm_clk <= '1';
-            when conv_word(39, stm'length) =>
+            when 39 =>
               bit_out <= '1';
 
             -- Start read transaction. At this point register address has been set in prev write transaction.  
-            when conv_word(40, stm'length) =>
+            when 40 =>
               sccb_stm_clk <= '1';
-            when conv_word(41, stm'length) =>
+            when 41 =>
               bit_out <= '0';
-            when conv_word(42, stm'length) =>
+            when 42 =>
               sccb_stm_clk <= '0';
 
             -- Write device`s ID address.
-            when conv_word(43, stm'length) =>
+            when 43 =>
               bit_out <= addr_i(7);
-            when conv_word(44, stm'length) =>
+            when 44 =>
               bit_out <= addr_i(6);
-            when conv_word(45, stm'length) =>
+            when 45 =>
               bit_out <= addr_i(5);
-            when conv_word(46, stm'length) =>
+            when 46 =>
               bit_out <= addr_i(4);
-            when conv_word(47, stm'length) =>
+            when 47 =>
               bit_out <= addr_i(3);
-            when conv_word(48, stm'length) =>
+            when 48 =>
               bit_out <= addr_i(2);
-            when conv_word(49, stm'length) =>
+            when 49 =>
               bit_out <= addr_i(1);
-            when conv_word(50, stm'length) =>
+            when 50 =>
               bit_out <= '1';
-            when conv_word(51, stm'length) =>
+            when 51 =>
               bit_out <= '0';
-            when conv_word(52, stm'length) =>
+            when 52 =>
               ack_err <= siod_io;
-            when conv_word(53, stm'length) =>
+            when 53 =>
               bit_out <= '0';
 
             -- Read register value. This concludes 2-phase read transaction.
-            when conv_word(54, stm'length) =>
+            when 54 =>
               bit_out <= '0';
-            when conv_word(55, stm'length) =>
+            when 55 =>
               data_o(7) <= siod_io;
-            when conv_word(56, stm'length) =>
+            when 56 =>
               data_o(6) <= siod_io;
-            when conv_word(57, stm'length) =>
+            when 57 =>
               data_o(5) <= siod_io;
-            when conv_word(58, stm'length) =>
+            when 58 =>
               data_o(4) <= siod_io;
-            when conv_word(59, stm'length) =>
+            when 59 =>
               data_o(3) <= siod_io;
-            when conv_word(60, stm'length) =>
+            when 60 =>
               data_o(2) <= siod_io;
-            when conv_word(61, stm'length) =>
+            when 61 =>
               data_o(1) <= siod_io;
-            when conv_word(62, stm'length) =>
+            when 62 =>
               data_o(0) <= siod_io;
-            when conv_word(63, stm'length) =>
+            when 63 =>
               bit_out <= '1';
-            when conv_word(64, stm'length) =>
+            when 64 =>
               bit_out <= '0';
               
-            when conv_word(65, stm'length) =>
+            when 65 =>
               sccb_stm_clk <= '0';
-            when conv_word(66, stm'length) =>
+            when 66 =>
               sccb_stm_clk <= '1';
-            when conv_word(67, stm'length) =>
+            when 67 =>
               bit_out <= '1';
               done    <= '1';
               stm     <= (others => '0');
