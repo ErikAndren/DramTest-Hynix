@@ -172,8 +172,7 @@ begin
     LatchedAddrData_N <= LatchedAddrData_D;
 
     if RegAccessIn.Val = "1" then
-      -- if RegAccessIn.Cmd = REG_WRITE and (RegAccessIn.Addr(32-1 downto 8) = SccbOffset) then
-      if RegAccessIn.Cmd = REG_WRITE then
+       if RegAccessIn.Cmd = REG_WRITE and (RegAccessIn.Addr(32-1 downto 8) = SccbOffset) then
         LatchedWe_N       <= '1';
         LatchedStart_N    <= '1';
         LatchedAddrData_N <= RegAccessIn.Addr(8-1 downto 0) & RegAccessIn.Data(8-1 downto 0);
