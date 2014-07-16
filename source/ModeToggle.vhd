@@ -11,31 +11,31 @@ entity ModeToggle is
   generic (
     DataW : positive
     );
-    port (
-      Clk                   : in  bit1;
-      RstN                  : in  bit1;
-      --
-      TemporalFiltToggle    : in  bit1;
-      ColorToggle           : in  bit1;
-      --
-      FromTempFiltValPreMux : in  bit1;
-      FromTempFiltPreMux    : in  word(DataW-1 downto 0);
-      --
-      TempFiltValPostMux    : out bit1;
-      TempFiltPostMux       : out word(DataW-1 downto 0);
-      --
-      ObjFindPixPreMux      : in  word(DataW-1 downto 0);
-      ObjFindPixValPreMux   : in  bit1;
-      --
-      GrayScaleIn           : in  word(DataW-1 downto 0);
-      GrayScaleVal          : in  bit1;
-      --
-      ColorIn               : in  word(DataW-1 downto 0);
-      ColorVal              : in  bit1;
-      --
-      PixelValPostMux       : out bit1;
-      PixelPostMux          : out word(DataW-1 downto 0)
-      );
+  port (
+    Clk                   : in  bit1;
+    RstN                  : in  bit1;
+    --
+    TemporalFiltToggle    : in  bit1;
+    ColorToggle           : in  bit1;
+    --
+    FromTempFiltValPreMux : in  bit1;
+    FromTempFiltPreMux    : in  word(DataW-1 downto 0);
+    --
+    TempFiltValPostMux    : out bit1;
+    TempFiltPostMux       : out word(DataW-1 downto 0);
+    --
+    ObjFindPixPreMux      : in  word(DataW-1 downto 0);
+    ObjFindPixValPreMux   : in  bit1;
+    --
+    GrayScaleIn           : in  word(DataW-1 downto 0);
+    GrayScaleVal          : in  bit1;
+    --
+    ColorIn               : in  word(DataW-1 downto 0);
+    ColorVal              : in  bit1;
+    --
+    PixelValPostMux       : out bit1;
+    PixelPostMux          : out word(DataW-1 downto 0)
+    );
 end entity;
 
 architecture rtl of ModeToggle is
