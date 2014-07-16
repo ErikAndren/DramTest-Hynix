@@ -144,7 +144,7 @@ architecture rtl of DramTestTop is
   signal ObjFindPixel                    : word(PixelW-1 downto 0);
   signal ObjFindPixelVal                 : bit1;
   --
-  signal Btn1Pulse, Btn2Pulse, Btn3Pulse : bit1;
+  signal Btn1Pulse, Btn3pulse : bit1;
   --
   signal DrawRect                        : bit1;
   --
@@ -205,17 +205,8 @@ begin
       Clk         => Clk25MHz,
       RstN        => RstN25MHz,
       --
-      Button      => Button1,
+      Button      => '0',
       ButtonPulse => Btn1Pulse
-      );
-
-  DebBtn2 : entity work.ButtonPulse
-    port map (
-      Clk         => Clk25MHz,
-      RstN        => RstN25MHz,
-      --
-      Button      => Button2,
-      ButtonPulse => Btn2Pulse
       );
 
   DebBtn3 : entity work.ButtonPulse
@@ -223,7 +214,7 @@ begin
       Clk         => Clk25MHz,
       RstN        => RstN25MHz,
       --
-      Button      => Button3,
+      Button      => '0',
       ButtonPulse => Btn3Pulse
       );
   
@@ -289,7 +280,6 @@ begin
       RstN                  => RstN25MHz,
       --
       TemporalFiltToggle    => Btn1Pulse,
-      ColorToggle           => Btn2Pulse,
       --
       FromTempFiltValPreMux => TempPixelOutVal,
       FromTempFiltPreMux    => TempPixelOut,
@@ -307,7 +297,9 @@ begin
       ColorVal              => AlignedColPixDataVal,
       --
       PixelValPostMux       => AlignedPixDataVal,
-      PixelPostMux          => AlignedPixData
+      PixelPostMux          => AlignedPixData,
+      --
+      RegAccessIn           => RegAccessIn
       );
 
   FChain : entity work.FilterChain
@@ -653,7 +645,6 @@ begin
         OutSerCharBusy => OutSerCharBusy,
         OutSerChar     => OutSerChar,
         OutSerCharVal  => OutSerCharVal,
-        -- FIXME: Loop back register access for now
         RegAccessOut   => RegAccessIn,
         RegAccessIn    => RegAccessOut
         );

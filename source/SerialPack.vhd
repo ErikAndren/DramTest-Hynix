@@ -20,6 +20,9 @@ package SerialPack is
 
   constant SccbOffset : natural := 16#010000#;
   
+  constant ColorSelectReg : natural := 16#00000001#;
+  
+  
   type RegAccessRec is record
     Val  : word1;
     Cmd  : RegCmd;

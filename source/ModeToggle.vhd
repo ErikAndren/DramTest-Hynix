@@ -6,6 +6,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
+use work.SerialPack.all;
 
 entity ModeToggle is
   generic (
@@ -16,7 +17,6 @@ entity ModeToggle is
     RstN                  : in  bit1;
     --
     TemporalFiltToggle    : in  bit1;
-    ColorToggle           : in  bit1;
     --
     FromTempFiltValPreMux : in  bit1;
     FromTempFiltPreMux    : in  word(DataW-1 downto 0);
@@ -34,7 +34,9 @@ entity ModeToggle is
     ColorVal              : in  bit1;
     --
     PixelValPostMux       : out bit1;
-    PixelPostMux          : out word(DataW-1 downto 0)
+    PixelPostMux          : out word(DataW-1 downto 0);
+    --
+    RegAccessIn           : in  RegAccessRec
     );
 end entity;
 
@@ -59,7 +61,7 @@ begin
     end if;
   end process;
 
-  AsyncProc : process (TempFilt_D, TemporalFiltToggle, ColSel_D, ColorToggle, Delay_D, DelayDone_D)
+  AsyncProc : process (TempFilt_D, TemporalFiltToggle, ColSel_D, Delay_D, DelayDone_D, RegAccessIn)
   begin
     TempFilt_N  <= TempFilt_D;
     ColSel_N    <= ColSel_D;
@@ -77,9 +79,11 @@ begin
         TempFilt_N <= not TempFilt_D;
       end if;
 
-      if ColorToggle = '1' then
-        ColSel_N <= not ColSel_D;
-      end if;
+      if RegAccessIn.Val = "1" then
+        if RegAccessIn.Cmd = REG_WRITE and (RegAccessIn.Addr = ColorSelectReg) then
+          ColSel_N <= RegAccessIn.Data(0);
+        end if;
+      end if;      
     end if;
   end process;
 
