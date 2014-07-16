@@ -21,6 +21,8 @@ package SerialPack is
   constant SccbOffset : natural := 16#010000#;
   
   constant ColorSelectReg : natural := 16#00000001#;
+  constant TemporalFilterReg : natural := 16#00000002#;
+  constant ColorToggle : natural := 0;
   
   
   type RegAccessRec is record
