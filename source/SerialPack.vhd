@@ -17,6 +17,8 @@ package SerialPack is
   type RegCmd is (REG_READ, REG_WRITE);
   constant AddrW : positive := 32;
   constant DataW : positive := 32;
+
+  constant SccbOffset : natural := 16#010000#;
   
   type RegAccessRec is record
     Val  : word1;
