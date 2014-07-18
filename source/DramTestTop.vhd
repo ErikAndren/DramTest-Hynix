@@ -144,8 +144,6 @@ architecture rtl of DramTestTop is
   signal ObjFindPixel                    : word(PixelW-1 downto 0);
   signal ObjFindPixelVal                 : bit1;
   --
-  signal Btn3pulse : bit1;
-  --
   signal DrawRect                        : bit1;
   --
   signal ObjTopLeft, ObjBottomRight      : Cord;
@@ -199,22 +197,11 @@ begin
       --
       Rst_N    => RstN64kHz
       );
-  
-  DebBtn3 : entity work.ButtonPulse
-    port map (
-      Clk         => Clk25MHz,
-      RstN        => RstN25MHz,
-      --
-      Button      => '0',
-      ButtonPulse => Btn3Pulse
-      );
-  
+
   SccbM : entity work.SccbMaster
     port map (
       Clk          => Clk25MHz,
       Rst_N        => RstN25MHz,
-      --
-      DataFromSccb => open,
       --
       RegAccessIn  => RegAccessIn,
       RegAccessOut => RegAccessOut,
@@ -301,7 +288,6 @@ begin
       RstN         => RstN25MHz,
       --
       Vsync        => Vsync_i,
-      ToggleMode   => Btn3Pulse,
       --
       RegAccessIn  => RegAccessIn,
       --

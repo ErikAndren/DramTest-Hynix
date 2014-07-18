@@ -20,8 +20,6 @@ entity FilterChain is
     --
     Vsync       : in  bit1;
     --
-    ToggleMode  : in  bit1;
-    --
     RegAccessIn : in RegAccessRec;
     --
     PixelIn     : in  word(DataW-1 downto 0);
@@ -156,14 +154,13 @@ begin
     end if;
   end process;
 
-  FilterAsync : process (FilterSel_D, ToggleMode)
+  FilterAsync : process (FilterSel_D, RegAccessIn)
   begin
     FilterSel_N <= FilterSel_D;
-    if ToggleMode = '1' then
-      FilterSel_N <= FilterSel_D + 1;
-      if FilterSel_D + 1 = MODES then
-        FilterSel_N <= conv_word(NONE_MODE, FilterSel_N'length);
-      end if;
+    if RegAccessIn.Val = "1" then
+      if RegAccessIn.Addr = FilterSelectReg then
+        FilterSel_N <= RegAccessIn.Data(MODESW-1 downto 0);
+      end if;      
     end if;
   end process;
 

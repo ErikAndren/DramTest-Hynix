@@ -5,6 +5,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
 
+
 package SerialPack is
   constant NewLine   : word(8-1 downto 0) := x"0A";
   constant WriteCmd  : word(8-1 downto 0) := x"57";
@@ -18,15 +19,17 @@ package SerialPack is
   constant AddrW : positive := 32;
   constant DataW : positive := 32;
 
-  constant SccbOffset : natural := 16#010000#;
-  
-  constant ColorSelectReg    : natural := 16#00000001#;
-  constant TemporalFilterReg : natural := 16#00000002#;
-  constant ColorToggle       : natural := 0;
-
+  constant SccbOffset         : natural  := 16#010000#;
+  --
+  constant ColorSelectReg     : natural  := 16#00000001#;
+  constant TemporalFilterReg  : natural  := 16#00000002#;
+  constant ColorToggle        : natural  := 0;
+  --
   constant ConvFilterThresReg : natural  := 16#00000010#;
   constant ConvFilterThresW   : positive := 3;
-  
+  --
+  constant FilterSelectReg    : natural  := 16#00000020#;
+
   
   type RegAccessRec is record
     Val  : word1;
