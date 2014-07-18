@@ -163,7 +163,7 @@ begin
   Clk64kHzGen : entity work.ClkDiv
     generic map (
       SourceFreq => 25000000,
-      SinkFreq => 64000
+      SinkFreq   => 64000
     )
     port map (
       Clk     => Clk25MHz,
@@ -432,8 +432,8 @@ begin
 
   CamAlign : entity work.CamAligner
     port map (
-      Rst_N       => RstN25MHz,
-      Clk         => Clk25MHz,
+      Rst_N         => RstN25MHz,
+      Clk           => Clk25MHz,
       --
       Vsync         => Vsync_i,
       --
