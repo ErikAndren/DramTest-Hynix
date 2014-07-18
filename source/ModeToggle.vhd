@@ -94,5 +94,4 @@ begin
   -- Select color or not
   PixelValPostMux    <= ColorVal              when ColSel_D = '1'   else ObjFindPixValPreMux;
   PixelPostMux       <= ColorIn               when ColSel_D = '1'   else ObjFindPixPreMux;
-
 end architecture rtl;
