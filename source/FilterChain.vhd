@@ -7,6 +7,7 @@ use ieee.std_logic_unsigned.all;
 use work.Types.all;
 use work.DramTestPack.all;
 use work.VgaPack.all;
+use work.SerialPack.all;
 
 entity FilterChain is
   generic (
@@ -20,8 +21,8 @@ entity FilterChain is
     Vsync       : in  bit1;
     --
     ToggleMode  : in  bit1;
-    IncThreshold : in bit1;
-    DecThreshold : in bit1;
+    --
+    RegAccessIn : in RegAccessRec;
     --
     PixelIn     : in  word(DataW-1 downto 0);
     PixelInVal  : in  bit1;
@@ -114,8 +115,8 @@ begin
       RstN         => RstN,
       --
       Vsync        => Vsync,
-      IncThreshold => IncThreshold,
-      DecThreshold => DecThreshold,
+      --
+      RegAccessIn  => RegAccessIn,
       --
       RdAddr       => RdAddr,
       FilterSel    => FilterSel_D,

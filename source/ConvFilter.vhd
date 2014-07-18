@@ -7,6 +7,7 @@ use ieee.std_logic_unsigned.all;
 use work.Types.all;
 use work.DramTestPack.all;
 use work.VgaPack.all;
+use work.SerialPack.all;
 
 entity ConvFilter is
   generic (
@@ -20,8 +21,7 @@ entity ConvFilter is
     --
     FilterSel    : in  word(MODESW-1 downto 0);
     --
-    IncThreshold : in  bit1;
-    DecThreshold : in bit1;
+    RegAccessIn : in RegAccessRec;
     --
     RdAddr       : in  word(bits(VgaWidth)-1 downto 0);
     Vsync        : in  bit1;
@@ -70,7 +70,7 @@ begin
   -- Filter out noise in left column
   FirstColumn <= '1' when RdAddr < ColumnsToFilter else '0';
 
-  AsyncProc : process (PixelIn, PixelInVal, PixelOut_D, Vsync, LineFilter_D, FirstColumn, RdAddr, FilterSel, IncThreshold, DecThreshold, CurThres_D)
+  AsyncProc : process (PixelIn, PixelInVal, PixelOut_D, Vsync, LineFilter_D, FirstColumn, RdAddr, FilterSel, RegAccessIn, CurThres_D)
     variable SumX, SumY, Sum : word(DataW+1 downto 0);
   begin
     PixelOut_N    <= PixelOut_D;
@@ -79,18 +79,12 @@ begin
     PixelOutVal_N <= PixelInVal;
     CurThres_N    <= CurThres_D;
 
-    if IncThreshold = '1' and DecThreshold = '1' then
-      null;
-    elsif IncThreshold = '1' then
-      if CurThres_D /= xt1(CurThres_D'length) then
-        CurThres_N <= CurThres_D + 1;
-      end if;
-    elsif DecThreshold = '1' then
-      if CurThres_D /= xt0(CurThres_D'length) then
-        CurThres_N <= CurThres_D - 1;
+    if RegAccessIn.Val = "1" then
+      if RegAccessIn.Addr = ConvFilterThresReg then
+        CurThres_N <= RegAccessIn.Data(ConvFilterThresW-1 downto 0);
       end if;
     end if;
-    
+
     if Vsync = '1' then
       LineFilter_N <= conv_word(LinesToFilter, LineFilter_N'length);
     end if;

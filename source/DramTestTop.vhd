@@ -302,8 +302,8 @@ begin
       --
       Vsync        => Vsync_i,
       ToggleMode   => Btn3Pulse,
-      IncThreshold => '0',
-      DecThreshold => '0',
+      --
+      RegAccessIn  => RegAccessIn,
       --
       PixelIn      => TempPixelPostMux,
       PixelInVal   => TempPixelValPostMux,
