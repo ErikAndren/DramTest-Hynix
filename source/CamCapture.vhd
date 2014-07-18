@@ -40,7 +40,7 @@ architecture rtl of CamCapture is
   signal RdFifo                   : bit1;
   signal FifoRdVal_N, FifoRdVal_D : bit1;
   signal RdData                   : word(DataW-1 downto 0);
-  signal VSync_D          : word(4-1 downto 0);
+  signal VSync_D                  : word(4-1 downto 0);
 
   signal VSync_META, VSync_D_Clk : bit1;
   signal HRef_D                  : bit1;
