@@ -39,6 +39,9 @@ package SerialPack is
   --
   constant PixelSampleOrderReg : natural  := 16#00000030#;
   constant PixelSampleOrder    : natural  := 0;
+  --
+  constant EnableTrackRectReg  : natural  := 16#00000040#;
+  constant EnableTrackRect     : natural  := 0;
   
   type RegAccessRec is record
     Val  : word1;

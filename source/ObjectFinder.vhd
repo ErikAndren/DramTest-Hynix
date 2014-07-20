@@ -9,6 +9,7 @@ use ieee.std_logic_unsigned.all;
 use work.Types.all;
 use work.DramTestPack.all;
 use work.VgaPack.all;
+use work.SerialPack.all;
 
 entity ObjectFinder is
   generic (
@@ -19,6 +20,7 @@ entity ObjectFinder is
     Clk         : in  bit1;
     --
     Vsync       : in  bit1;
+    RegAccessIn : in  RegAccessRec;
     --
     PixelIn     : in  word(DataW-1 downto 0);
     PixelInVal  : in  bit1;
@@ -51,6 +53,8 @@ architecture rtl of ObjectFinder is
   signal RectAct_i                                : bit1;
   --
   signal DrawTop, DrawLeft, DrawRight, DrawBottom : bit1;
+  --
+  signal EnableTrackRect_N, EnableTrackRect_D : bit1;
   
 begin
   SyncNoRstProcProc : process (Clk)
@@ -65,6 +69,7 @@ begin
       LineCnt_D         <= LineCnt_N;
       --
       NewVsync_D        <= Vsync;
+      EnableTrackRect_D <= EnableTrackRect_N;
 
       -- Latch in coordinates to draw for the next frame
       if Vsync = '0' and NewVSync_D = '1' then
@@ -80,7 +85,7 @@ begin
     end if;
   end process;
 
-  AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, NextTopLeft_D, NextBottomRight_D)
+  AsyncProc : process (TopLeft_D, BottomRight_D, PixelIn, PixelInVal, PixelCnt_D, LineCnt_D, NextTopLeft_D, NextBottomRight_D, RegAccessIn, EnableTrackRect_D)
   begin
     TopLeft_N         <= TopLeft_D;
     BottomRight_N     <= BottomRight_D;
@@ -89,6 +94,14 @@ begin
     --
     PixelCnt_N        <= PixelCnt_D;
     LineCnt_N         <= LineCnt_D;
+    --
+    EnableTrackRect_N <= EnableTrackRect_D;
+
+    if RegAccessIn.Val = "1" then
+      if RegAccessIn.Addr = EnableTrackRectReg then
+        EnableTrackRect_N <= RegAccessIn.Data(EnableTrackRect);
+      end if;
+    end if;
 
     if PixelInVal = '1' then
       -- Pixel counting
@@ -122,11 +135,11 @@ begin
     end if;
   end process;
 
-  DrawTop    <= '1' when ((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X)))     else '0';
-  DrawBottom <= '1' when ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X))) else '0';
-  DrawLeft   <= '1' when ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))      else '0';
-  DrawRight  <= '1' when ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))  else '0';
-  RectAct_i  <= '1' when ((DrawTop = '1') or (DrawLeft = '1') or (DrawRight = '1') or (DrawBottom = '1'))                      else '0';
+  DrawTop    <= '1' when ((LineCnt_D = TopLeft_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X)))              else '0';
+  DrawBottom <= '1' when ((LineCnt_D = BottomRight_D.Y) and ((PixelCnt_D >= TopLeft_D.X) and (PixelCnt_D <= BottomRight_D.X)))          else '0';
+  DrawLeft   <= '1' when ((PixelCnt_D = TopLeft_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))               else '0';
+  DrawRight  <= '1' when ((PixelCnt_D = BottomRight_D.X) and ((LineCnt_D >= TopLeft_D.Y) and (LineCnt_D <= BottomRight_D.Y)))           else '0';
+  RectAct_i  <= '1' when ((DrawTop = '1') or (DrawLeft = '1') or (DrawRight = '1') or (DrawBottom = '1')) and (EnableTrackRect_D = '1') else '0';
 
   TopLeftAssign     : TopLeft     <= TopLeft_D;
   BottomRightAssign : BottomRight <= BottomRight_D;

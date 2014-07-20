@@ -378,6 +378,7 @@ begin
       Clk         => Clk25MHz,
       --
       Vsync       => Vsync_i,
+      RegAccessIn => RegAccessIn,
       --
       PixelIn     => PixelPostFilter,
       PixelInVal  => PixelPostFilterVal,
