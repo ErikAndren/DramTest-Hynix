@@ -241,6 +241,7 @@ begin
       Vsync           => Vsync_i,
       PixelInVal      => PixelVal,
       PixelIn         => PixelData,
+      RegAccessIn     => RegAccessIn,
       --
       GrayScaleOut    => AlignedGrayPixData,
       GrayScaleOutVal => AlignedGrayPixDataVal,

@@ -24,19 +24,21 @@ package SerialPack is
   constant ColorSelectReg     : natural  := 16#00000001#;
   constant ColorToggle        : natural  := 0;
   
-  constant TemporalFilterReg  : natural  := 16#00000002#;
+  constant TemporalFilterReg   : natural  := 16#00000002#;
   --
-  constant ConvFilterThresReg : natural  := 16#00000010#;
-  constant ConvFilterThresW   : positive := 3;
+  constant ConvFilterThresReg  : natural  := 16#00000010#;
+  constant ConvFilterThresW    : positive := 3;
   --
-  constant FilterSelectReg    : natural  := 16#00000020#;
-  constant NONE_MODE          : natural  := 0;
-  constant DITHER_MODE        : natural  := 1;
-  constant SOBEL_MODE         : natural  := 2;
-  constant MEDIAN_MODE        : natural  := 3;
-  constant MODES              : natural  := MEDIAN_MODE + 1;
-  constant MODESW             : natural  := bits(MODES);
-
+  constant FilterSelectReg     : natural  := 16#00000020#;
+  constant NONE_MODE           : natural  := 0;
+  constant DITHER_MODE         : natural  := 1;
+  constant SOBEL_MODE          : natural  := 2;
+  constant MEDIAN_MODE         : natural  := 3;
+  constant MODES               : natural  := MEDIAN_MODE + 1;
+  constant MODESW              : natural  := bits(MODES);
+  --
+  constant PixelSampleOrderReg : natural  := 16#00000030#;
+  constant PixelSampleOrder    : natural  := 0;
   
   type RegAccessRec is record
     Val  : word1;

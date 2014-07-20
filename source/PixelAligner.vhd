@@ -10,6 +10,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
 use work.DramTestPack.all;
+use work.SerialPack.all;
 
 entity PixelAligner is
   generic (
@@ -23,6 +24,8 @@ entity PixelAligner is
     Vsync           : in  bit1;
     PixelInVal      : in  bit1;
     PixelIn         : in  word(DataInW-1 downto 0);
+    --
+    RegAccessIn     : in  RegAccessRec;
     --
     GrayScaleOutVal : out bit1;
     GrayScaleOut    : out word(DataOutW-1 downto 0);
@@ -66,15 +69,18 @@ architecture rtl of PixelAligner is
   signal B_Dithered                       : word(2-1 downto 0);
   signal R_DitheredVal                    : bit1;
   signal B_DitheredVal                    : bit1;
-
+  --
+  signal SampleOrder_N, SampleOrder_D     : bit1;
   
 begin
   SyncRstProc : process (Clk, RstN)
   begin
     if RstN = '0' then
       GrayScaleVal_D <= '0';
+      SampleOrder_D  <= '0';
     elsif rising_edge(Clk) then
       GrayScaleVal_D <= GrayScaleVal_N;
+      SampleOrder_D  <= SampleOrder_N;
     end if;
   end process;
   
@@ -88,28 +94,50 @@ begin
     end if;
   end process;
 
-  AsyncProc : process (Cnt_D, Vsync, PixelInVal, Y_D, Cb_D, Cr_D,  PixelIn)
+  AsyncProc : process (Cnt_D, Vsync, PixelInVal, Y_D, Cb_D, Cr_D, PixelIn, SampleOrder_D, RegAccessIn)
   begin
     Cnt_N          <= Cnt_D;
     GrayScaleVal_N <= '0';
     Y_N            <= Y_D;
     Cb_N           <= Cb_D;
     Cr_N           <= Cr_D;
+    SampleOrder_N  <= SampleOrder_D;
+
+    if RegAccessIn.Val = "1" then
+      if RegAccessIn.Addr = PixelSampleOrderReg then
+        SampleOrder_N <= RegAccessIn.Data(PixelSampleOrder);
+      end if;
+    end if;
 
     if PixelInVal = '1' then
       Cnt_N <= Cnt_D + 1;
 
-      if (Cnt_D(0) = '1') then
-        Y_N            <= PixelIn;
-        GrayScaleVal_N <= '1';
-      end if;
+      if SampleOrder_D = '0' then
+        if (Cnt_D(0) = '1') then
+          Y_N            <= PixelIn;
+          GrayScaleVal_N <= '1';
+        end if;
 
-      if Cnt_D = "00" then
-        Cb_N <= PixelIn;
-      end if;
+        if Cnt_D = "00" then
+          Cb_N <= PixelIn;
+        end if;
 
-      if Cnt_D = "10" then
-        Cr_N <= PixelIn;
+        if Cnt_D = "10" then
+          Cr_N <= PixelIn;
+        end if;
+      else
+        if (Cnt_D(0) = '0') then
+          Y_N            <= PixelIn;
+          GrayScaleVal_N <= '1';
+        end if;
+
+        if Cnt_D = "01" then
+          Cb_N <= PixelIn;
+        end if;
+
+        if Cnt_D = "11" then
+          Cr_N <= PixelIn;
+        end if;        
       end if;
     end if;
 
