@@ -145,8 +145,8 @@ begin
         when 3 =>
           AddrData_N <= COM2 & x"00";     -- Enable 4x drive
 
-        --when "0100" =>
-        --  AddrData_N <= MVFP & x"10";     -- Flip image to it mount
+        when 4 =>
+          AddrData_N <= MVFP & x"10";     -- Flip image to it mount
 
         when others =>
           We_N      <= '0';
