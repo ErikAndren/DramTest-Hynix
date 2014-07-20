@@ -384,7 +384,6 @@ begin
       --
       PixelOut    => ObjFindPixel,
       PixelOutVal => ObjFindPixelVal,
-      RectAct     => open,
       --
       TopLeft     => ObjTopLeft,
       BottomRight => ObjBottomRight
