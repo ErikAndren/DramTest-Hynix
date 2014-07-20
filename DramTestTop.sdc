@@ -55,7 +55,6 @@ set_false_path -from [get_ports Sram*] -to [get_registers *]
 set_false_path -from [get_ports Cam*] -to [get_registers *]
 
 set_false_path -from [get_ports {AsyncRst}] -through [get_pins {AsyncRst|combout}]
-set_false_path -from [get_ports {Button1 Button2 Button3}] -through [get_pins {Button1|combout Button2|combout Button3|combout}]
 
 # False path these signals. The frequency is so low that we handle the timing manually
 set_false_path -from [get_registers {*}] -to [get_ports {SIO_C SIO_D}]
