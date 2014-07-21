@@ -146,109 +146,113 @@ begin
     end if;
   end process;
 
-  AdjY       <= Y_D - 16   when Y_D - 16 > 0   else (others => '0');
-  --
-  AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
-  AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
+  --AdjY       <= Y_D - 16   when Y_D - 16 > 0   else (others => '0');
+  ----
+  --AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
+  --AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
     
-  RGBConv : process (AdjY, AdjCb, AdjCr)
-    variable C_298 : integer;
-    variable E_208 : integer;
-    variable E_409 : integer;
-    variable D_100 : integer;
-    variable D_516 : integer;
-    variable R_T, G_T, B_T : integer;
+  --RGBConv : process (AdjY, AdjCb, AdjCr)
+  --  variable C_298 : integer;
+  --  variable E_208 : integer;
+  --  variable E_409 : integer;
+  --  variable D_100 : integer;
+  --  variable D_516 : integer;
+  --  variable R_T, G_T, B_T : integer;
     
-  begin
-    C_298 := conv_integer(AdjY) * 298;
-    E_409 := conv_integer(AdjCr) * 409;
-    E_208 := conv_integer(AdjCr) * 208;
-    D_100 := conv_integer(AdjCb) * 100;
-    D_516 := conv_integer(AdjCb) * 516;
-    --
-    R_T := (C_298 + E_409 + 128) / 2**8;
-    if R_T > 255 then
-      R <= (others => '1');
-    else
-      R <= conv_word(R_T, R'length);
-    end if;
+  --begin
+  --  C_298 := conv_integer(AdjY) * 298;
+  --  E_409 := conv_integer(AdjCr) * 409;
+  --  E_208 := conv_integer(AdjCr) * 208;
+  --  D_100 := conv_integer(AdjCb) * 100;
+  --  D_516 := conv_integer(AdjCb) * 516;
+  --  --
+  --  R_T := (C_298 + E_409 + 128) / 2**8;
+  --  if R_T > 255 then
+  --    R <= (others => '1');
+  --  else
+  --    R <= conv_word(R_T, R'length);
+  --  end if;
 
-    G_T := (C_298 - D_100 - E_208 + 128) / 2**8;
-    if G_T > 255 then
-      G <= (others => '1');
-    else
-      G <= conv_word(G_T, G'length);
-    end if;
+  --  G_T := (C_298 - D_100 - E_208 + 128) / 2**8;
+  --  if G_T > 255 then
+  --    G <= (others => '1');
+  --  else
+  --    G <= conv_word(G_T, G'length);
+  --  end if;
 
-    B_T := (C_298 + D_516 + 128) / 2**8;
-    if B_T > 255 then
-      B <= (others => '1');
-    else
-      B <= conv_word(B_T, B'length);
-    end if;
-  end process;
+  --  B_T := (C_298 + D_516 + 128) / 2**8;
+  --  if B_T > 255 then
+  --    B <= (others => '1');
+  --  else
+  --    B <= conv_word(B_T, B'length);
+  --  end if;
+  --end process;
 
   GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
   GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
 
-  RedDither : entity work.DitherFloydSteinberg
-    generic map (
-      DataW     => 8,
-      CompDataW => 3
-      )
-    port map (
-      RstN        => RstN,
-      Clk         => Clk,
-      --
-      Vsync       => Vsync,
-      --
-      PixelIn     => R,
-      PixelInVal  => GrayScaleVal_D,
-      --
-      PixelOut    => R_Dithered,
-      PixelOutVal => R_DitheredVal
-      );
+  --RedDither : entity work.DitherFloydSteinberg
+  --  generic map (
+  --    DataW     => 8,
+  --    CompDataW => 3
+  --    )
+  --  port map (
+  --    RstN        => RstN,
+  --    Clk         => Clk,
+  --    --
+  --    Vsync       => Vsync,
+  --    --
+  --    PixelIn     => R,
+  --    PixelInVal  => GrayScaleVal_D,
+  --    --
+  --    PixelOut    => R_Dithered,
+  --    PixelOutVal => R_DitheredVal
+  --    );
   
-  GreenDither : entity work.DitherFloydSteinberg
-    generic map (
-      DataW     => 8,
-      CompDataW => 3
-      )
-    port map (
-      RstN        => RstN,
-      Clk         => Clk,
-      --
-      Vsync       => Vsync,
-      --
-      PixelIn     => G,
-      PixelInVal  => GrayScaleVal_D,
-      --
-      PixelOut    => G_Dithered,
-      PixelOutVal => open
-      );
+  --GreenDither : entity work.DitherFloydSteinberg
+  --  generic map (
+  --    DataW     => 8,
+  --    CompDataW => 3
+  --    )
+  --  port map (
+  --    RstN        => RstN,
+  --    Clk         => Clk,
+  --    --
+  --    Vsync       => Vsync,
+  --    --
+  --    PixelIn     => G,
+  --    PixelInVal  => GrayScaleVal_D,
+  --    --
+  --    PixelOut    => G_Dithered,
+  --    PixelOutVal => open
+  --    );
 
-  BlueDither : entity work.DitherFloydSteinberg
-    generic map (
-      DataW     => 8,
-      CompDataW => 2
-      )
-    port map (
-      RstN        => RstN,
-      Clk         => Clk,
-      --
-      Vsync       => Vsync,
-      --
-      PixelIn     => B,
-      PixelInVal  => GrayScaleVal_D,
-      --
-      PixelOut    => B_Dithered,
-      PixelOutVal => B_DitheredVal
-      );
+  --BlueDither : entity work.DitherFloydSteinberg
+  --  generic map (
+  --    DataW     => 8,
+  --    CompDataW => 2
+  --    )
+  --  port map (
+  --    RstN        => RstN,
+  --    Clk         => Clk,
+  --    --
+  --    Vsync       => Vsync,
+  --    --
+  --    PixelIn     => B,
+  --    PixelInVal  => GrayScaleVal_D,
+  --    --
+  --    PixelOut    => B_Dithered,
+  --    PixelOutVal => B_DitheredVal
+  --    );
   
-  RedFeed   : Color(RedHigh downto RedLow)     <= R_Dithered;
-  GreenFeed : Color(GreenHigh downto GreenLow) <= G_Dithered;
-  BlueFeed  : Color(BlueHigh downto BlueLow)   <= B_Dithered;
+  --RedFeed   : Color(RedHigh downto RedLow)     <= R_Dithered;
+  --GreenFeed : Color(GreenHigh downto GreenLow) <= G_Dithered;
+  --BlueFeed  : Color(BlueHigh downto BlueLow)   <= B_Dithered;
+  
+  RedFeed   : Color(RedHigh downto RedLow)     <= (others => '0');
+  GreenFeed : Color(GreenHigh downto GreenLow) <= (others => '0');
+  BlueFeed  : Color(BlueHigh downto BlueLow)   <= (others => '0');
 
-  ColorValFeed     : ColorOutVal     <= B_DitheredVal;
+  ColorValFeed     : ColorOutVal     <= '0';
   
 end architecture rtl;
