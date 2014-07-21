@@ -144,8 +144,6 @@ architecture rtl of DramTestTop is
   signal ObjFindPixel                    : word(PixelW-1 downto 0);
   signal ObjFindPixelVal                 : bit1;
   --
-  signal DrawRect                        : bit1;
-  --
   signal ObjTopLeft, ObjBottomRight      : Cord;
   signal YawPos, PitchPos                : word(ServoResW-1 downto 0);
   --
@@ -542,7 +540,6 @@ begin
       PixelToDisp   => VgaPixelToDisp
       );
 
-  DrawRect <= VgaPixelToDisp(0);
   VGAGen : entity work.VGAGenerator
     generic map (
       DataW     => PixelW,
@@ -553,7 +550,7 @@ begin
       RstN           => RstN25MHz,
       --
       PixelToDisplay => VgaPixelToDisp,
-      DrawRect       => DrawRect,
+      DrawRect       => '0',
       InView         => VgaInView,
       --
       Red            => VgaRed,

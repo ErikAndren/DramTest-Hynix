@@ -104,11 +104,10 @@ begin
       Green <= PixelToDisplay(GreenHigh downto GreenLow);
       Blue  <= PixelToDisplay(BlueHigh downto BlueLow) & '0';
 
-    -- Draw green rectangle overlay
-      --if DrawRect = '1' then
-      --  Green <= (others => '1');
-      --end if;
+     -- Draw green rectangle overlay
+      if DrawRect = '1' then
+        Green <= (others => '1');
+      end if;
     end if;
-  end process;
-  
+  end process;  
 end architecture rtl;
