@@ -208,12 +208,12 @@ begin
   end process;
 
   RegAccessClkTran : block
-    signal RegAccessInWord    : word(RegAccessRecW downto 0);
+    signal RegAccessInWord    : word(RegAccessRecW-1 downto 0);
     signal ReadRegFifo        : bit1;
     signal RegAccessFifoEmpty : bit1;
-    signal RegAccessIn_RdClk  : word(RegAccessRecW downto 0);
+    signal RegAccessIn_RdClk  : word(RegAccessRecW-1 downto 0);
   begin
-    RegAccessInWord <= '0' & RegAccessRecToWord(RegAccessIn);
+    RegAccessInWord <= RegAccessRecToWord(RegAccessIn);
     -- 2 port fifo for reg access
     RegAccessF : entity work.RegAccessFifo
       port map (
@@ -229,7 +229,7 @@ begin
         );
     
     ReadRegFifo   <= not RegAccessFifoEmpty;
-    RegAccessIn_D <= WordToRegAccessRec(RegAccessIn_RdClk(66-1 downto 0));
+    RegAccessIn_D <= WordToRegAccessRec(RegAccessIn_RdClk);
   end block;
 
   ReadOutProc : process (CmdAck, CmdMask_D, ReqOut_i, ReadPenalty_D, FifoEmpty, ReadFifo, WritePenalty_D, WritePenaltySet_D, ReadPenaltySet_D, RegAccessIn_D)

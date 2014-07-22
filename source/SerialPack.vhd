@@ -66,7 +66,7 @@ package SerialPack is
      Addr => (others => '0')
      );
 
-  -- 67
+  -- 66
   constant RegAccessRecW : positive := word1'length + RegCmdW + AddrW + DataW;
   
 end package;
