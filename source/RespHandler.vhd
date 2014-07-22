@@ -52,7 +52,7 @@ architecture rtl of RespHandler is
   constant ReadReqThrottleW                         : positive := bits(ReadReqThrottle);
   signal ReqThrottle_N, ReqThrottle_D               : word(ReadReqThrottleW-1 downto 0);
   --
-  constant FillLevelThres                           : positive := 8;
+  constant FillLevelThres                           : positive := 6;
   constant PixelsPerWord                            : positive := DSIZE / PixelW;
   constant PixelsPerWordW                           : positive := bits(PixelsPerWord);
   --
@@ -66,7 +66,6 @@ architecture rtl of RespHandler is
   signal ReadReqThrottleSet_N, ReadReqThrottleSet_D : word(ReadReqThrottleW-1 downto 0);
   
 begin
-  
   ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync, ReadReqThrottleSet_D, RegAccessIn, FillLevelThres_D)
   begin
     ReadReq              <= Z_DramRequest;

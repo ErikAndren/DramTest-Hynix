@@ -61,93 +61,94 @@ entity DramTestTop is
 end entity;
 
 architecture rtl of DramTestTop is
-  constant Clk25MHz_integer              : positive := 25000000;
+  constant Clk25MHz_integer         : positive := 25000000;
   --
-  signal Clk100MHz                       : bit1;
-  signal RstN100MHz                      : bit1;
+  signal Clk100MHz                  : bit1;
+  signal RstN100MHz                 : bit1;
   --
-  signal Clk25MHz                        : bit1;
-  signal RstN25MHz                       : bit1;
+  signal Clk25MHz                   : bit1;
+  signal RstN25MHz                  : bit1;
   --
-  signal Clk64kHz                        : bit1;
-  signal RstN64kHz                       : bit1;
+  signal Clk64kHz                   : bit1;
+  signal RstN64kHz                  : bit1;
   --
-  signal SdramAddr                       : word(ASIZE-1 downto 0);
-  signal SdramCmd                        : word(3-1 downto 0);
-  signal SdramCmdAck                     : bit1;
+  signal SdramAddr                  : word(ASIZE-1 downto 0);
+  signal SdramCmd                   : word(3-1 downto 0);
+  signal SdramCmdAck                : bit1;
   --
-  signal SdramDataIn                     : word(DSIZE-1 downto 0);
-  signal SdramDataOut                    : word(DSIZE-1 downto 0);
+  signal SdramDataIn                : word(DSIZE-1 downto 0);
+  signal SdramDataOut               : word(DSIZE-1 downto 0);
   --
-  signal SdramDataVal                    : bit1;
-  signal VgaInView                       : bit1;
-  signal VgaPixelToDisp                  : word(PixelW-1 downto 0);
+  signal SdramDataVal               : bit1;
+  signal VgaInView                  : bit1;
+  signal VgaPixelToDisp             : word(PixelW-1 downto 0);
   --
-  signal SdramDataMask                   : word(DSIZE/8-1 downto 0);
+  signal SdramDataMask              : word(DSIZE/8-1 downto 0);
   --
-  signal SdramCS_N_i                     : word(2-1 downto 0);
+  signal SdramCS_N_i                : word(2-1 downto 0);
   --
-  signal ShaperBp                        : bit1;
+  signal ShaperBp                   : bit1;
   --
-  signal ReqFromArb                      : DramRequest;
-  signal ReqFromArbWe                    : bit1;
+  signal ReqFromArb                 : DramRequest;
+  signal ReqFromArbWe               : bit1;
   --
-  signal ReqToCont                       : DramRequest;
-  signal ContCmdAck                      : bit1;
+  signal ReqToCont                  : DramRequest;
+  signal ContCmdAck                 : bit1;
   --
-  signal WriteReqFromPatGen              : DramRequest;
-  signal WriteReqFromPatGenAck           : bit1;
+  signal WriteReqFromPatGen         : DramRequest;
+  signal WriteReqFromPatGenAck      : bit1;
   --
-  signal ReadReqFromRespHdler            : DramRequest;
-  signal ReadReqFromRespHdlerAck         : bit1;
+  signal ReadReqFromRespHdler       : DramRequest;
+  signal ReadReqFromRespHdlerAck    : bit1;
   --
-  signal PixelVal                        : bit1;
-  signal PixelData                       : word(PixelW-1 downto 0);
+  signal PixelVal                   : bit1;
+  signal PixelData                  : word(PixelW-1 downto 0);
   --
-  signal AlignedPixDataVal               : bit1;
-  signal AlignedPixData                  : word(PixelW-1 downto 0);
-  signal AlignedGrayPixDataVal           : bit1;
-  signal AlignedGrayPixData              : word(PixelW-1 downto 0);
-  signal AlignedColPixDataVal            : bit1;
-  signal AlignedColPixData               : word(PixelW-1 downto 0);
+  signal AlignedPixDataVal          : bit1;
+  signal AlignedPixData             : word(PixelW-1 downto 0);
+  signal AlignedGrayPixDataVal      : bit1;
+  signal AlignedGrayPixData         : word(PixelW-1 downto 0);
+  signal AlignedColPixDataVal       : bit1;
+  signal AlignedColPixData          : word(PixelW-1 downto 0);
   --
-  signal VSync_i                         : bit1;
+  signal VSync_i                    : bit1;
   --
-  signal LastFrameComp                   : word(FramesW-1 downto 0);
-  signal FirstFrameVal                   : bit1;
+  signal LastFrameComp              : word(FramesW-1 downto 0);
+  signal FirstFrameVal              : bit1;
   --
-  signal VgaVsync_i                      : bit1;
-  signal VgaVSyncN, VgaHSyncN            : bit1;
+  signal VgaVsync_i                 : bit1;
+  signal VgaVSyncN, VgaHSyncN       : bit1;
   --
-  signal SramContAddr                    : word(SramAddrW-1 downto 0);
-  signal SramContWd                      : word(SramDataW-1 downto 0);
-  signal SramContRd                      : word(SramDataW-1 downto 0);
-  signal SramContWe                      : bit1;
-  signal SramContRe                      : bit1;
+  signal SramContAddr               : word(SramAddrW-1 downto 0);
+  signal SramContWd                 : word(SramDataW-1 downto 0);
+  signal SramContRd                 : word(SramDataW-1 downto 0);
+  signal SramContWe                 : bit1;
+  signal SramContRe                 : bit1;
   --
-  signal SramReadAddr                    : word(SramAddrW-1 downto 0);
-  signal SramRe                          : bit1;
-  signal SramPopRead                     : bit1;
-  signal SramWriteAddr                   : word(SramAddrW-1 downto 0);
-  signal SramWe                          : bit1;
-  signal SramPopWrite                    : bit1;
+  signal SramReadAddr               : word(SramAddrW-1 downto 0);
+  signal SramRe                     : bit1;
+  signal SramPopRead                : bit1;
+  signal SramWriteAddr              : word(SramAddrW-1 downto 0);
+  signal SramWe                     : bit1;
+  signal SramPopWrite               : bit1;
   --
-  signal TempPixelOut                    : word(PixelW-1 downto 0);
-  signal TempPixelOutVal                 : bit1;
+  signal TempPixelOut               : word(PixelW-1 downto 0);
+  signal TempPixelOutVal            : bit1;
   --
-  signal TempPixelPostMux                : word(PixelW-1 downto 0);
-  signal TempPixelValPostMux             : bit1;
+  signal TempPixelPostMux           : word(PixelW-1 downto 0);
+  signal TempPixelValPostMux        : bit1;
   --
-  signal PixelPostFilter                 : word(PixelW-1 downto 0);
-  signal PixelPostFilterVal              : bit1;
+  signal PixelPostFilter            : word(PixelW-1 downto 0);
+  signal PixelPostFilterVal         : bit1;
   --
-  signal ObjFindPixel                    : word(PixelW-1 downto 0);
-  signal ObjFindPixelVal                 : bit1;
+  signal ObjFindPixel               : word(PixelW-1 downto 0);
+  signal ObjFindPixelVal            : bit1;
   --
-  signal ObjTopLeft, ObjBottomRight      : Cord;
-  signal YawPos, PitchPos                : word(ServoResW-1 downto 0);
+  signal ObjTopLeft, ObjBottomRight : Cord;
+  signal YawPos, PitchPos           : word(ServoResW-1 downto 0);
   --
-  signal RegAccessIn, RegAccessOut       : RegAccessRec;
+  signal RegAccessIn, RegAccessOut  : RegAccessRec;
+  signal ColorEn                    : bit1;
   
 begin
   Pll100MHz : entity work.PLL
@@ -274,7 +275,9 @@ begin
       PixelValPostMux       => AlignedPixDataVal,
       PixelPostMux          => AlignedPixData,
       --
-      RegAccessIn           => RegAccessIn
+      RegAccessIn           => RegAccessIn,
+      --
+      ColorEn               => ColorEn
       );
 
   FChain : entity work.FilterChain
@@ -556,6 +559,8 @@ begin
       PixelToDisplay => VgaPixelToDisp,
       DrawRect       => '0',
       InView         => VgaInView,
+      --
+      ColorEn        => ColorEn,
       --
       Red            => VgaRed,
       Green          => VgaGreen,

@@ -34,7 +34,9 @@ entity ModeToggle is
     PixelValPostMux       : out bit1;
     PixelPostMux          : out word(DataW-1 downto 0);
     --
-    RegAccessIn           : in  RegAccessRec
+    RegAccessIn           : in  RegAccessRec;
+    --
+    ColorEn               : out bit1
     );
 end entity;
 
@@ -92,6 +94,9 @@ begin
   TempFiltPostMux    <= FromTempFiltPreMux    when TempFilt_D = '1' else GrayScaleIn;
 
   -- Select color or not
-  PixelValPostMux    <= ColorVal              when ColSel_D = '1'   else ObjFindPixValPreMux;
-  PixelPostMux       <= ColorIn               when ColSel_D = '1'   else ObjFindPixPreMux;
+  PixelValPostMux <= ColorVal when ColSel_D = '1' else ObjFindPixValPreMux;
+  PixelPostMux    <= ColorIn  when ColSel_D = '1' else ObjFindPixPreMux;
+  --
+  ColorEn         <= ColSel_D;
+  
 end architecture rtl;

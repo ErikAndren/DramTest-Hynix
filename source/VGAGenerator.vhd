@@ -24,6 +24,8 @@ entity VGAGenerator is
     DrawRect       : in  bit1;
     InView         : out bit1;
     --
+    ColorEn        : in  bit1;
+    --
     Red            : out word(ColResW-1 downto 0);
     Green          : out word(ColResW-1 downto 0);
     Blue           : out word(ColResW-1 downto 0);
@@ -93,16 +95,22 @@ begin
   HsyncN <= '1' when hcount > HSyncEnd else '0';
   VsyncN <= '1' when vcount > VSyncEnd else '0';
 
-  DrawColorProc : process (PixelToDisplay, DrawRect, InView_i)
+  DrawColorProc : process (PixelToDisplay, DrawRect, InView_i, ColorEn)
   begin
     Red   <= (others => '0');
     Green <= (others => '0');
     Blue  <= (others => '0');
 
     if InView_i = '1' then
-      Red   <= PixelToDisplay(RedHigh downto RedLow);
-      Green <= PixelToDisplay(GreenHigh downto GreenLow);
-      Blue  <= PixelToDisplay(BlueHigh downto BlueLow) & '0';
+      if ColorEn = '1' then
+        Red   <= PixelToDisplay(RedHigh downto RedLow);
+        Green <= PixelToDisplay(GreenHigh downto GreenLow);
+        Blue  <= PixelToDisplay(BlueHigh downto BlueLow) & '0';
+      else
+        Red   <= PixelToDisplay(3-1 downto 0);
+        Green <= PixelToDisplay(3-1 downto 0);
+        Blue  <= PixelToDisplay(3-1 downto 0);
+      end if;
 
      -- Draw green rectangle overlay
       if DrawRect = '1' then
