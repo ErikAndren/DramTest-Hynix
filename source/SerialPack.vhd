@@ -36,7 +36,7 @@ package SerialPack is
   constant DITHER_MODE         : natural  := 1;
   constant SOBEL_MODE          : natural  := 2;
   constant MEDIAN_MODE         : natural  := 3;
-  constant MODES               : natural  := MEDIAN_MODE + 1;
+  constant MODES               : natural  := MEDIAN_MODE;
   constant MODESW              : natural  := bits(MODES);
   --
   constant PixelSampleOrderReg : natural  := 16#00000030#;
