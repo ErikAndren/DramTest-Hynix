@@ -162,7 +162,7 @@ begin
     generic map (
       SourceFreq => 25000000,
       SinkFreq   => 64000
-    )
+      )
     port map (
       Clk     => Clk25MHz,
       RstN    => RstN25MHz,
@@ -530,6 +530,8 @@ begin
       RespDataVal   => SdramDataVal,
       FirstFrameVal => FirstFrameVal,
       LastFrameComp => LastFrameComp,
+      --
+      RegAccessIn   => RegAccessIn,
       --
       RdRst_N       => RstN25MHz,
       RdClk         => Clk25MHz,

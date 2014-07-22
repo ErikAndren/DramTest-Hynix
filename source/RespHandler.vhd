@@ -7,6 +7,7 @@ use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
 use work.DramTestPack.all;
+use work.SerialPack.all;
 
 entity RespHandler is
   generic (
@@ -18,6 +19,8 @@ entity RespHandler is
     --
     FirstFrameVal : in  bit1;
     LastFrameComp : in  word(FramesW-1 downto 0);
+    --
+    RegAccessIn   : in  RegAccessRec;
     --
     RespData      : in  word(DSIZE-1 downto 0);
     RespDataVal   : in  bit1;
@@ -45,29 +48,38 @@ architecture rtl of RespHandler is
 
   -- Must be less than 16
   constant ReadReqThrottle            : positive := 15;
-  constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
-  signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW downto 0);
+  constant ReadReqThrottleW           : positive := bits(ReadReqThrottle) + 1;
+  signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW-1 downto 0);
 
   constant FillLevelThres : positive := 8;
-  
   constant PixelsPerWord  : positive := DSIZE / PixelW;
   constant PixelsPerWordW : positive := bits(PixelsPerWord);
   
-  signal WordCnt_N, WordCnt_D : word(PixelsPerWordW-1 downto 0);
-
-  signal Frame_N, Frame_D : word(FramesW-1 downto 0);
-  signal Addr_N, Addr_D   : word(VgaPixelsPerDwordW-1 downto 0);
+  signal WordCnt_N, WordCnt_D                       : word(PixelsPerWordW-1 downto 0);
+  --
+  signal Frame_N, Frame_D                           : word(FramesW-1 downto 0);
+  signal Addr_N, Addr_D                             : word(VgaPixelsPerDwordW-1 downto 0);
+  --
+  signal ReadReqThrottleSet_N, ReadReqThrottleSet_D : word(ReadReqThrottleW-1 downto 0);
+  
 begin
   
-  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync)
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync, ReadReqThrottleSet_D, RegAccessIn)
   begin
-    ReadReq <= Z_DramRequest;
-    Addr_N  <= Addr_D;
-    Frame_N <= Frame_D;
+    ReadReq              <= Z_DramRequest;
+    Addr_N               <= Addr_D;
+    Frame_N              <= Frame_D;
+    ReadReqThrottleSet_N <= ReadReqThrottleSet_D;
     --
-    ReqThrottle_N <= ReqThrottle_D - 1;
+    ReqThrottle_N        <= ReqThrottle_D - 1;
     if ReqThrottle_D = 0 then
       ReqThrottle_N <= (others => '0');
+    end if;
+
+    if RegAccessIn.Val = "1" then
+      if RegAccessIn.Addr = ReadReqThrottleReg then
+        ReadReqThrottleSet_N <= RegAccessIn.Data(ReadReqThrottleW-1 downto 0);
+      end if;   
     end if;
 
     -- Generate read requests when:
@@ -85,7 +97,7 @@ begin
       Addr_N        <= Addr_D + BurstLen;
 
       -- Throttle the time to the next read request to avoid burstiness
-      ReqThrottle_N <= conv_word(ReadReqThrottle, ReqThrottle_N'length);
+      ReqThrottle_N <= ReadReqThrottleSet_D;
     end if;
 
     -- Reset address pointer as the next frame must be loaded upon vga vsync release
@@ -120,15 +132,17 @@ begin
   SyncProc : process (RdClk, RdRst_N)
   begin
     if RdRst_N = '0' then
-      Frame_D       <= (others => '0');
-      Addr_D        <= (others => '0');
-      WordCnt_D     <= (others => '0');
-      ReqThrottle_D <= (others => '0');
+      Frame_D              <= (others => '0');
+      Addr_D               <= (others => '0');
+      WordCnt_D            <= (others => '0');
+      ReqThrottle_D        <= (others => '0');
+      ReadReqThrottleSet_D <= conv_word(ReadReqThrottle, ReadReqThrottleW);
     elsif rising_edge(RdClk) then
-      Frame_D       <= Frame_N;
-      WordCnt_D     <= WordCnt_N;
-      Addr_D        <= Addr_N;
-      ReqThrottle_D <= ReqThrottle_N;
+      Frame_D              <= Frame_N;
+      WordCnt_D            <= WordCnt_N;
+      Addr_D               <= Addr_N;
+      ReqThrottle_D        <= ReqThrottle_N;
+      ReadReqThrottleSet_D <= ReadReqThrottleSet_N;
     end if;
   end process;
 

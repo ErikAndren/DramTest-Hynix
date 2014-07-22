@@ -45,8 +45,11 @@ package SerialPack is
   constant EnableTrackRectReg  : natural  := 16#00000040#;
   constant EnableTrackRect     : natural  := 0;
   --
-  constant ReqHandlerWrPenReg  : natural  := 16#00005000#;
-  constant ReqHandlerRdPenReg  : natural  := 16#00005100#;
+  constant ReqHandlerWrPenReg  : natural  := 16#00000050#;
+  constant ReqHandlerRdPenReg  : natural  := 16#00000051#;
+  --
+  constant ReadReqThrottleReg : natural := 16#00000060#;
+  
 
   -- 1 + 2 + 32 + 32 
   type RegAccessRec is record
