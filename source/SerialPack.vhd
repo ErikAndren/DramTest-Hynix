@@ -49,6 +49,7 @@ package SerialPack is
   constant ReqHandlerRdPenReg  : natural  := 16#00000051#;
   --
   constant ReadReqThrottleReg : natural := 16#00000060#;
+  constant ReadReqThresReg    : natural := 16#00000061#;
   
 
   -- 1 + 2 + 32 + 32 

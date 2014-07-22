@@ -21,6 +21,7 @@ entity RespHandler is
     LastFrameComp : in  word(FramesW-1 downto 0);
     --
     RegAccessIn   : in  RegAccessRec;
+    RegAccessOut  : out RegAccessRec;
     --
     RespData      : in  word(DSIZE-1 downto 0);
     RespDataVal   : in  bit1;
@@ -47,14 +48,16 @@ architecture rtl of RespHandler is
   signal FillLvl     : word(FifoSizeW-1 downto 0);
 
   -- Must be less than 16
-  constant ReadReqThrottle            : positive := 15;
-  constant ReadReqThrottleW           : positive := bits(ReadReqThrottle);
-  signal ReqThrottle_N, ReqThrottle_D : word(ReadReqThrottleW-1 downto 0);
-
-  constant FillLevelThres : positive := 8;
-  constant PixelsPerWord  : positive := DSIZE / PixelW;
-  constant PixelsPerWordW : positive := bits(PixelsPerWord);
-  
+  constant ReadReqThrottle                          : positive := 15;
+  constant ReadReqThrottleW                         : positive := bits(ReadReqThrottle);
+  signal ReqThrottle_N, ReqThrottle_D               : word(ReadReqThrottleW-1 downto 0);
+  --
+  constant FillLevelThres                           : positive := 8;
+  constant PixelsPerWord                            : positive := DSIZE / PixelW;
+  constant PixelsPerWordW                           : positive := bits(PixelsPerWord);
+  --
+  signal FillLevelThres_N, FillLevelThres_D         : word(FifoSizeW-1 downto 0);
+  --
   signal WordCnt_N, WordCnt_D                       : word(PixelsPerWordW-1 downto 0);
   --
   signal Frame_N, Frame_D                           : word(FramesW-1 downto 0);
@@ -64,12 +67,13 @@ architecture rtl of RespHandler is
   
 begin
   
-  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync, ReadReqThrottleSet_D, RegAccessIn)
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync, ReadReqThrottleSet_D, RegAccessIn, FillLevelThres_D)
   begin
     ReadReq              <= Z_DramRequest;
     Addr_N               <= Addr_D;
     Frame_N              <= Frame_D;
     ReadReqThrottleSet_N <= ReadReqThrottleSet_D;
+    FillLevelThres_N     <= FillLevelThres_D;
     --
     ReqThrottle_N        <= ReqThrottle_D - 1;
     if ReqThrottle_D = 0 then
@@ -79,7 +83,11 @@ begin
     if RegAccessIn.Val = "1" then
       if RegAccessIn.Addr = ReadReqThrottleReg then
         ReadReqThrottleSet_N <= RegAccessIn.Data(ReadReqThrottleW-1 downto 0);
-      end if;   
+      end if;
+
+      if RegAccessIn.Addr = ReadReqThresReg then
+        FillLevelThres_N <= RegAccessIn.Data(FifoSizeW-1 downto 0);
+      end if;
     end if;
 
     -- Generate read requests when:
@@ -87,7 +95,7 @@ begin
     -- 2. No throttling is occurring
     -- 3. A full, valid frame has been generated
     -- 4. The VGA is not syncing, if so we must load the next frame
-    if (conv_integer(FillLvl) < FillLevelThres) and (ReqThrottle_D = 0) and (FirstFrameVal = '1') and (VgaVSync = '0') then
+    if (FillLvl < FillLevelThres_D) and (ReqThrottle_D = 0) and (FirstFrameVal = '1') and (VgaVSync = '0') then
       ReadReq.Val   <= "1";
       ReadReq.Cmd   <= DRAM_READA;
       ReadReq.Addr  <= xt0(Frame_D & Addr_D, ReadReq.Addr'length);
@@ -137,12 +145,14 @@ begin
       WordCnt_D            <= (others => '0');
       ReqThrottle_D        <= (others => '0');
       ReadReqThrottleSet_D <= conv_word(ReadReqThrottle, ReadReqThrottleW);
+      FillLevelThres_D     <= conv_word(FillLevelThres, FifoSizeW);
     elsif rising_edge(RdClk) then
       Frame_D              <= Frame_N;
       WordCnt_D            <= WordCnt_N;
       Addr_D               <= Addr_N;
       ReqThrottle_D        <= ReqThrottle_N;
       ReadReqThrottleSet_D <= ReadReqThrottleSet_N;
+      FillLevelThres_D     <= FillLevelThres_N;
     end if;
   end process;
 
