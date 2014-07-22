@@ -1,6 +1,7 @@
 FILES=source/DramTestPack.vhd \
 	ReqFifo.vhd \
 	RespFIFO.vhd \
+	RegAccessFIFO.vhd \
 	PLL.vhd \
 	AsyncFifo.vhd \
 	source/SerialPack.vhd \

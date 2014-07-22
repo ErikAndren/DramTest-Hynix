@@ -5,49 +5,60 @@ use ieee.std_logic_unsigned.all;
 
 use work.Types.all;
 use work.DramTestPack.all;
+use work.SerialPack.all;
 
 entity RequestHandler is
   port (
-    WrClk      : in  bit1;
-    WrRstN     : in  bit1;
+    WrClk       : in  bit1;
+    WrRstN      : in  bit1;
     --
-    ReqIn      : in  DramRequest;
-    We         : in  bit1;
-    ShapBp     : out bit1;
+    ReqIn       : in  DramRequest;
+    We          : in  bit1;
+    ShapBp      : out bit1;
     --
-    RdClk      : in  bit1;
-    RdRst_N    : in  bit1;
-    ReqOut     : out DramRequest;
-    ReqDataOut : out word(DSIZE-1 downto 0);
-    CmdAck     : in  bit1;
+    RegAccessIn : in  RegAccessRec;
     --
-    RespVal    : out bit1
+    RdClk       : in  bit1;
+    RdRst_N     : in  bit1;
+    ReqOut      : out DramRequest;
+    ReqDataOut  : out word(DSIZE-1 downto 0);
+    CmdAck      : in  bit1;
+    --
+    RespVal     : out bit1
     );
 end entity;
 
 architecture rtl of RequestHandler is
-  signal ReqInWord, ReqOutWord          : word(DramRequestW-1 downto 0);
-  signal WrFull_i                       : bit1;
+  signal ReqInWord, ReqOutWord                : word(DramRequestW-1 downto 0);
+  signal WrFull_i                             : bit1;
   --
-  signal ReadFifo, FifoEmpty            : bit1;
-  signal CmdMask_N, CmdMask_D           : bit1;
-  signal ReqIn_i, ReqOut_i              : DramRequest;
+  signal ReadFifo, FifoEmpty                  : bit1;
+  signal CmdMask_N, CmdMask_D                 : bit1;
+  signal ReqIn_i, ReqOut_i                    : DramRequest;
   --
-  constant tReadWait                    : positive := tRCD + tCL + tRdDel;
-  constant tPostWait                    : natural := 0;
-  constant tReadWaitAndBurst            : positive := tReadWait + BurstLen + tPostWait;
-  constant tReadWaitAndBurstW           : positive := bits(tReadWaitAndBurst);
+  constant tReadWait                          : positive := tRCD + tCL + tRdDel;
+  constant tPostWait                          : natural  := 0;
+  constant tReadWaitAndBurst                  : positive := tReadWait + BurstLen + tPostWait;
+  constant ReadPenalty                        : positive := tReadWaitAndBurst;
+  constant ReadPenaltyW                       : positive := bits(ReadPenalty);
   --
-  constant WritePenalty                 : positive := BurstLen + 2;
-  constant WritePenaltyW                : positive := bits(WritePenalty);
-  signal WritePenalty_N, WritePenalty_D : word(WritePenaltyW downto 0);
-  signal ReadPenalty_N, ReadPenalty_D   : word(tReadWaitAndBurstW downto 0);
-
+  constant WritePenalty                       : positive := BurstLen + 2;
+  --
+  constant WritePenaltyW                      : positive := bits(WritePenalty);
+  signal WritePenaltySet_N, WritePenaltySet_D : word(WritePenaltyW-1 downto 0);
+  --
+  signal WritePenalty_N, WritePenalty_D       : word(WritePenaltyW-1 downto 0);
+  --
+  signal ReadPenalty_N, ReadPenalty_D         : word(ReadPenaltyW-1 downto 0);
+  signal ReadPenaltySet_N, ReadPenaltySet_D   : word(ReadPenaltyW-1 downto 0);
+  --
+  signal RegAccessIn_D                        : RegAccessRec;
+  
   type DramInitStates is (INIT, DO_PRECHARGE, DO_LOAD_MODE, DO_LOAD_REG2, DO_LOAD_REG1, DONE);
   
   signal InitFSM_N, InitFSM_D : DramInitStates;
-  signal InitReq : DramRequest;
-  signal We_i : bit1;
+  signal InitReq              : DramRequest;
+  signal We_i                 : bit1;
 begin
   WrSyncProc : process (WrClk, WrRstN)
   begin
@@ -155,19 +166,23 @@ begin
   RdSyncProc : process (RdClk, RdRst_N)
   begin
     if RdRst_N = '0' then
-      CmdMask_D      <= '1';
-      ReadPenalty_D  <= (others => '0');
-      WritePenalty_D <= (others => '0');
+      CmdMask_D         <= '1';
+      ReadPenalty_D     <= (others => '0');
+      WritePenalty_D    <= (others => '0');
+      WritePenaltySet_D <= conv_word(WritePenalty, WritePenaltyW);
+      ReadPenaltySet_D  <= conv_word(ReadPenalty, ReadPenaltyW);
     elsif rising_edge(RdClk) then
-      CmdMask_D      <= CmdMask_N;
-      ReadPenalty_D  <= ReadPenalty_N;
-      WritePenalty_D <= WritePenalty_N;
+      CmdMask_D         <= CmdMask_N;
+      ReadPenalty_D     <= ReadPenalty_N;
+      WritePenalty_D    <= WritePenalty_N;
+      WritePenaltySet_D <= WritePenaltySet_N;
+      ReadPenaltySet_D  <= ReadPenaltySet_N;
     end if;
   end process;
 
   ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, CmdMask_D, WritePenalty_D)
   begin
-    ReadFifo <= '0';
+    ReadFifo          <= '0';
 
     if FifoEmpty = '0' then
       if ReqOut_i.Cmd = DRAM_WRITEA and CmdMask_D = '1' then
@@ -192,14 +207,49 @@ begin
     end if;
   end process;
 
-  ReadOutProc : process (CmdAck, CmdMask_D, ReqOut_i, ReadPenalty_D, FifoEmpty, ReadFifo, WritePenalty_D)
+  RegAccessClkTran : block
+    signal RegAccessInWord    : word(RegAccessRecW downto 0);
+    signal ReadRegFifo        : bit1;
+    signal RegAccessFifoEmpty : bit1;
+    signal RegAccessIn_RdClk  : word(RegAccessRecW downto 0);
   begin
-    CmdMask_N      <= CmdMask_D;
-    ReqDataOut     <= (others => 'X');
-    ReadPenalty_N  <= ReadPenalty_D;
-    WritePenalty_N <= WritePenalty_D;
-    RespVal        <= '0';
+    RegAccessInWord <= '0' & RegAccessRecToWord(RegAccessIn);
+    -- 2 port fifo for reg access
+    RegAccessF : entity work.RegAccessFifo
+      port map (
+        data    => RegAccessInWord,
+        wrclk   => WrClk,
+        wrreq   => RegAccessIn.Val(0),
+        --
+        rdclk   => RdClk,
+        rdreq   => ReadRegFifo,
+        q       => RegAccessIn_RdClk,
+        rdempty => RegAccessFifoEmpty,
+        wrfull  => open
+        );
+    
+    ReadRegFifo   <= not RegAccessFifoEmpty;
+    RegAccessIn_D <= WordToRegAccessRec(RegAccessIn_RdClk(66-1 downto 0));
+  end block;
 
+  ReadOutProc : process (CmdAck, CmdMask_D, ReqOut_i, ReadPenalty_D, FifoEmpty, ReadFifo, WritePenalty_D, WritePenaltySet_D, ReadPenaltySet_D, RegAccessIn_D)
+  begin
+    WritePenaltySet_N <= WritePenaltySet_D;
+    ReadPenaltySet_N  <= ReadPenaltySet_D;
+    CmdMask_N         <= CmdMask_D;
+    ReqDataOut        <= (others => 'X');
+    ReadPenalty_N     <= ReadPenalty_D;
+    WritePenalty_N    <= WritePenalty_D;
+    RespVal           <= '0';
+
+    if RegAccessIn_D.Val = "1" then
+      if RegAccessIn_D.Addr = ReqHandlerWrPenReg then
+        WritePenaltySet_N <= RegAccessIn_D.Data(WritePenaltyW-1 downto 0);
+      elsif RegAccessIn_D.Addr = ReqHandlerRdPenReg then
+        ReadPenaltySet_N <= RegAccessIn_D.Data(ReadPenaltyW-1 downto 0);
+      end if; 
+    end if;
+    
     -- Clear mask upon reading new entry
     If ReadFifo = '1' then
       CmdMask_N <= '0';
@@ -226,9 +276,9 @@ begin
     
     if CmdAck = '1' then
       if ReqOut_i.Cmd = DRAM_WRITEA then
-        WritePenalty_N <= conv_word(WritePenalty, WritePenalty_N'length);
+        WritePenalty_N <= WritePenaltySet_D;
       elsif ReqOut_i.Cmd = DRAM_READA then
-        ReadPenalty_N <= conv_word(tReadWaitAndBurst, ReadPenalty_N'length);
+        ReadPenalty_N <= ReadPenaltySet_D;
       end if;
 
       -- Mask command after controller ack

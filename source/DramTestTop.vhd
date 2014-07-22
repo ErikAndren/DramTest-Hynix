@@ -464,19 +464,21 @@ begin
 
   ReqHdler : entity work.RequestHandler
     port map (
-      WrClk      => Clk25MHz,
-      WrRstN     => RstN25MHz,
-      ReqIn      => ReqFromArb,
-      We         => ReqFromArbWe,
-      ShapBp     => ShaperBp,
+      WrClk       => Clk25MHz,
+      WrRstN      => RstN25MHz,
+      ReqIn       => ReqFromArb,
+      We          => ReqFromArbWe,
+      ShapBp      => ShaperBp,
       --
-      RdClk      => Clk100MHz,
-      RdRst_N    => RstN100MHz,
-      ReqOut     => ReqToCont,
-      ReqDataOut => SdramDataIn,
-      CmdAck     => SdramCmdAck,
+      RegAccessIn => RegAccessIn,
       --
-      RespVal    => SdramDataVal
+      RdClk       => Clk100MHz,
+      RdRst_N     => RstN100MHz,
+      ReqOut      => ReqToCont,
+      ReqDataOut  => SdramDataIn,
+      CmdAck      => SdramCmdAck,
+      --
+      RespVal     => SdramDataVal
       );
 
   SdramAddr     <= ReqToCont.Addr;

@@ -156,7 +156,7 @@ begin
     if DecodeCmd = '1' then
       if ShiftBuf((OpStartOffs+1)*Byte-1 downto OpEndOffs*Byte) = WriteCmd then
         RegAccessOut.Val <= "1";
-        RegAccessOut.Cmd <= REG_WRITE;
+        RegAccessOut.Cmd <= conv_word(REG_WRITE, RegCmdW);
 
         -- Convert address from ascii to binary representation
         -- ascii is in 8 bits, binary is 4
@@ -166,7 +166,7 @@ begin
         
       elsif ShiftBuf((OpStartOffs+1)*Byte-1 downto OpEndOffs*Byte) = ReadCmd then
         RegAccessOut.Val  <= "1";
-        RegAccessOut.Cmd  <= REG_READ;
+        RegAccessOut.Cmd  <= conv_word(REG_READ, RegCmdW);
         RegAccessOut.Addr <= AscToHex(AddrStartOffs, AddrEndOffs, ShiftBuf((AddrStartOffs+1)*Byte-1 downto AddrEndOffs*Byte));
       end if;
     end if;
