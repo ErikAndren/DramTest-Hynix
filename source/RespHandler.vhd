@@ -86,13 +86,6 @@ begin
 
       -- Throttle the time to the next read request to avoid burstiness
       ReqThrottle_N <= conv_word(ReadReqThrottle, ReqThrottle_N'length);
-
-      -- Wrap address upon frame completion
-      -- Should not be needed as the vga vsync will ensure the address pointer
-      -- is reset
-      if conv_integer(Addr_D + BurstLen) = VgaPixelsPerDword then
-        Addr_N  <= (others => '0');
-      end if;
     end if;
 
     -- Reset address pointer as the next frame must be loaded upon vga vsync release
