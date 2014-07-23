@@ -21,36 +21,38 @@ package SerialPack is
   constant AddrW     : positive := 32;
   constant DataW     : positive := 32;
 
-  constant SccbOffset          : natural  := 16#010000#;
+  constant SccbOffset           : natural  := 16#010000#;
   --
-  constant ColorSelectReg      : natural  := 16#00000001#;
-  constant ColorToggle         : natural  := 0;
+  constant ColorSelectReg       : natural  := 16#00000001#;
+  constant ColorToggle          : natural  := 0;
   --
-  constant TemporalFilterReg   : natural  := 16#00000002#;
+  constant TemporalFilterReg    : natural  := 16#00000002#;
   --
-  constant ConvFilterThresReg  : natural  := 16#00000010#;
-  constant ConvFilterThresW    : positive := 3;
+  constant ConvFilterThresReg   : natural  := 16#00000010#;
+  constant ConvFilterThresW     : positive := 3;
   --
-  constant FilterSelectReg     : natural  := 16#00000020#;
-  constant NONE_MODE           : natural  := 0;
-  constant DITHER_MODE         : natural  := 1;
-  constant SOBEL_MODE          : natural  := 2;
-  constant MEDIAN_MODE         : natural  := 3;
-  constant MODES               : natural  := MEDIAN_MODE;
-  constant MODESW              : natural  := bits(MODES);
+  constant FilterSelectReg      : natural  := 16#00000020#;
+  constant NONE_MODE            : natural  := 0;
+  constant DITHER_MODE          : natural  := 1;
+  constant SOBEL_MODE           : natural  := 2;
+  constant MEDIAN_MODE          : natural  := 3;
+  constant MODES                : natural  := MEDIAN_MODE;
+  constant MODESW               : natural  := bits(MODES);
   --
-  constant PixelSampleOrderReg : natural  := 16#00000030#;
-  constant PixelSampleOrder    : natural  := 0;
+  constant PixelSampleOrderReg  : natural  := 16#00000030#;
+  constant PixelSampleOrder     : natural  := 0;
   --
-  constant EnableTrackRectReg  : natural  := 16#00000040#;
-  constant EnableTrackRect     : natural  := 0;
+  constant EnableTrackRectReg   : natural  := 16#00000040#;
+  constant EnableTrackRect      : natural  := 0;
   --
-  constant ReqHandlerWrPenReg  : natural  := 16#00000050#;
-  constant ReqHandlerRdPenReg  : natural  := 16#00000051#;
+  constant ReqHandlerWrPenReg   : natural  := 16#00000050#;
+  constant ReqHandlerRdPenReg   : natural  := 16#00000051#;
   --
-  constant ReadReqThrottleReg : natural := 16#00000060#;
-  constant ReadReqThresReg    : natural := 16#00000061#;
-  constant ReadReqFillLvlReg  : natural := 16#00000062#;
+  constant ReadReqThrottleReg   : natural  := 16#00000060#;
+  constant ReadReqThresReg      : natural  := 16#00000061#;
+  constant ReadReqFillLvlReg    : natural  := 16#00000062#;
+  constant ReadReqFifoStatusReg : natural  := 16#00000063#;
+  
   
 
   -- 1 + 2 + 32 + 32 

@@ -47,6 +47,8 @@ architecture rtl of RespHandler is
   constant FifoSizeW : positive := bits(FifoSize);
   signal FillLvl     : word(FifoSizeW-1 downto 0);
 
+  signal FifoUnderflow_N, FifoUnderflow_D : bit1;
+
   -- Must be less than 16
   constant ReadReqThrottle                          : positive := 15;
   constant ReadReqThrottleW                         : positive := bits(ReadReqThrottle);
@@ -66,19 +68,24 @@ architecture rtl of RespHandler is
   signal ReadReqThrottleSet_N, ReadReqThrottleSet_D : word(ReadReqThrottleW-1 downto 0);
   
 begin
-  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync, ReadReqThrottleSet_D, RegAccessIn, FillLevelThres_D)
+  ReadReqProc : process (Addr_D, Frame_D, FillLvl, ReadReqAck, ReqThrottle_D, LastFrameComp, FirstFrameVal, VgaVSync, ReadReqThrottleSet_D, RegAccessIn, FillLevelThres_D, FifoUnderflow_D)
   begin
     ReadReq              <= Z_DramRequest;
     Addr_N               <= Addr_D;
     Frame_N              <= Frame_D;
     ReadReqThrottleSet_N <= ReadReqThrottleSet_D;
     FillLevelThres_N     <= FillLevelThres_D;
+    FifoUnderflow_N      <= FifoUnderflow_D;
     --
     ReqThrottle_N        <= ReqThrottle_D - 1;
     if ReqThrottle_D = 0 then
       ReqThrottle_N <= (others => '0');
     end if;
     RegAccessOut <= Z_RegAccessRec;
+
+    if FillLvl = 0 and ReadFifo = '1' and VgaVsync = '0' then
+      FifoUnderflow_N <= '1';
+    end if;
 
     if RegAccessIn.Val = "1" then
       if RegAccessIn.Cmd = REG_WRITE then
@@ -93,6 +100,13 @@ begin
         if RegAccessIn.Addr = ReadReqFillLvlReg then
           RegAccessOut.Data(FillLvl'length-1 downto 0) <= FillLvl;
         end if;
+
+        if RegAccessIn.Addr = ReadReqFifoStatusReg then
+          RegAccessOut.Data(0) <= FifoUnderflow_D;
+          -- Clear on read
+          FifoUnderflow_N      <= '0';
+        end if;
+        
       end if;
     end if;
 
@@ -152,6 +166,7 @@ begin
       ReqThrottle_D        <= (others => '0');
       ReadReqThrottleSet_D <= conv_word(ReadReqThrottle, ReadReqThrottleW);
       FillLevelThres_D     <= conv_word(FillLevelThres, FifoSizeW);
+      FifoUnderflow_D      <= '0';
     elsif rising_edge(RdClk) then
       Frame_D              <= Frame_N;
       WordCnt_D            <= WordCnt_N;
@@ -159,6 +174,7 @@ begin
       ReqThrottle_D        <= ReqThrottle_N;
       ReadReqThrottleSet_D <= ReadReqThrottleSet_N;
       FillLevelThres_D     <= FillLevelThres_N;
+      FifoUnderflow_D      <= FifoUnderflow_N;
     end if;
   end process;
 
