@@ -50,6 +50,7 @@ package SerialPack is
   --
   constant ReadReqThrottleReg : natural := 16#00000060#;
   constant ReadReqThresReg    : natural := 16#00000061#;
+  constant ReadReqFillLvlReg  : natural := 16#00000062#;
   
 
   -- 1 + 2 + 32 + 32 

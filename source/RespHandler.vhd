@@ -78,14 +78,21 @@ begin
     if ReqThrottle_D = 0 then
       ReqThrottle_N <= (others => '0');
     end if;
+    RegAccessOut <= Z_RegAccessRec;
 
     if RegAccessIn.Val = "1" then
-      if RegAccessIn.Addr = ReadReqThrottleReg then
-        ReadReqThrottleSet_N <= RegAccessIn.Data(ReadReqThrottleW-1 downto 0);
-      end if;
+      if RegAccessIn.Cmd = REG_WRITE then
+        if RegAccessIn.Addr = ReadReqThrottleReg then
+          ReadReqThrottleSet_N <= RegAccessIn.Data(ReadReqThrottleW-1 downto 0);
+        end if;
 
-      if RegAccessIn.Addr = ReadReqThresReg then
-        FillLevelThres_N <= RegAccessIn.Data(FifoSizeW-1 downto 0);
+        if RegAccessIn.Addr = ReadReqThresReg then
+          FillLevelThres_N <= RegAccessIn.Data(FifoSizeW-1 downto 0);
+        end if;
+      else
+        if RegAccessIn.Addr = ReadReqFillLvlReg then
+          RegAccessOut.Data(FillLvl'length-1 downto 0) <= FillLvl;
+        end if;
       end if;
     end if;
 
