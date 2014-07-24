@@ -24,7 +24,7 @@ component RespFIFO
 		wrreq		: IN STD_LOGIC ;
 		q		: OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
 		rdempty		: OUT STD_LOGIC ;
-		rdusedw		: OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
+		rdusedw		: OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
 		wrfull		: OUT STD_LOGIC 
 	);
 end component;

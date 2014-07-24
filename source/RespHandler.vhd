@@ -43,7 +43,7 @@ architecture rtl of RespHandler is
   signal DataToVga : word(DSIZE-1 downto 0);
   signal FifoEmpty, ReadFifo, FifoFull : bit1;
 
-  constant FifoSize  : positive := 16;
+  constant FifoSize  : positive := 32;
   constant FifoSizeW : positive := bits(FifoSize);
   signal FillLvl     : word(FifoSizeW-1 downto 0);
 
@@ -105,8 +105,7 @@ begin
           RegAccessOut.Data(0) <= FifoUnderflow_D;
           -- Clear on read
           FifoUnderflow_N      <= '0';
-        end if;
-        
+        end if;        
       end if;
     end if;
 
