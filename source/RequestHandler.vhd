@@ -183,7 +183,6 @@ begin
   ReadFifoProc : process (FifoEmpty, ReqOut_i, ReadPenalty_D, CmdAck, CmdMask_D, WritePenalty_D)
   begin
     ReadFifo          <= '0';
-
     if FifoEmpty = '0' then
       if ReqOut_i.Cmd = DRAM_WRITEA and CmdMask_D = '1' then
         if WritePenalty_D = 0 then

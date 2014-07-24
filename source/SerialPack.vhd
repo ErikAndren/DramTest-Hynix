@@ -54,7 +54,6 @@ package SerialPack is
   constant ReadReqFifoStatusReg : natural  := 16#00000063#;
   
   
-
   -- 1 + 2 + 32 + 32 
   type RegAccessRec is record
     Val  : word1;

@@ -13,8 +13,7 @@ entity VGAGenerator is
   generic (
     DataW     : positive := 3;
     ColResW   : positive := 3;
-    DivideClk : boolean  := true;
-    Offset    : natural  := 0
+    DivideClk : boolean  := true
     );
   port (
     Clk            : in  bit1;
@@ -43,6 +42,7 @@ architecture rtl of VGAGenerator is
   signal VCountOvfl : bit1;
   --
   signal InView_i   : bit1;
+  
 begin
   DivClkGen : if DivideClk = true generate
     ClkDiv : process (RstN, Clk)
@@ -65,6 +65,7 @@ begin
     if RstN = '0' then
       hcount <= (others => '0');
     elsif rising_edge(PixelClk) then
+      
       if (HCountOvfl = '1') then
         hcount <= (others => '0');
       else
@@ -89,7 +90,15 @@ begin
     end if;
   end process;
 
-  InView_i <= '1' when ((hcount >= HDatBegin - Offset) and (hcount < HDatEnd - Offset)) and ((vcount >= VDatBegin) and (vcount < VDatEnd)) else '0';
+  InViewCalc : process (hcount, vcount)
+  begin
+    InView_i <= '0';
+
+    if ((hcount >= HDatBegin) and (hcount < HDatEnd)) and ((vcount >= VDatBegin) and (vcount < VDatEnd)) then
+      InView_i <= '1';
+    end if;
+  end process;
+  
   InView   <= InView_i;
   
   HsyncN <= '1' when hcount > HSyncEnd else '0';
