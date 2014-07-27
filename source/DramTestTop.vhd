@@ -39,10 +39,6 @@ entity DramTestTop is
     CamHRef    : in    bit1;
     CamVSync   : in    bit1;
     CamD       : in    word(8-1 downto 0);
-    -- Button interface
-    Button1    : in    bit1;
-    Button2    : in    bit1;
-    Button3    : in    bit1;
     -- Sram interface
     SramD      : inout word(SramDataW-1 downto 0);
     SramAddr   : out   word(SramAddrW-1 downto 0);
