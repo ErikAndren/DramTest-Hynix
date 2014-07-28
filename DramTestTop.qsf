@@ -155,9 +155,6 @@ set_location_assignment PIN_96 -to SramOeN
 set_location_assignment PIN_95 -to SramUbN
 set_location_assignment PIN_97 -to SramWeN
 
-set_location_assignment PIN_144 -to Button1
-set_location_assignment PIN_145 -to Button2
-set_location_assignment PIN_146 -to Button3
 
 set_location_assignment PIN_128 -to PitchServo
 set_location_assignment PIN_43 -to YawServo
