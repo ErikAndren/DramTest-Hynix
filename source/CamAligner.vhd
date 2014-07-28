@@ -1,3 +1,5 @@
+-- Keeps track and generates frames to be written to the DRAM.
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -13,7 +15,7 @@ entity CamAligner is
     --
     Vsync         : in  bit1;
     Href          : in  bit1;
-    D             : in  word(8-1 downto 0);
+    D             : in  word(PixelW-1 downto 0);
     --
     WriteReq      : out DramRequest;
     WriteReqAck   : in  bit1;
@@ -82,11 +84,13 @@ begin
     WrData_N        <= WrData_D;
     FifoWe_N        <= '0';
 
-    if Href = '1' then      
-      WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);        
+    if Href = '1' then
+      WrData_N  <= D & WrData_D(WrData_D'length-1 downto PixelW);
+
+      --WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);
       WordCnt_N <= WordCnt_D + 1;
 
-      if WordCnt_D = PixelsPerBurst-1 then
+      if RedAnd(WordCnt_D) = '1' then
         FifoWe_N  <= '1';
         WordCnt_N <= (others => '0');
       end if;
