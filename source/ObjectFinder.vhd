@@ -57,7 +57,16 @@ architecture rtl of ObjectFinder is
   signal EnableTrackRect_N, EnableTrackRect_D : bit1;
   
 begin
-  SyncNoRstProcProc : process (Clk)
+  SyncRst : process (Clk, RstN)
+  begin
+    if RstN = '0' then
+      EnableTrackRect_D <= conv_word(EnableTrackRect, 1)(0);
+    elsif rising_edge(Clk) then
+      EnableTrackRect_D <= EnableTrackRect_N;
+    end if;
+  end process;
+  
+  SyncNoRst : process (Clk)
   begin
     if rising_edge(Clk) then
       NextTopLeft_D     <= NextTopLeft_N;
@@ -69,7 +78,6 @@ begin
       LineCnt_D         <= LineCnt_N;
       --
       NewVsync_D        <= Vsync;
-      EnableTrackRect_D <= EnableTrackRect_N;
 
       -- Latch in coordinates to draw for the next frame
       if Vsync = '0' and NewVSync_D = '1' then
@@ -98,8 +106,10 @@ begin
     EnableTrackRect_N <= EnableTrackRect_D;
 
     if RegAccessIn.Val = "1" then
-      if RegAccessIn.Addr = EnableTrackRectReg then
-        EnableTrackRect_N <= RegAccessIn.Data(EnableTrackRect);
+      if RegAccessIn.Cmd = REG_WRITE then
+        if RegAccessIn.Addr = EnableTrackRectReg then
+          EnableTrackRect_N <= RegAccessIn.Data(EnableTrackRect);
+        end if;
       end if;
     end if;
 
