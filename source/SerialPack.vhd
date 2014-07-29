@@ -52,7 +52,8 @@ package SerialPack is
   constant ReadReqThresReg      : natural  := 16#00000061#;
   constant ReadReqFillLvlReg    : natural  := 16#00000062#;
   constant ReadReqFifoStatusReg : natural  := 16#00000063#;
-  
+  --
+  constant TempAvgThresReg      : natural  := 16#00000070#;
   
   -- 1 + 2 + 32 + 32 
   type RegAccessRec is record
