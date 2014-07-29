@@ -86,8 +86,8 @@ begin
 
     if Href = '1' then
       -- FIXME: Replace with lower and figure out why it does not work
-      --WrData_N  <= D & WrData_D(WrData_D'length-1 downto PixelW);
-      WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);
+      WrData_N  <= D & WrData_D(WrData_D'length-1 downto PixelW);
+      --WrData_N  <= ModifySlice(WrData_D, PixelW, WordCnt_D, D);
       WordCnt_N <= WordCnt_D + 1;
 
       if RedAnd(WordCnt_D) = '1' then
