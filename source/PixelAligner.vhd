@@ -67,7 +67,6 @@ architecture rtl of PixelAligner is
   signal R_Dithered                       : word(3-1 downto 0);
   signal G_Dithered                       : word(3-1 downto 0);
   signal B_Dithered                       : word(2-1 downto 0);
-  signal R_DitheredVal                    : bit1;
   signal B_DitheredVal                    : bit1;
   --
   signal SampleOrder_N, SampleOrder_D     : bit1;
@@ -147,7 +146,7 @@ begin
   end process;
 
   --AdjY       <= Y_D - 16   when Y_D - 16 > 0   else (others => '0');
-  ----
+  
   --AdjCr      <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
   --AdjCb      <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
     
@@ -188,8 +187,8 @@ begin
   --  end if;
   --end process;
 
-  GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
-  GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
+  --GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
+  --GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
 
   --RedDither : entity work.DitherFloydSteinberg
   --  generic map (
@@ -206,7 +205,7 @@ begin
   --    PixelInVal  => GrayScaleVal_D,
   --    --
   --    PixelOut    => R_Dithered,
-  --    PixelOutVal => R_DitheredVal
+  --    PixelOutVal => open
   --    );
   
   --GreenDither : entity work.DitherFloydSteinberg
@@ -245,14 +244,10 @@ begin
   --    PixelOutVal => B_DitheredVal
   --    );
   
-  --RedFeed   : Color(RedHigh downto RedLow)     <= R_Dithered;
-  --GreenFeed : Color(GreenHigh downto GreenLow) <= G_Dithered;
-  --BlueFeed  : Color(BlueHigh downto BlueLow)   <= B_Dithered;
+--  RedFeed      : Color(RedHigh downto RedLow)     <= R_Dithered;
+--  GreenFeed    : Color(GreenHigh downto GreenLow) <= G_Dithered;
+ -- BlueFeed     : Color(BlueHigh downto BlueLow)   <= B_Dithered;
   
-  RedFeed   : Color(RedHigh downto RedLow)     <= (others => '0');
-  GreenFeed : Color(GreenHigh downto GreenLow) <= (others => '0');
-  BlueFeed  : Color(BlueHigh downto BlueLow)   <= (others => '0');
-
-  ColorValFeed     : ColorOutVal     <= '0';
+  ColorValFeed : ColorOutVal                      <= B_DitheredVal;
   
 end architecture rtl;
