@@ -311,6 +311,8 @@ begin
       PixelInVal    => AlignedGrayPixDataVal,
       PixelIn       => AlignedGrayPixData,
       --
+      RegAccessIn   => RegAccessIn,
+      --
       SramReadAddr  => SramReadAddr,
       SramRe        => SramRe,
       SramRd        => SramContRd,
