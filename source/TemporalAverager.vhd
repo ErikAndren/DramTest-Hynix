@@ -12,6 +12,7 @@ use work.Types.all;
 use work.VgaPack.all;
 use work.SramPack.all;
 use work.DramTestPack.all;
+use work.SerialPack.all;
 
 entity TemporalAverager is
   generic (
@@ -25,6 +26,8 @@ entity TemporalAverager is
     --
     PixelInVal    : in  bit1;
     PixelIn       : in  word(DataW-1 downto 0);
+    --
+    RegAccessIn   : in  RegAccessRec;
     --
     SramReadAddr  : out word(SramAddrW-1 downto 0);
     SramRe        : out bit1;
@@ -51,8 +54,9 @@ architecture rtl of TemporalAverager is
   signal PopRead_D                              : bit1;
   signal WordCnt_N, WordCnt_D                   : word(1-1 downto 0);
   signal SramReadAddr_i                         : word(SramAddrW-1 downto 0);
-
-  constant Threshold : natural := 32;
+  signal Threshold_N, Threshold_D               : word(8-1 downto 0);
+  --
+  constant StartThreshold                       : natural := 32;
   
   function CalcOldAddr(LineCnt : word; PixCnt : word) return word is
     variable NewLineCnt : word(LineCnt'length-1 downto 0);
@@ -72,9 +76,10 @@ architecture rtl of TemporalAverager is
   end function;
   
 begin
-  SyncProc : process (Clk, RstN)
+  Sync : process (Clk, RstN)
   begin
     if RstN = '0' then
+      -- FIXME: These can be autocleared
       LineCnt_D   <= (others => '0');
       PixelCnt_D  <= (others => '0');
       SramRd_D    <= (others => '0');
@@ -84,6 +89,8 @@ begin
       SramRe_D    <= '0';
       PopRead_D   <= '0';
       WordCnt_D   <= (others => '0');
+      Threshold_D <= conv_word(StartThreshold, Threshold_D'length);
+      
     elsif rising_edge(Clk) then
       LineCnt_D   <= LineCnt_N;
       PixelCnt_D  <= PixelCnt_N;
@@ -94,6 +101,7 @@ begin
       SramRe_D    <= SramRe_N;
       PopRead_D   <= PopRead;
       WordCnt_D   <= WordCnt_N;
+      Threshold_D <= Threshold_N;
 
       if Vsync = '1' then
         LineCnt_D   <= (others => '0');
@@ -108,10 +116,10 @@ begin
     end if;
   end process;
   
-  ASyncProc : process (SramWd_D, PopWrite, LineCnt_D, PixelCnt_D, PixelInVal, SramRe_D, SramWe_D, PixelIn, SramRd, PopRead_D, SramRd_D, SramRdVal_D, PopRead, WordCnt_D)
-    variable Avg         : word(DataW-1 downto 0);
-    variable Diff        : word(DataW-1 downto 0);
-    variable SramRdSlice : word(DataW-1 downto 0);
+  Async : process (SramWd_D, PopWrite, LineCnt_D, PixelCnt_D, PixelInVal, SramRe_D, SramWe_D, PixelIn, SramRd, PopRead_D, SramRd_D, SramRdVal_D, PopRead, WordCnt_D, RegAccessIn, Threshold_D)
+    variable Avg           : word(DataW-1 downto 0);
+    variable Diff          : word(DataW-1 downto 0);
+    variable SramRdSlice   : word(DataW-1 downto 0);
     variable SramRdSlice_i : integer;
   begin
     WordCnt_N   <= WordCnt_D;
@@ -123,6 +131,15 @@ begin
     SramRd_N    <= SramRd_D;
     PixelOut    <= (others => '0');
     SramRdVal_N <= SramRdVal_D;
+    Threshold_N <= Threshold_D;
+
+    if RegAccessIn.Val = "1" then
+      if RegAccessIn.Cmd = REG_WRITE then
+        if RegAccessIn.Addr = TempAvgThresReg then
+          Threshold_N <= RegAccessIn.Data(8-1 downto 0);
+        end if;
+      end if;
+    end if;
 
     if SramRdVal_D = '0' and PopRead_D = '0' and SramRe_D = '0' then
       SramRe_N <= '1';
@@ -168,7 +185,7 @@ begin
         Diff := (PixelIn - Avg);
       end if;
 
-      if Diff >= Threshold then
+      if Diff >= Threshold_D then
         PixelOut <= PixelIn;
       end if;
       
