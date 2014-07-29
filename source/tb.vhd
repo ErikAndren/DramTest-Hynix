@@ -87,10 +87,6 @@ begin
       CamVSync   => CamVSync,
       CamD       => CamD,
       --
-      Button1    => '1',
-      Button2    => '1',
-      Button3    => '1',
-      --
       SramD      => SramD,
       SramAddr   => open,
       SramCeN    => SramCeN,
