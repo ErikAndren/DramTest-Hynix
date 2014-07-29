@@ -187,8 +187,6 @@ begin
   --  end if;
   --end process;
 
-  --GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
-  --GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
 
   --RedDither : entity work.DitherFloydSteinberg
   --  generic map (
@@ -248,6 +246,11 @@ begin
 --  GreenFeed    : Color(GreenHigh downto GreenLow) <= G_Dithered;
  -- BlueFeed     : Color(BlueHigh downto BlueLow)   <= B_Dithered;
   
-  ColorValFeed : ColorOutVal                      <= B_DitheredVal;
+--  ColorValFeed : ColorOutVal                      <= B_DitheredVal;
+  ColorValFeed : ColorOutVal <= '0';
+
+  GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
+  GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
+
   
 end architecture rtl;
