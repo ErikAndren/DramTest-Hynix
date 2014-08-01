@@ -40,7 +40,7 @@ architecture rtl of PixelAligner is
   signal Y_N, Y_D, Cb_N, Cb_D, Cr_N, Cr_D : word(DataInW-1 downto 0);
   signal GrayScaleVal_N, GrayScaleVal_D   : bit1;
   signal R, G, B                          : word(DataInW-1 downto 0);
-  signal AdjY, AdjCr, AdjCb               : word(DataInW-1 downto 0);
+  signal AdjY, AdjCr, AdjCb               : word(DataInW   downto 0);
   signal AdjY_0_125                       : word(DataInW-1 downto 0);
   signal AdjY_1_125                       : word(DataInW downto 0);
   --
@@ -73,8 +73,8 @@ architecture rtl of PixelAligner is
   --
   signal SampleOrder_N, SampleOrder_D     : bit1;
   signal GreenOffset_N, GreenOffset_D     : integer;
-  signal RedOffset_N, RedOffset_D     : integer;
-  signal BlueOffset_N, BlueOffset_D     : integer;
+  signal RedOffset_N, RedOffset_D         : integer;
+  signal BlueOffset_N, BlueOffset_D       : integer;
   
 begin
   SyncRstProc : process (Clk, RstN)
@@ -167,43 +167,50 @@ begin
     end if;
   end process;
 
-  AdjY  <= Y_D - 16   when Y_D - 16 > 0   else (others => '0');
-  AdjCr <= Cr_D - 128 when Cr_D - 128 > 0 else (others => '0');
-  AdjCb <= Cb_D - 128 when Cb_D - 128 > 0 else (others => '0');
+  AdjY  <= '0' & Y_D - 16;
+  AdjCr <= '0' & Cr_D - 128;
+  AdjCb <= '0' & Cb_D - 128;
 
-  RGBConv : process (AdjY, AdjCb, AdjCr, GreenOffset_D, RedOffset_D, BlueOffset_D)
-    variable C_298         : integer;
-    variable E_208         : integer;
-    variable E_409         : integer;
-    variable D_100         : integer;
-    variable D_516         : integer;
-    variable R_T, G_T, B_T : integer;
+  RGBConv : process (AdjY, AdjCb, AdjCr)
+    variable ValRed, ValBlue, ValGreen : integer;
+    variable ValRedWord, ValBlueWord, ValGreenWord : word(32-1 downto 0);
   begin
-    C_298 := conv_integer(AdjY) * 298;
-    E_409 := conv_integer(AdjCr) * 409;
-    E_208 := conv_integer(AdjCr) * 208;
-    D_100 := conv_integer(AdjCb) * 100;
-    D_516 := conv_integer(AdjCb) * 516;
+    ValRed   := (conv_integer(AdjY) * 1220542) + (conv_integer(AdjCr) * 1673527);
+    ValBlue  := (conv_integer(AdjY) * 1220542) + (conv_integer(AdjCb) * 2114978);
+    ValGreen := (conv_integer(AdjY) * 1220542) - (conv_integer(AdjCr) * 852492) - (conv_integer(AdjCb) * 411042);
+    --
+    ValRedWord   := conv_word(ValRed, 32);
+    ValBlueWord  := conv_word(ValBlue, 32);
+    ValGreenWord := conv_word(ValGreen, 32);
+    --
+    ValRedWord   := SHR(ValRedWord, conv_word(20, bits(20)));
+    ValBlueWord  := SHR(ValBlueWord, conv_word(20, bits(20)));
+    ValGreenWord := SHR(ValGreenWord, conv_word(20, bits(20)));
+    --
+    
 
-    R_T   := ((C_298 + E_409 + 128) - RedOffset_D) / 2**8;
-    if R_T > 255 then
+    if ValRedWord < 0 then
+      R <= (others => '0');
+    elsif ValRedWord > 255 then
       R <= (others => '1');
     else
-      R <= conv_word(R_T, R'length);
+      R <= ValRedWord(8-1 downto 0);
     end if;
 
-    G_T := (C_298 - D_100 - E_208 + 128 - GreenOffset_D) / 2**8;
-    if G_T > 255 then
+    if ValGreenWord < 0 then
+      G <= (others => '0');
+    elsif ValGreenWord > 255 then
       G <= (others => '1');
     else
-      G <= conv_word(G_T, G'length);
+      G <= ValGreenWord(8-1 downto 0);
     end if;
-
-    B_T := (C_298 + D_516 + 128 - BlueOffset_D) / 2**8;
-    if B_T > 255 then
+    
+    if ValBlueWord < 0 then
+      B <= (others => '0');
+    elsif ValBlueWord > 255 then
       B <= (others => '1');
     else
-      B <= conv_word(B_T, B'length);
+      B <= ValBlueWord(8-1 downto 0);
     end if;
   end process;
 
