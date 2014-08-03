@@ -49,7 +49,7 @@ begin
   SyncProc : process (Clk, RstN)
   begin
     if RstN = '0' then
-      TempFilt_D  <= '0';
+      TempFilt_D  <= '1';
       ColSel_D    <= '0';
       Delay_D     <= (others => '1');
       DelayDone_D <= '0';

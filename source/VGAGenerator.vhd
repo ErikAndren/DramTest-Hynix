@@ -111,17 +111,11 @@ begin
     Blue  <= (others => '0');
 
     if InView_i = '1' then
-      if ColorEn = '1' then
-        Red   <= PixelToDisplay(RedHigh downto RedLow);
-        Green <= PixelToDisplay(GreenHigh downto GreenLow);
-        Blue  <= PixelToDisplay(BlueHigh downto BlueLow) & '0';
-      else
-        Red   <= PixelToDisplay(3-1 downto 0);
-        Green <= PixelToDisplay(3-1 downto 0);
-        Blue  <= PixelToDisplay(3-1 downto 0);
-      end if;
+      Red   <= PixelToDisplay(RedHigh downto RedLow);
+      Green <= PixelToDisplay(GreenHigh downto GreenLow);
+      Blue  <= PixelToDisplay(BlueHigh downto BlueLow) & '0';
 
-     -- Draw green rectangle overlay
+      -- Draw green rectangle overlay
       if DrawRect = '1' then
         Green <= (others => '1');
       end if;

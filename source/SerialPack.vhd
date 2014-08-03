@@ -47,7 +47,7 @@ package SerialPack is
   
   --
   constant EnableTrackRectReg   : natural  := 16#00000040#;
-  constant EnableTrackRect      : natural  := 0;
+  constant EnableTrackRect      : natural  := 1;
   --
   constant ReqHandlerWrPenReg   : natural  := 16#00000050#;
   constant ReqHandlerRdPenReg   : natural  := 16#00000051#;

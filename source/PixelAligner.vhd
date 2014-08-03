@@ -171,116 +171,115 @@ begin
   AdjCr <= '0' & Cr_D - 128;
   AdjCb <= '0' & Cb_D - 128;
 
-  RGBConv : process (AdjY, AdjCb, AdjCr)
-    variable ValRed, ValBlue, ValGreen : integer;
-    variable ValRedWord, ValBlueWord, ValGreenWord : word(32-1 downto 0);
-  begin
-    ValRed   := (conv_integer(AdjY) * 1220542) + (conv_integer(AdjCr) * 1673527);
-    ValBlue  := (conv_integer(AdjY) * 1220542) + (conv_integer(AdjCb) * 2114978);
-    ValGreen := (conv_integer(AdjY) * 1220542) - (conv_integer(AdjCr) * 852492) - (conv_integer(AdjCb) * 411042);
-    --
-    ValRedWord   := conv_word(ValRed, 32);
-    ValBlueWord  := conv_word(ValBlue, 32);
-    ValGreenWord := conv_word(ValGreen, 32);
-    --
-    ValRedWord   := SHR(ValRedWord, conv_word(20, bits(20)));
-    ValBlueWord  := SHR(ValBlueWord, conv_word(20, bits(20)));
-    ValGreenWord := SHR(ValGreenWord, conv_word(20, bits(20)));
-    --
+  --RGBConv : process (AdjY, AdjCb, AdjCr)
+  --  variable ValRed, ValBlue, ValGreen : integer;
+  --  variable ValRedWord, ValBlueWord, ValGreenWord : word(32-1 downto 0);
+  --begin
+  --  ValRed   := (conv_integer(AdjY) * 1220542) + (conv_integer(AdjCr) * 1673527);
+  --  ValBlue  := (conv_integer(AdjY) * 1220542) + (conv_integer(AdjCb) * 2114978);
+  --  ValGreen := (conv_integer(AdjY) * 1220542) - (conv_integer(AdjCr) * 852492) - (conv_integer(AdjCb) * 411042);
+  --  --
+  --  ValRedWord   := conv_word(ValRed, 32);
+  --  ValBlueWord  := conv_word(ValBlue, 32);
+  --  ValGreenWord := conv_word(ValGreen, 32);
+  --  --
+  --  ValRedWord   := SHR(ValRedWord, conv_word(20, bits(20)));
+  --  ValBlueWord  := SHR(ValBlueWord, conv_word(20, bits(20)));
+  --  ValGreenWord := SHR(ValGreenWord, conv_word(20, bits(20)));
+  --  --
+  --  if ValRedWord < 0 then
+  --    R <= (others => '0');
+  --  elsif ValRedWord > 255 then
+  --    R <= (others => '1');
+  --  else
+  --    R <= ValRedWord(8-1 downto 0);
+  --  end if;
+
+  --  if ValGreenWord < 0 then
+  --    G <= (others => '0');
+  --  elsif ValGreenWord > 255 then
+  --    G <= (others => '1');
+  --  else
+  --    G <= ValGreenWord(8-1 downto 0);
+  --  end if;
     
+  --  if ValBlueWord < 0 then
+  --    B <= (others => '0');
+  --  elsif ValBlueWord > 255 then
+  --    B <= (others => '1');
+  --  else
+  --    B <= ValBlueWord(8-1 downto 0);
+  --  end if;
+  --end process;
 
-    if ValRedWord < 0 then
-      R <= (others => '0');
-    elsif ValRedWord > 255 then
-      R <= (others => '1');
-    else
-      R <= ValRedWord(8-1 downto 0);
-    end if;
-
-    if ValGreenWord < 0 then
-      G <= (others => '0');
-    elsif ValGreenWord > 255 then
-      G <= (others => '1');
-    else
-      G <= ValGreenWord(8-1 downto 0);
-    end if;
-    
-    if ValBlueWord < 0 then
-      B <= (others => '0');
-    elsif ValBlueWord > 255 then
-      B <= (others => '1');
-    else
-      B <= ValBlueWord(8-1 downto 0);
-    end if;
-  end process;
-
-  RedDither : entity work.DitherFloydSteinberg
-    generic map (
-      DataW     => 8,
-      CompDataW => 3
-      )
-    port map (
-      RstN        => RstN,
-      Clk         => Clk,
-      --
-      Vsync       => Vsync,
-      --
-      PixelIn     => R,
-      PixelInVal  => GrayScaleVal_D,
-      --
-      PixelOut    => R_Dithered,
-      PixelOutVal => R_DitheredVal
-      );
+  --RedDither : entity work.DitherFloydSteinberg
+  --  generic map (
+  --    DataW     => 8,
+  --    CompDataW => 3
+  --    )
+  --  port map (
+  --    RstN        => RstN,
+  --    Clk         => Clk,
+  --    --
+  --    Vsync       => Vsync,
+  --    --
+  --    PixelIn     => R,
+  --    PixelInVal  => GrayScaleVal_D,
+  --    --
+  --    PixelOut    => R_Dithered,
+  --    PixelOutVal => R_DitheredVal
+  --    );
   
-  GreenDither : entity work.DitherFloydSteinberg
-    generic map (
-      DataW     => 8,
-      CompDataW => 3
-      )
-    port map (
-      RstN        => RstN,
-      Clk         => Clk,
-      --
-      Vsync       => Vsync,
-      --
-      PixelIn     => G,
-      PixelInVal  => GrayScaleVal_D,
-      --
-      PixelOut    => G_Dithered,
-      PixelOutVal => G_DitheredVal
-      );
+  --GreenDither : entity work.DitherFloydSteinberg
+  --  generic map (
+  --    DataW     => 8,
+  --    CompDataW => 3
+  --    )
+  --  port map (
+  --    RstN        => RstN,
+  --    Clk         => Clk,
+  --    --
+  --    Vsync       => Vsync,
+  --    --
+  --    PixelIn     => G,
+  --    PixelInVal  => GrayScaleVal_D,
+  --    --
+  --    PixelOut    => G_Dithered,
+  --    PixelOutVal => G_DitheredVal
+  --    );
 
-  BlueDither : entity work.DitherFloydSteinberg
-    generic map (
-      DataW     => 8,
-      CompDataW => 2
-      )
-    port map (
-      RstN        => RstN,
-      Clk         => Clk,
-      --
-      Vsync       => Vsync,
-      --
-      PixelIn     => B,
-      PixelInVal  => GrayScaleVal_D,
-      --
-      PixelOut    => B_Dithered,
-      PixelOutVal => B_DitheredVal
-      );
+  --BlueDither : entity work.DitherFloydSteinberg
+  --  generic map (
+  --    DataW     => 8,
+  --    CompDataW => 2
+  --    )
+  --  port map (
+  --    RstN        => RstN,
+  --    Clk         => Clk,
+  --    --
+  --    Vsync       => Vsync,
+  --    --
+  --    PixelIn     => B,
+  --    PixelInVal  => GrayScaleVal_D,
+  --    --
+  --    PixelOut    => B_Dithered,
+  --    PixelOutVal => B_DitheredVal
+  --    );
   
     --GreenFeed    : Color(GreenHigh downto GreenLow) <= G(G'high downto 5);
     --RedFeed      : Color(RedHigh downto RedLow)     <= R(R'high downto 5);
     --BlueFeed     : Color(BlueHigh downto BlueLow)   <= B(B'high downto 6);
 
-    GreenFeed    : Color(GreenHigh downto GreenLow) <= G_Dithered;
-    RedFeed      : Color(RedHigh downto RedLow)     <= R_Dithered;
-    BlueFeed     : Color(BlueHigh downto BlueLow)   <= B_Dithered;
+    --GreenFeed    : Color(GreenHigh downto GreenLow) <= G_Dithered;
+    --RedFeed      : Color(RedHigh downto RedLow)     <= R_Dithered;
+    --BlueFeed     : Color(BlueHigh downto BlueLow)   <= B_Dithered;
+    --ColorValFeed        : ColorOutVal     <= G_DitheredVal;
 
---    RedFeed      : Color(RedHigh downto RedLow)     <= (others => '0');
---    BlueFeed     : Color(BlueHigh downto BlueLow)   <= (others => '0');
---  ColorValFeed : ColorOutVal                      <= B_DitheredVal;
+    GreenFeed    : Color(GreenHigh downto GreenLow) <= (others => '0');
+    RedFeed      : Color(RedHigh downto RedLow)     <= (others => '0');
+    BlueFeed     : Color(BlueHigh downto BlueLow)   <= (others => '0');
+    ColorValFeed : ColorOutVal                      <= B_DitheredVal;
   
-  ColorValFeed        : ColorOutVal     <= G_DitheredVal;
   --
   GrayScaleOutValFeed : GrayScaleOutVal <= GrayScaleVal_D;
   GrayScaleOutFeed    : GrayScaleOut    <= Y_D;
